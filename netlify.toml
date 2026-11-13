@@ -1,0 +1,11 @@
+[build]
+  publish = "public"
+  command = "node build.mjs"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/_blob/*"
+  to = "/api/asset/:splat"
+  status = 200
