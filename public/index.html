@@ -133,6 +133,11 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .adm2 b{background:none;padding:0;margin:0;font-size:13px}
 header.hero.isadm{padding-top:104px}
 .mno{min-width:34px;text-align:center;font-weight:800;color:var(--olive-d)}
+button.mnob{background:#eef2dc;border:1px dashed var(--olive);border-radius:10px;padding:6px 8px;font:inherit;font-weight:800;color:var(--olive-d);cursor:pointer;min-width:58px}
+.noed{background:#f8f6ee;border-radius:12px;padding:10px;margin:-2px 0 8px}
+.noed .r{display:flex;gap:6px}.noed input{flex:1;min-width:0}
+.nomsg{margin-top:8px;font-size:14px;line-height:1.6}.nomsg.ok{color:#2f6b1f}.nomsg.bad{color:#9a3b2e}
+.nomsg button{padding:4px 10px;font-size:13px;margin-top:4px}
 .lbtabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin-bottom:4px}
 .lbtabs button{flex:0 0 auto;background:var(--card);color:var(--mute);border:1px solid var(--line);padding:8px 12px;font-size:13px;white-space:nowrap}
 .lbtabs button.on{background:var(--olive);color:#fff;border-color:var(--olive)}
@@ -479,7 +484,7 @@ function entries(mid,rs){
   for(const [uid,r] of Object.entries(rs)){
     if(!isOk(uid))continue;
     const x=r&&r.m&&r.m[mid];
-    if(x&&x.s)a.push({uid,s:x.s,g:Math.max(0,Math.min(5,+x.g||0)),ts:+x.ts||0});
+    if(x&&x.s)a.push({uid,s:x.s,g:Math.max(0,Math.min(5,+x.g||0)),ts:+x.ts||0,vol:x.s==='sub'&&x.w===0});
   }
   return a.sort(byTs);
 }
@@ -489,16 +494,16 @@ function layout(mid,rs=S.rsvps){
   const all=entries(mid,rs);
   const going=[],queue=[];let used=0;
   const place=p=>{const g=Math.max(0,Math.min(p.g,cap-used-1));going.push({...p,gEff:g});used+=1+g};
-  const subs=all.filter(p=>p.s==='sub');
+  const vol=all.filter(p=>p.vol);const subs=all.filter(p=>p.s==='sub'&&!p.vol);
   if(cap===Infinity){
     all.filter(p=>p.s==='in').forEach(place);
     queue.push(...subs);
   }else{
     /* الأساسي والاحتياط يدخلون بالترتيب حسب وقت التسجيل: أول واحد يسجل أول واحد ياخذ المقعد */
-    for(const p of all.filter(p=>p.s==='in'||p.s==='sub')){ if(used<cap)place(p); else queue.push(p); }
+    for(const p of all.filter(p=>p.s==='in'||(p.s==='sub'&&!p.vol))){ if(used<cap)place(p); else queue.push(p); }
   }
   going.sort(byTs);
-  return {cap,used,going,queue,out:all.filter(p=>p.s==='out'),watch:all.filter(p=>p.s==='watch')};
+  return {cap,used,going,queue,vol,out:all.filter(p=>p.s==='out'),watch:all.filter(p=>p.s==='watch')};
 }
 function effOf(mid,uid,rs=S.rsvps){
   const L=layout(mid,rs);
@@ -623,9 +628,10 @@ function renderSheet(){
   let msg='';
   if(eff==='wait')msg=`المقاعد ممتلئة. أنت رقم ${qi+1} في الاحتياط، وتصعد تلقائيًا لو انسحب أحد.`;
   else if(eff==='in'&&my.s==='sub')msg='تم تصعيدك لقائمة الأساسيين 🎉';
+  else if(my.s==='sub'&&my.w===0)msg='أنت مسجل احتياط. ما تصعد تلقائيًا؛ إذا تبي مقعد اضغط Going.';
   if(me&&my.s==='in'&&me.gEff<my.g)msg=(msg?msg+'<br>':'')+`تم تقليص Guests إلى ${me.gEff} حسب المقاعد المتاحة.`;
   const full=L.cap!==Infinity&&L.used>=L.cap;
-  const subOk=L.cap===Infinity||full||my.s==='sub';
+  const subOk=true;
   $('#shBody').innerHTML=`
     <h3>${esc(matchTitle(m))}</h3>
     <div class="sub">📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}</div>
@@ -634,13 +640,12 @@ function renderSheet(){
     ${L.cap!==Infinity?`<div class="sub">👥 السعة: ${L.cap} (${m.format} ضد ${m.format})</div>`:''}
     ${m.note?`<div class="sub">📝 ${esc(m.note)}</div>`:''}
     ${past?`<div class="msg">هذي المباراة انلعبت</div>`:`<div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&(k!=='sub'||subOk)?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
-    ${L.cap!==Infinity&&!subOk?'<div class="hint">خيار الاحتياط يتفعل لما تكتمل المقاعد</div>':''}
-    ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
+        ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
     ${m.fee&&eff==='in'&&!past?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
     ${msg?`<div class="msg">${msg}</div>`:''}
     ${accessHint()}`}
     ${grp('Going','✅',L.cap===Infinity?L.used:L.used+'/'+L.cap,L.going,false)}
-    ${grp('احتياط','🪑',L.queue.length,L.queue,true)}
+    ${grp('احتياط','🪑',L.queue.length+L.vol.length,L.queue.concat(L.vol),true)}
     ${grp('Not Going','❌',L.out.length,L.out,false)}
     ${grp('مشاهد','👀',L.watch.length,L.watch,false)}
     ${teamsHtml(openId)}
@@ -673,6 +678,7 @@ function setRsvp(s,gst){
     else{
       /* الوقت يتغير بس لما تتغير الحالة، تعديل Guests ما يضيع دورك */
       m[mid]={s,g:s==='in'?gst:0,ts:prev&&prev.s===s&&prev.ts?prev.ts:Date.now()};
+      if(s==='sub'){const full0=(()=>{const L0=layout(mid,{...S.rsvps,[myId]:{...cur,m:Object.fromEntries(Object.entries(m).filter(([k])=>k!==mid))}});return L0.cap!==Infinity&&L0.used>=L0.cap})();m[mid].w=prev&&prev.s==='sub'&&prev.w!==undefined?prev.w:(full0?1:0)}
       e[mid]=effOf(mid,myId,{...S.rsvps,[myId]:{...cur,m}});
     }
     return {...cur,m,e,n};
@@ -956,7 +962,7 @@ $('#adBody').addEventListener('click',e=>{
   if(d.aw){openAward(d.aw);return}
   const setAccess=(u,status)=>{chain=chain.then(()=>db.doc('access/'+u).set({...(S.access[u]||{}),status,ts:Date.now()})).catch(()=>note('ما انحفظ القرار'))};
   if(d.ap)setAccess(d.ap,'ok');
-  else if(d.no)setAccess(d.no,'no');
+  else if(d.no){const a={...(S.access[d.no]||{})};delete a.no;chain=chain.then(()=>db.doc('access/'+d.no).set({...a,status:'no',ts:Date.now()})).catch(()=>note('ما انحفظ القرار'))}
   else if(d.rm){
     if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد الحذف؟';return}
     const u=d.rm;
@@ -1256,18 +1262,20 @@ $('#voBody').addEventListener('click',e=>{
 });
 
 /* ---------- أرقام العضوية والنشطين ---------- */
-const maxNo=()=>Math.max(0,...Object.values(S.access).map(a=>+a.no||0));
 async function assignNumbers(){
   if(numbering||!isAdmin()||!db||!S.ready.access||!S.ready.config)return;
-  const missing=Object.keys(S.access).filter(u=>S.access[u].status==='ok'&&!S.access[u].no);
+  const oks=Object.keys(S.access).filter(u=>S.access[u].status==='ok');
+  const taken=new Set(),missing=[];
+  /* ما يحتسب إلا رقم واحد لكل معتمد؛ التكرار يُعاد ترقيمه */
+  oks.sort((a,b)=>((S.access[a].ts||0)-(S.access[b].ts||0)));
+  for(const u of oks){const n=+S.access[u].no;if(n>0&&!taken.has(n))taken.add(n);else missing.push(u)}
   if(!missing.length)return;
   numbering=true;
   try{
     /* أنت (الأدمن) أول واحد = رقم 1، وبعدك على حسب وقت الاعتماد */
     missing.sort((a,b)=>(a===myId?-1:b===myId?1:0)||((S.access[a].ts||0)-(S.access[b].ts||0)));
-    let next=Math.max(+((S.config.members||{}).next)||0,maxNo()+1,1);
-    for(const u of missing){await db.doc('access/'+u).set({...S.access[u],no:next});next++}
-    await db.doc('config/members').set({next});
+    /* أصغر رقم فاضي: الرقم اللي انحذف صاحبه يروح لأول لاعب يتعتمد بعده */
+    for(const u of missing){let n=1;while(taken.has(n))n++;taken.add(n);await db.doc('access/'+u).set({...S.access[u],no:n})}
   }catch(e){}
   numbering=false;
 }
@@ -1285,12 +1293,15 @@ function activeInfo(){
   }
   return {n:last.length,cnt};
 }
-let memTab='reg';
+let memTab='reg',editNo=null;
+const noOwner=(n,ex)=>regList().find(u=>u!==ex&&+S.access[u].no===n)||null;
 function renderMembers(){
   for(const b of document.querySelectorAll('#memTabs button'))b.classList.toggle('on',b.dataset.t===memTab);
   const reg=regList();ensureNames(reg);
   const numOf=u=>S.access[u]&&S.access[u].no?S.access[u].no:'—';
-  const row=(u,extra)=>`<div class="ent"><div class="who"><span class="mno">#${numOf(u)}</span>${avatar(u)}<div>${nameLink(u)}<small>${esc(posLabel((S.players[u]||{}).pos)||'')}${extra?(posLabel((S.players[u]||{}).pos)?' · ':'')+extra:''}</small></div></div></div>`;
+  const noEl=u=>isAdmin()&&memTab==='reg'?`<button class="mno mnob" data-eno="${esc(u)}" title="تعديل رقم العضوية">#${numOf(u)} ✎</button>`:`<span class="mno">#${numOf(u)}</span>`;
+  const edRow=u=>editNo===u?`<div class="noed"><div class="r"><input id="noIn" type="number" min="1" inputmode="numeric" placeholder="الرقم الجديد" value="${esc(S.access[u].no||'')}"><button id="noSave" data-nsave="${esc(u)}">حفظ</button><button class="ghost" data-ncancel="1">إلغاء</button></div><div id="noMsg" class="nomsg"></div></div>`:'';
+  const row=(u,extra)=>`<div class="ent"><div class="who">${noEl(u)}${avatar(u)}<div>${nameLink(u)}<small>${esc(posLabel((S.players[u]||{}).pos)||'')}${extra?(posLabel((S.players[u]||{}).pos)?' · ':'')+extra:''}</small></div></div></div>${edRow(u)}`;
   if(memTab==='reg'){
     $('#memBody').innerHTML=`<div class="sub">${reg.length} لاعب مسجل، مرتبين من الأقدم للأحدث</div>`+(reg.length?reg.map(u=>row(u,'')).join(''):'<div class="empty">ما أحد للحين</div>');
   }else{
@@ -1303,10 +1314,33 @@ function updateChip(){
   if(!isAdmin())return;
   $('#mReg').textContent=regList().length;
   $('#mAct').textContent=Object.keys(activeInfo().cnt).length;
-  if($('#dMembers').open)renderMembers();
+  if($('#dMembers').open&&!editNo)renderMembers();
 }
-$('#memBtn').onclick=()=>{renderMembers();$('#dMembers').showModal()};
-$('#memTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){memTab=b.dataset.t;renderMembers()}});
+$('#memBtn').onclick=()=>{editNo=null;renderMembers();$('#dMembers').showModal()};
+$('#memTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){memTab=b.dataset.t;editNo=null;renderMembers()}});
+function noCheck(){
+  const u=editNo;if(!u)return null;
+  const raw=$('#noIn').value.trim(),n=/^\d+$/.test(raw)?parseInt(raw,10):0,m=$('#noMsg'),sv=$('#noSave');
+  let st='bad',html='';
+  if(n<1)html='اكتب رقم صحيح (1 أو أكثر)';
+  else if(n===+S.access[u].no){html='هذا رقمه الحالي';}
+  else{const o=noOwner(n,u);
+    if(o){html=`❌ الرقم ${n} مستخدم عند <b>${esc(nameOf(o))}</b> (#${n}). <button class="ghost" data-nswap="${esc(o)}">بدّل الرقمين بينهم</button>`}
+    else{st='ok';html=`✅ الرقم ${n} متاح`}}
+  m.className='nomsg '+st;m.innerHTML=html;sv.disabled=st!=='ok';
+  return st==='ok'?n:null;
+}
+$('#memBody').addEventListener('input',e=>{if(e.target.id==='noIn')noCheck()});
+$('#memBody').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b||!isAdmin())return;const d=b.dataset;
+  if(d.eno){editNo=d.eno;renderMembers();const i=$('#noIn');if(i){i.focus();noCheck()}return}
+  if(d.ncancel){editNo=null;renderMembers();return}
+  try{
+    if(d.nsave){const n=noCheck();if(!n)return;await db.doc('access/'+d.nsave).set({...S.access[d.nsave],no:n});editNo=null;renderMembers();note('تم تغيير الرقم إلى #'+n)}
+    else if(d.nswap){const u=editNo,n=+S.access[d.nswap].no,old=+S.access[u].no||0;
+      await db.doc('access/'+d.nswap).set({...S.access[d.nswap],no:old||undefined});await db.doc('access/'+u).set({...S.access[u],no:n});editNo=null;renderMembers();note('تم التبديل')}
+  }catch(err){note('ما انحفظ الرقم، جرب مرة ثانية')}
+});
 
 /* ---------- تقسيمة الفريقين ---------- */
 function teamsHtml(mid){
