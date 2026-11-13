@@ -20,7 +20,7 @@ header.hero{background:linear-gradient(160deg,var(--wood-d),var(--wood) 60%,var(
 .hero h1{font-size:26px;font-weight:800;margin-top:6px}
 .hero p{font-size:14px;opacity:.8;margin-top:2px}
 nav.bar{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px;margin:-28px 0 22px;box-shadow:0 6px 18px rgba(62,40,28,.12);position:relative}
-nav.bar a{flex:1;text-align:center;text-decoration:none;color:var(--mute);padding:8px 2px;border-radius:13px;font-size:12px;font-weight:700;cursor:pointer}
+nav.bar a{flex:1;min-width:0;text-align:center;text-decoration:none;color:var(--mute);padding:8px 1px;border-radius:13px;font-size:11px;line-height:1.25;font-weight:700;cursor:pointer}
 nav.bar a .i{display:block;font-size:22px;line-height:1.3}
 nav.bar a.on{background:var(--olive);color:#fff}
 h2{font-size:17px;font-weight:800;margin:26px 0 10px;color:var(--wood)}
@@ -134,6 +134,8 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 header.hero.isadm{padding-top:104px}
 .mno{min-width:34px;text-align:center;font-weight:800;color:var(--olive-d)}
 button.mnob{background:#eef2dc;border:1px dashed var(--olive);border-radius:10px;padding:6px 8px;font:inherit;font-weight:800;color:var(--olive-d);cursor:pointer;min-width:58px}
+.card.ban,.msg.ban{background:#fbeae6;border:2px solid #9a3b2e;color:#7a2a20;border-radius:14px;padding:12px;line-height:1.7}
+.sanc select,.sanc input{width:100%;margin:4px 0}.sanc .bn{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.sanc .bn small{color:var(--mute);display:block}
 .noed{background:#f8f6ee;border-radius:12px;padding:10px;margin:-2px 0 8px}
 .noed .r{display:flex;gap:6px}.noed input{flex:1;min-width:0}
 .nomsg{margin-top:8px;font-size:14px;line-height:1.6}.nomsg.ok{color:#2f6b1f}.nomsg.bad{color:#9a3b2e}
@@ -229,6 +231,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <a data-v="board"><span class="i">🏆</span>Leaderboard</a>
     <a data-v="awards"><span class="i">🏅</span>Bibi Awards</a>
     <a data-v="media"><span class="i">📸</span>صور وفيديو</a>
+    <a data-v="rules"><span class="i">📜</span>قوانين اللعب</a>
   </nav>
   <div id="toast"></div>
   <div id="status"></div>
@@ -238,7 +241,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <div id="ann"></div>
     <div class="admin" data-admin><button class="ghost" id="addMatch">+ إعلان لعب جديد</button></div>
     <div id="notifCard"></div>
-    <h2>📢 الفيد</h2>
+    <h2>📢 Feed</h2>
     <div id="feed"></div>
     <div class="admin" data-admin><button class="ghost" id="addPost">+ منشور جديد</button></div>
 
@@ -268,6 +271,10 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <h2>🏅 Bibi Awards</h2>
     <div id="awPage"></div>
   </main>
+  <main id="v-rules" hidden>
+    <h2>📜 قوانين اللعب</h2>
+    <div class="card" id="rulesBody"><div class="empty">القوانين قيد الصياغة، راح تنزل هني قريب بإذن الله.</div></div>
+  </main>
   <main id="v-media" hidden>
     <h2>صور وفيديو</h2>
     <div class="gal" id="mediaGrid"></div>
@@ -278,7 +285,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 
 <dialog class="sheet" id="dPost">
   <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <h3>📢 منشور جديد في الفيد</h3>
+  <h3>📢 منشور جديد في Feed</h3>
   <textarea id="postTxt" class="sht" maxlength="800" placeholder="اكتب الإعلان…"></textarea>
   <div class="row"><button id="postSave">نشر</button></div>
 </dialog>
@@ -456,7 +463,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -536,7 +543,7 @@ function fmtDate(d){
 }
 function matchCard(m){
   const today=todayStr();
-  const f=fmtDate(m.date);const up=m.date>=today;
+  const f=fmtDate(m.date);const up=!isDone(m);
   return `<div class="card ann ${up?'':'pastc'}" data-id="${esc(m.id)}"><div class="d"><b>${esc(f.day)}</b><span>${esc(f.mon)}</span></div>
       <div><div class="t">${esc(matchTitle(m))}<span class="tag ${up?'up':'done'}">${up?'قادم':'انلعب'}</span></div>
       <div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}${m.note?' · '+esc(m.note):''}</div>
@@ -545,17 +552,17 @@ function matchCard(m){
 }
 function renderAnn(){
   const t=todayStr();
-  const list=S.matches.filter(m=>m.date&&m.date>=t).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,3);
-  $('#ann').innerHTML=list.length?list.map(matchCard).join(''):'<div class="card empty">ما فيه لعب قادم حاليًا، تابع الفيد 👇</div>';
+  const list=S.matches.filter(m=>m.date&&!isDone(m)).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,3);
+  $('#ann').innerHTML=list.length?list.map(matchCard).join(''):'<div class="card empty">ما فيه لعب قادم حاليًا، تابع Feed 👇</div>';
 }
 let logTab='all';
 function renderLog(){
   const t=todayStr();
   const all=[...S.matches].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.time||'').localeCompare(a.time||''));
-  const nUp=all.filter(m=>m.date>=t).length;
+  const nUp=all.filter(m=>!isDone(m)).length;
   $('#logSum').textContent=`${all.length} مباراة · ${all.length-nUp} منتهية · ${nUp} قادمة`;
   for(const b of document.querySelectorAll('#logTabs button'))b.classList.toggle('on',b.dataset.t===logTab);
-  let list=all.filter(m=>logTab==='all'||(logTab==='up'?m.date>=t:m.date<t));
+  let list=all.filter(m=>logTab==='all'||(logTab==='up'?!isDone(m):isDone(m)));
   if(logTab==='up')list.reverse();
   $('#logList').innerHTML=list.length?list.map(matchCard).join(''):'<div class="card empty">ما فيه مباريات هني</div>';
 }
@@ -616,7 +623,7 @@ function renderSheet(){
   const f=fmtDate(m.date);
   const my=(S.rsvps[myId]&&S.rsvps[myId].m&&S.rsvps[myId].m[openId])||{};
   const L=layout(openId);
-  const past=!!m.date&&m.date<todayStr();
+  const past=isDone(m);
   ensureNames(Object.keys(S.rsvps));
   const url=safeUrl(m.mapUrl);
     const li=(p,i,g)=>`<li>${i!=null?`<b>${i+1}.</b> `:''}${avatar(p.uid,'sm')}${nameLink(p.uid)}${g?` <i>+${g}</i>`:''}<span class="ts">${esc(fmtTs(p.ts))}</span>${m.fee&&isAdmin()&&L.going.includes(p)?`<button class="pay ${isPaid(openId,p.uid)?'on':''}" data-payu="${esc(p.uid)}">${isPaid(openId,p.uid)?'✅ دفع':'⭕ ما دفع'}</button>`:''}</li>`;
@@ -632,6 +639,7 @@ function renderSheet(){
   if(me&&my.s==='in'&&me.gEff<my.g)msg=(msg?msg+'<br>':'')+`تم تقليص Guests إلى ${me.gEff} حسب المقاعد المتاحة.`;
   const full=L.cap!==Infinity&&L.used>=L.cap;
   const subOk=true;
+  const bi=myId?banBlocks(myId,openId):null;
   $('#shBody').innerHTML=`
     <h3>${esc(matchTitle(m))}</h3>
     <div class="sub">📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}</div>
@@ -639,9 +647,10 @@ function renderSheet(){
     ${m.fee?`<div class="feeb big">💰 القطية ${esc(m.fee)} د.ك على الشخص${isAdmin()?` · دفعوا ${L.going.filter(p=>isPaid(openId,p.uid)).length}/${L.going.length}`:''}</div>`:''}
     ${L.cap!==Infinity?`<div class="sub">👥 السعة: ${L.cap} (${m.format} ضد ${m.format})</div>`:''}
     ${m.note?`<div class="sub">📝 ${esc(m.note)}</div>`:''}
-    ${past?`<div class="msg">هذي المباراة انلعبت</div>`:`<div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&(k!=='sub'||subOk)?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
+    ${past?`<div class="msg">هذي المباراة انلعبت</div>`:`<div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&(k!=='sub'||subOk)&&!(bi&&(k==='in'||k==='sub'))?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
         ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
     ${m.fee&&eff==='in'&&!past?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
+    ${bi?`<div class="msg ban">${esc(banText(bi))}<br><small>ما تقدر تسجل Going أو احتياط في هذي المباراة. تقدر تختار Not Going أو مشاهد.</small></div>`:''}
     ${msg?`<div class="msg">${msg}</div>`:''}
     ${accessHint()}`}
     ${grp('Going','✅',L.cap===Infinity?L.used:L.used+'/'+L.cap,L.going,false)}
@@ -671,6 +680,7 @@ const saveMine=fn=>saveOwn('rsvps',fn);
 function setRsvp(s,gst){
   const mid=openId;
   if(!db||!myId||!mid||myStatus()!=='ok')return;
+  if((s==='in'||s==='sub')){const bi=banBlocks(myId,mid);if(bi){note(banText(bi));setTimeout(()=>note(''),6000);return}}
   saveMine(cur=>{
     const m={...(cur.m||{})},e={...(cur.e||{})},n={...(cur.n||{})};
     const prev=m[mid];
@@ -751,6 +761,17 @@ function statusOf(uid){
   return S.players[uid]?'pending':'new';
 }
 const myStatus=()=>myId?statusOf(myId):'out';
+/* ---------- العقوبات (الحرمان من اللعب) ---------- */
+const BAN_REASONS=['لعب خشن','عدم الالتزام بقوانين القروب','التسبب بإصابة لاعب آخر','عدم حضور اللعب بالرغم من التسجيل كحاضر','الانسحاب بالساعة الأخيرة قبل اللعب','شتم لاعب آخر','تصرف غير لائق','التعدي على صلاحية المنظم'];
+/* الحرمان يغطي أول N مباريات تبدأ بعد وقت فرض العقوبة */
+function banInfo(uid){
+  const b=S.bans[uid];if(!b||!(+b.games>0))return null;
+  const cov=S.matches.filter(m=>m.date&&isFinite(matchStartMs(m))&&matchStartMs(m)>(+b.ts||0)).sort((x,y)=>matchStartMs(x)-matchStartMs(y)).slice(0,+b.games);
+  const served=cov.filter(isDone).length,left=Math.max(0,+b.games-served);
+  return {b,ids:new Set(cov.map(m=>m.id)),served,left,active:left>0};
+}
+const banBlocks=(uid,mid)=>{const i=banInfo(uid);if(!i||!i.active||!i.ids.has(mid))return null;const m=S.matches.find(x=>x.id===mid);return m&&!isDone(m)?i:null};
+const banText=i=>`⛔ عندك حرمان من اللعب: بقي ${i.left} من ${i.b.games} ${i.b.games>10?'':'قيمز'} · السبب: ${i.b.reason||'—'}`;
 function accessHint(){
   const st=myStatus();
   if(st==='ok')return '<div class="hint">اضغط على خيارك مرة ثانية لإلغائه</div>';
@@ -766,6 +787,7 @@ function renderStatus(){
   h+=st==='new'?'<div class="card cta"><div><b>👋 خطوة أولى: أنشئ بروفايلك</b><br><small>اكتب اسمك ومركزك، وينرسل طلبك لحمد. بعد الموافقة تقدر تأكد حضورك.</small></div><button id="joinBtn">أنشئ بروفايلي</button></div>'
     :st==='pending'?'<div class="card">⏳ طلبك بانتظار موافقة حمد</div>'
     :st==='no'?'<div class="card">❌ ما تمت الموافقة على طلبك</div>':'';
+  {const bi0=banInfo(myId);if(bi0&&bi0.active)h+=`<div class="card ban"><div><b>${esc(banText(bi0))}</b><br><small>ما تقدر تسجل حضور في المباريات المشمولة بالحرمان. للاستفسار كلم حمد.</small></div></div>`}
   const NP=loadNP(),now=Date.now();
   if(st==='ok'||isAdmin()){
     if(NP.ann&&st==='ok'){
@@ -827,10 +849,12 @@ function toAvatar(file){
 /* ---------- صفحة اللاعب ---------- */
 let curP=null,newPhoto=null,lastSig='';
 const todayStr=()=>new Date().toLocaleDateString('en-CA');
+/* المباراة تعتبر منتهية بعد 3 ساعات من وقت بدايتها */
+const isDone=m=>{if(!m||!m.date)return false;if(!m.time)return m.date<todayStr();const st=matchStartMs(m);return isFinite(st)?Date.now()>=st+3*3600000:m.date<todayStr()};
 const canEditP=uid=>!!myId&&(uid===myId||isAdmin());
 const canStat=uid=>canEditP(uid)&&(isAdmin()||statusOf(uid)==='ok');
-function pastAll(){const t=todayStr();return S.matches.filter(m=>m.date&&m.date<=t).sort((a,b)=>b.date.localeCompare(a.date))}
-function pastMatches(){const t=todayStr();return S.matches.filter(m=>isFB(m)&&m.date&&m.date<=t).sort((a,b)=>b.date.localeCompare(a.date))}
+function pastAll(){return S.matches.filter(m=>isDone(m)).sort((a,b)=>b.date.localeCompare(a.date))}
+function pastMatches(){return S.matches.filter(m=>isFB(m)&&isDone(m)).sort((a,b)=>b.date.localeCompare(a.date))}
 function formSig(){
   const uid=curP;if(!uid)return '';
   const pr=S.players[uid]||{};
@@ -935,6 +959,24 @@ $('#plDyn').addEventListener('click',e=>{
 });
 
 /* ---------- لوحة الأدمن ---------- */
+let sanc={uid:'',games:1,reason:BAN_REASONS[0],other:''};
+function sancHtml(){
+  const oks=Object.keys(S.access).filter(isOk);ensureNames(oks);
+  oks.sort((a,b)=>nameOf(a).localeCompare(nameOf(b),'ar'));
+  if(!sanc.uid||!oks.includes(sanc.uid))sanc.uid='';
+  const bans=Object.keys(S.bans).filter(u=>S.bans[u]&&+S.bans[u].games>0);
+  const opt=(v,l,sel)=>`<option value="${esc(v)}" ${sel?'selected':''}>${esc(l)}</option>`;
+  const cur=sanc.uid&&banInfo(sanc.uid);
+  return `<h2>⚖️ العقوبات</h2><div class="card sanc">
+    <label>اللاعب</label><select data-sc="uid">${opt('','— اختر لاعب —',!sanc.uid)}${oks.map(u=>opt(u,nameOf(u),u===sanc.uid)).join('')}</select>
+    <label>عدد المباريات (حد أقصى 10)</label><select data-sc="games">${[1,2,3,4,5,6,7,8,9,10].map(n=>opt(n,n+(n===1?' مباراة':' مباريات'),n===sanc.games)).join('')}</select>
+    <label>السبب</label><select data-sc="reason">${BAN_REASONS.map(r=>opt(r,r,r===sanc.reason)).join('')}${opt('__other','أخرى…',sanc.reason==='__other')}</select>
+    ${sanc.reason==='__other'?`<input data-sc="other" placeholder="اكتب السبب" maxlength="120" value="${esc(sanc.other)}">`:''}
+    ${cur&&cur.active?`<div class="hint">⚠️ عنده حرمان فعال (بقي ${cur.left}). تطبيق حرمان جديد يستبدله.</div>`:''}
+    <div class="row"><button data-scapply="1" ${sanc.uid&&(sanc.reason!=='__other'||sanc.other.trim())?'':'disabled'}>تطبيق الحرمان</button></div>
+    ${bans.length?'<h3 style="margin:14px 0 4px">العقوبات المسجلة</h3>'+bans.map(u=>{const i=banInfo(u);return `<div class="bn"><div><b>${esc(nameOf(u))}</b><small>${i.active?`بقي ${i.left} من ${i.b.games} قيمز`:'منتهي'} · ${esc(i.b.reason||'')}</small></div><button class="ghost red" data-scdel="${esc(u)}">رفع</button></div>`}).join(''):''}
+  </div>`;
+}
 function renderAdmin(){
   const ids=Object.keys(S.players);
   const g={pending:[],ok:[],no:[]};
@@ -944,7 +986,7 @@ function renderAdmin(){
   const btn=(k,u,l,c='')=>`<button class="${c}" data-${k}="${esc(u)}">${l}</button>`;
   const me=myId?`<div class="ent"><div class="who">${avatar(myId)}<div><b>${esc(nameOf(myId))}</b><small>ملفي الشخصي${posLabel((S.players[myId]||{}).pos)?' · '+esc(posLabel(S.players[myId].pos)):''}</small></div></div><div class="b"><button class="ok" data-me="1">فتح ملفي</button></div></div>`:'';
   const sec=(t,list,fn)=>`<h2>${t} (${list.length})</h2>${list.length?list.sort(byName).map(fn).join(''):'<div class="empty">ما أحد</div>'}`;
-  $('#adBody').innerHTML=me+awardsAdminHtml()+
+  $('#adBody').innerHTML=me+awardsAdminHtml()+sancHtml()+
     sec('بانتظار الموافقة',g.pending,u=>row(u,btn('ap',u,'قبول','ok')+btn('no',u,'رفض','red')))+
     sec('المعتمدين',g.ok,u=>row(u,u===myId?'':btn('rm',u,'حذف','red')))+
     sec('المرفوضين',g.no,u=>row(u,btn('ap',u,'قبول','ok')+btn('rm',u,'حذف','red')));
@@ -955,6 +997,35 @@ function updateBadge(){
   b.hidden=!n;b.textContent=n;
 }
 $('#adminBtn').onclick=()=>{renderAdmin();$('#dAdmin').showModal()};
+$('#adBody').addEventListener('change',e=>{
+  const k=e.target.dataset&&e.target.dataset.sc;if(!k)return;
+  sanc[k]=k==='games'?+e.target.value:e.target.value;
+  if(k==='reason')renderAdmin();else{const b=$('#adBody [data-scapply]');if(b)b.disabled=!(sanc.uid&&(sanc.reason!=='__other'||sanc.other.trim()))}
+});
+$('#adBody').addEventListener('input',e=>{
+  if(!(e.target.dataset&&e.target.dataset.sc==='other'))return;
+  sanc.other=e.target.value;const b=$('#adBody [data-scapply]');if(b)b.disabled=!(sanc.uid&&sanc.other.trim());
+});
+$('#adBody').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b||!isAdmin())return;
+  try{
+    if(b.dataset.scapply){
+      if(!sanc.uid)return;
+      const reason=sanc.reason==='__other'?sanc.other.trim():sanc.reason;if(!reason)return;
+      const games=Math.max(1,Math.min(10,+sanc.games||1)),u=sanc.uid;
+      await db.doc('bans/'+u).set({games,reason,ts:Date.now()});
+      S.bans[u]={games,reason,ts:Date.now()};
+      /* ألغِ تسجيله (Going/احتياط) في المباريات المشمولة */
+      const i=banInfo(u),r=S.rsvps[u];
+      if(i&&r&&r.m){const m={...r.m},e2={...(r.e||{})};let ch=false;for(const id of i.ids){if(m[id]&&(m[id].s==='in'||m[id].s==='sub')){delete m[id];delete e2[id];ch=true}}if(ch)await db.doc('rsvps/'+u).set({...r,m,e:e2})}
+      sanc={uid:'',games:1,reason:BAN_REASONS[0],other:''};renderAdmin();note('تم تطبيق الحرمان');setTimeout(()=>note(''),2500);
+    }else if(b.dataset.scdel){
+      if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟';return}
+      await db.doc('bans/'+b.dataset.scdel).delete();delete S.bans[b.dataset.scdel];renderAdmin();
+    }
+  }catch(err){note('ما انحفظ، جرب مرة ثانية')}
+});
+
 $('#adBody').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!isAdmin())return;
   const d=b.dataset;
@@ -1284,7 +1355,7 @@ function regList(){
 }
 function activeInfo(){
   const t=todayStr();
-  const last=S.matches.filter(m=>isFB(m)&&m.date&&m.date<=t).sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||'')).slice(0,5);
+  const last=S.matches.filter(m=>isFB(m)&&isDone(m)).sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||'')).slice(0,5);
   const cnt={};
   for(const m of last){
     const here=new Set(layout(m.id).going.map(p=>p.uid));
@@ -1642,7 +1713,7 @@ $('#ntBody').addEventListener('click',async e=>{
 });
 let lastMst='';
 setInterval(()=>{
-  try{renderStatus();finalizeMotm();
+  try{renderStatus();renderAnn();renderLog();finalizeMotm();
     if($('#dSheet').open&&openId){const m=S.matches.find(x=>x.id===openId);const sg=m?motmState(m).s:'';if(sg!==lastMst){lastMst=sg;renderSheet()}}
   }catch(e){}
 },60000);
@@ -1655,7 +1726,7 @@ function sub(path,key,toMap){
     if(toMap){S[key]={};sn.docs.forEach(d=>S[key][d.id]=d.data())}
     else S[key]=sn.docs.map(d=>({id:d.id,...d.data()}));
     if(key==='access'&&S.ready.access&&myId&&isAdmin()&&!isOk(myId)&&!adminSeeded){
-      adminSeeded=true;db.doc('access/'+myId).set({status:'ok',ts:Date.now()}).catch(()=>{});
+      adminSeeded=true;db.doc('access/'+myId).set({status:'ok',ts:Date.now()}).catch(()=>{adminSeeded=false});
     }
     renderAll();
     if(key==='access'||key==='config')assignNumbers();
@@ -1669,7 +1740,7 @@ async function init(){
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
   if(myId&&!isAdmin())$('#meBtn').hidden=false;
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}
