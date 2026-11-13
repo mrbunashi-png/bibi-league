@@ -444,7 +444,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     await refresh(true);gateRes();
     timer=setInterval(()=>{if(!document.hidden)refresh(false)},40000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(false)});
-    const b=document.createElement('button');b.id='lgout';b.textContent='خروج';b.onclick=async()=>{await BibiAuth.logout();location.reload()};document.body.appendChild(b);
+    const b=document.createElement('button');b.id='lgout';b.textContent='تسجيل الخروج';b.onclick=async()=>{await BibiAuth.logout();location.reload()};document.body.appendChild(b);
   })();
 })();
 </script>
