@@ -153,6 +153,11 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 #status .card.cta button{background:var(--olive);color:#fff;white-space:nowrap}
 #status .card{margin-top:10px;font-size:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gal figure{cursor:pointer}
+.gal.v{display:flex;flex-direction:column;gap:16px}
+.gal.v .mcard{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gal.v figure{aspect-ratio:4/3;border-radius:0}
+.mcd{padding:10px 14px 12px}.mcm b{display:block;font-size:14px;color:var(--wood)}.mcm span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+.mcc{margin-top:6px;font-size:13px;line-height:1.6}
 .gal video{width:100%;height:100%;object-fit:cover;display:block}
 .gal .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;background:rgba(0,0,0,.25)}
 .vw img,.vw video{width:100%;border-radius:14px;display:block;max-height:70vh;object-fit:contain;background:#000}
@@ -282,7 +287,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <div class="tops" id="tops"></div>
 
     <h2>من المباريات السابقة</h2>
-    <div class="gal" id="gal"></div>
+    <div class="gal v" id="gal"></div>
     <div class="admin" data-admin><button class="ghost" id="addPhoto">+ إضافة صورة أو فيديو</button></div>
   </main>
 
@@ -310,7 +315,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   </main>
   <main id="v-media" hidden>
     <h2>صور وفيديو</h2>
-    <div class="gal" id="mediaGrid"></div>
+    <div class="gal v" id="mediaGrid"></div>
     <div class="admin" data-admin><button class="ghost" id="addPhoto2">+ إضافة صورة أو فيديو</button></div>
   </main>
   
@@ -638,9 +643,15 @@ function renderTops(){
       ${rows.length>1?'<ol start="2">'+rows.slice(1).map(r=>`<li>${nameLink(r.uid)} · ${r[key]}</li>`).join('')+'</ol>':''}</div>`;
   }).join('');
 }
+function mediaCard(g){
+  const m=g.mid?S.matches.find(x=>x.id===g.mid):null;
+  const f=m&&m.date?fmtDate(m.date):null;
+  const desc=m?`<div class="mcm"><b>${esc(matchTitle(m))}</b><span>📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}${m.place?' · 📍 '+esc(m.place):''}</span></div>`:'';
+  return `<div class="mcard">${thumb(g)}${desc||g.caption?`<div class="mcd">${desc}${g.caption?`<div class="mcc">${esc(g.caption)}</div>`:''}</div>`:''}</div>`;
+}
 function renderGal(){
-  const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,6);
-  $('#gal').innerHTML=list.length?list.map(thumb).join(''):'<div class="card empty" style="grid-column:1/-1">الصور تنضاف قريب</div>';
+  const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,3);
+  $('#gal').innerHTML=list.length?list.map(mediaCard).join(''):'<div class="card empty">الصور تنضاف قريب</div>';
 }
 function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
@@ -1160,7 +1171,7 @@ const matchOpts=sel=>`<option value="">بدون ربط</option>`+S.matches.filte
 const mediaMatchLabel=g=>{const m=g.mid&&S.matches.find(x=>x.id===g.mid);return m?`🏟 ${esc(matchTitle(m))} · ${esc(m.date)}`:''};
 function renderMedia(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0));
-  $('#mediaGrid').innerHTML=list.length?list.map(thumb).join(''):'<div class="card empty" style="grid-column:1/-1">ما فيه صور أو فيديوهات للحين</div>';
+  $('#mediaGrid').innerHTML=list.length?list.map(mediaCard).join(''):'<div class="card empty">ما فيه صور أو فيديوهات للحين</div>';
 }
 function openMedia(id){
   const g=S.gallery.find(x=>x.id===id);if(!g)return;
