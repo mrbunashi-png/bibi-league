@@ -174,7 +174,7 @@ nav.bar a{font-size:11px}
 .tmsc input{width:64px;text-align:center}
 .foot{text-align:center;margin:22px 0 10px}
 .stp{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.8}
-.stp.me{border-color:var(--olive);border-width:2px}
+.stp.mine{border-color:var(--olive);border-width:2px}
 .stp h4{font-size:14px;color:var(--wood)}
 dialog textarea.sht{width:100%;min-height:170px;font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff;color:var(--ink)}
 a.btn{display:inline-block;text-decoration:none;text-align:center}
@@ -218,8 +218,6 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 </header>
 
 <div class="wrap">
-  <div id="toast"></div>
-  <div id="status"></div>
   <nav class="bar" id="nav">
     <a data-v="home" class="on"><span class="i">🏠</span>الرئيسية</a>
     <a data-v="log"><span class="i">📅</span>Log</a>
@@ -227,6 +225,8 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <a data-v="awards"><span class="i">🏅</span>Bibi Awards</a>
     <a data-v="media"><span class="i">📸</span>صور وفيديو</a>
   </nav>
+  <div id="toast"></div>
+  <div id="status"></div>
 
   <main id="v-home">
     <h2>آخر الإعلانات</h2>
@@ -1591,14 +1591,14 @@ $('#notifCard').addEventListener('click',e=>{if(e.target.id==='ntOpen')openNotif
 function openNotif(){
   const np=loadNP();
   const ua=navigator.userAgent||'';const ios=/iPhone|iPad|iPod/i.test(ua);
-  const ios_=`<details class="stp ${ios?'me':''}" ${ios?'open':''}><summary><b>iPhone / iPad ${ios?'(جهازك)':''}</b></summary>1. افتح الرابط في <b>Safari</b> (مو من داخل الواتساب).<br>2. اضغط زر المشاركة (المربع اللي فيه سهم لفوق).<br>3. اختر <b>Add to Home Screen</b> ثم <b>Add</b>.</details>`;
-  const and_=`<details class="stp ${ios?'':'me'}" ${ios?'':'open'}><summary><b>Android ${ios?'':'(جهازك)'}</b></summary>1. افتح الرابط في <b>Chrome</b> (مو من داخل الواتساب).<br>2. اضغط النقاط الثلاث ⋮ فوق.<br>3. اختر <b>Add to Home screen</b> (أو <b>Install app</b>) ثم <b>Add</b>.</details>`;
+  const ios_=`<details class="stp ${ios?'mine':''}" ${ios?'open':''}><summary><b>iPhone / iPad ${ios?'(جهازك)':''}</b></summary>1. افتح الرابط في <b>Safari</b> (مو من داخل الواتساب).<br>2. اضغط زر المشاركة (المربع اللي فيه سهم لفوق).<br>3. اختر <b>Add to Home Screen</b> ثم <b>Add</b>.</details>`;
+  const and_=`<details class="stp ${ios?'':'mine'}" ${ios?'':'open'}><summary><b>Android ${ios?'':'(جهازك)'}</b></summary>1. افتح الرابط في <b>Chrome</b> (مو من داخل الواتساب).<br>2. اضغط النقاط الثلاث ⋮ فوق.<br>3. اختر <b>Add to Home screen</b> (أو <b>Install app</b>) ثم <b>Add</b>.</details>`;
   $('#ntBody').innerHTML=`<h3>🔔 التنبيهات والشاشة الرئيسية</h3>
     <div class="stp"><h4>📲 أضف الصفحة للشاشة الرئيسية</h4>تفتحها بعدها كتطبيق بضغطة وحدة. الاختصار يتضاف من المتصفح نفسه، والصفحة ما تقدر تسويه عنك.${ios?ios_+and_:and_+ios_}</div>
     <div class="stp"><h4>🔔 التنبيهات</h4>الصفحة ما ترسل إشعارات لجوالك وهي مسكّرة. التنبيهات تطلع لك كبطاقات في الصفحة الرئيسية أول ما تفتحها، واللي تبيه منها اختره تحت. إعلانات اللعب توصل لك بالواتساب بنفس الوقت.
     ${NP_LBL.map(([k,l])=>`<label class="tgl"><span>${l}</span><input type="checkbox" data-np="${k}" ${np[k]?'checked':''}></label>`).join('')}</div>
     <div class="row"><button id="inCopy">📋 انسخ رابط الصفحة</button></div>`;
-  $('#dNotif').showModal();
+  $('#dNotif').showModal();$('#dNotif').scrollTop=0;
 }
 $('#ntBody').addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.np;if(!k)return;const np=loadNP();np[k]=e.target.checked;saveNP(np);renderStatus()});
 $('#ntBody').addEventListener('click',async e=>{
