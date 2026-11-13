@@ -101,6 +101,7 @@ details.sec>ul,details.sec>.none{margin-bottom:10px}
 .grp.motm h4.mh{font-size:15px}
 .mvg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.mvg .mv{margin:0;width:100%}
 .score{text-align:center;font-weight:800;font-size:18px;margin:6px 0}
+.card.inb.ach{background:linear-gradient(135deg,#fff6d6,#f7e3a1);border:2px solid #d4b252}.achh{font-weight:800;color:#8a5a00;margin-bottom:4px}
 .card.inb{display:block}.card.inb small{display:block;color:var(--mute);margin-top:4px}
 
 .grp h4{font-size:14px;color:var(--wood);display:flex;justify-content:space-between}
@@ -138,6 +139,7 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .ent button{padding:5px 9px;font-size:12px}
 .ent button.red{background:#9a3b2e}
 .adm{left:auto;right:12px}
+.snd{position:fixed;left:12px;bottom:14px;z-index:50;width:42px;height:42px;border-radius:50%;padding:0;font-size:20px;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 14px rgba(62,40,28,.22);color:var(--ink)}
 .me.bell{left:auto;right:12px}.me.bell b{background:#c0392b;color:#fff;border-radius:10px;padding:0 7px;margin-inline-start:3px;font-size:12px}
 .adm b{background:#c0392b;color:#fff;border-radius:10px;padding:0 7px;margin-inline-start:4px;font-size:12px}
 .av{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--olive);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;vertical-align:middle;flex-shrink:0}
@@ -158,6 +160,7 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .gal.v figure{aspect-ratio:4/3;border-radius:0}
 .mcd{padding:10px 14px 12px}.mcm b{display:block;font-size:14px;color:var(--wood)}.mcm span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
 .mcc{margin-top:6px;font-size:13px;line-height:1.6}
+.gv{margin-top:8px;padding:5px 12px;font-size:13px}
 .gal video{width:100%;height:100%;object-fit:cover;display:block}
 .gal .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;background:rgba(0,0,0,.25)}
 .vw img,.vw video{width:100%;border-radius:14px;display:block;max-height:70vh;object-fit:contain;background:#000}
@@ -252,6 +255,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 </head>
 <body>
 <div id="note"></div>
+<button id="sndBtn" class="snd" aria-label="الأصوات">🔊</button>
 <header class="hero">
   <button class="me" id="meBtn" hidden>👤 بروفايلي</button>
   <button class="me bell" id="bellBtn" hidden aria-label="التنبيهات">🔔 <b id="bellCnt" hidden></b></button>
@@ -506,7 +510,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -643,11 +647,27 @@ function renderTops(){
       ${rows.length>1?'<ol start="2">'+rows.slice(1).map(r=>`<li>${nameLink(r.uid)} · ${r[key]}</li>`).join('')+'</ol>':''}</div>`;
   }).join('');
 }
+const gView=(u,id)=>(S.views[u]&&S.views[u].v&&S.views[u].v[id])||0;
+function gViewStats(g){
+  const seen=[],not=[];
+  regList().forEach(u=>{if(u===myId)return;if(gView(u,g.id))seen.push(u);else if(!g.ts||((S.access[u]||{}).ts||0)<=g.ts)not.push(u)});
+  return {seen,not};
+}
+function openGViews(id){
+  const g=S.gallery.find(x=>x.id===id);if(!g)return;
+  const st=gViewStats(g);ensureNames(regList());
+  const li=(u,t)=>`<li>${avatar(u,'sm')}${esc(nameOf(u))}${t?`<span class="ts">${esc(fmtTs(t))}</span>`:''}</li>`;
+  $('#snBody').innerHTML=`<h3>👁 مين شاف ${g.type==='video'?'الفيديو':g.type==='link'?'الرابط':'الصورة'}</h3><div class="sub">${esc(g.caption||'')}</div>
+    <div class="grp"><h4><span>✅ شافوا</span><span>${st.seen.length}</span></h4>${st.seen.length?'<ul>'+st.seen.map(u=>li(u,gView(u,id))).join('')+'</ul>':'<div class="none">ما أحد للحين</div>'}</div>
+    <div class="grp"><h4><span>🙈 ما شافوا</span><span>${st.not.length}</span></h4>${st.not.length?'<ul>'+st.not.map(u=>li(u)).join('')+'</ul>':'<div class="none">الكل شاف 🎉</div>'}</div>`;
+  $('#dSeen').showModal();
+}
 function mediaCard(g){
   const m=g.mid?S.matches.find(x=>x.id===g.mid):null;
   const f=m&&m.date?fmtDate(m.date):null;
   const desc=m?`<div class="mcm"><b>${esc(matchTitle(m))}</b><span>📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}${m.place?' · 📍 '+esc(m.place):''}</span></div>`:'';
-  return `<div class="mcard">${thumb(g)}${desc||g.caption?`<div class="mcd">${desc}${g.caption?`<div class="mcc">${esc(g.caption)}</div>`:''}</div>`:''}</div>`;
+  const adm=isAdmin()?(()=>{const st=gViewStats(g);return `<button class="ghost gv" data-gviews="${esc(g.id)}">👁 ${st.seen.length}/${st.seen.length+st.not.length}</button>`})():'';
+  return `<div class="mcard">${thumb(g)}${desc||g.caption||adm?`<div class="mcd">${desc}${g.caption?`<div class="mcc">${esc(g.caption)}</div>`:''}${adm}</div>`:''}</div>`;
 }
 function renderGal(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,3);
@@ -752,7 +772,7 @@ const saveMine=fn=>saveOwn('rsvps',fn);
 function setRsvp(s,gst){
   const mid=openId;
   if(!db||!myId||!mid||myStatus()!=='ok')return;
-  if((s==='in'||s==='sub')){const bi=banBlocks(myId,mid);if(bi){note(banText(bi));setTimeout(()=>note(''),6000);return}}
+  if((s==='in'||s==='sub')){const bi=banBlocks(myId,mid);if(bi){playSnd('warn');note(banText(bi));setTimeout(()=>note(''),6000);return}}
   saveMine(cur=>{
     const m={...(cur.m||{})},e={...(cur.e||{})},n={...(cur.n||{})};
     const prev=m[mid];
@@ -802,6 +822,7 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
   }
   if(b.dataset.pay==='me'){
     if(!myId)return;const mid=openId;
+    if(!isPaid(mid,myId))playSnd('cash');
     saveOwn('rsvps',cur=>{const pp={...(cur.p||{})};if(pp[mid])delete pp[mid];else pp[mid]=Date.now();return {...cur,p:pp}}).then(()=>{renderSheet();renderAnn();renderLog()});return;
   }
   if(b.dataset.remind){
@@ -809,7 +830,7 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     const un=L2.going.filter(p=>!isPaid(mid,p.uid)).map(p=>p.uid);
     const uids=b.dataset.remind==='all'?un:[b.dataset.remind];
     b.disabled=true;
-    sendPayReminder(mid,uids).then(n=>{renderSheet();note(n?`تم إرسال التذكير (${n})`:'ما انرسل، جرب مرة ثانية');setTimeout(()=>note(''),2500)});return;
+    sendPayReminder(mid,uids).then(n=>{renderSheet();if(n)playSnd('bell');note(n?`تم إرسال التذكير (${n})`:'ما انرسل، جرب مرة ثانية');setTimeout(()=>note(''),2500)});return;
   }
   if(b.dataset.mkdone!==undefined){
     if(!isAdmin())return;const mid=openId,v=b.dataset.mkdone==='1';
@@ -824,13 +845,13 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
   }
   if(b.dataset.mv){
     const m=S.matches.find(x=>x.id===openId);if(!m||!motmEligible(m,myId)||motmState(m).s!=='open')return;
-    const t=b.dataset.mv,mid=openId;
+    const t=b.dataset.mv,mid=openId;if(myMotm(mid)!==t)playSnd('vote');
     saveOwn('votes',cur=>{const o={...(cur.o||{})};if(o[mid]===t)delete o[mid];else o[mid]=t;return {...cur,o,ts:Date.now()}}).then(()=>{renderSheet();renderStatus()});return;
   }
   if(b.dataset.share){const m=S.matches.find(x=>x.id===b.dataset.share);if(m)openShare(m);return}
   if(b.dataset.teams){if(isAdmin())openTeams(b.dataset.teams);return}
   const my=(S.rsvps[myId]&&S.rsvps[myId].m&&S.rsvps[myId].m[openId])||{};
-  if(b.dataset.s){if(b.dataset.s===my.s)setRsvp(null,0);else setRsvp(b.dataset.s,b.dataset.s==='in'?(+my.g||0):0)}
+  if(b.dataset.s){if(b.dataset.s===my.s)setRsvp(null,0);else{if(!((b.dataset.s==='in'||b.dataset.s==='sub')&&banBlocks(myId,openId)))playSnd(b.dataset.s==='in'?'in':b.dataset.s==='out'?'out':'soft');setRsvp(b.dataset.s,b.dataset.s==='in'?(+my.g||0):0)}}
   else if(b.dataset.gd){const n=Math.max(0,Math.min(5,(+my.g||0)+(+b.dataset.gd)));if(n!==(+my.g||0))setRsvp('in',n)}
 });
 
@@ -844,9 +865,40 @@ function statusOf(uid){
   return S.players[uid]?'pending':'new';
 }
 const myStatus=()=>myId?statusOf(myId):'out';
+/* ---------- الأصوات (مولّدة داخل الصفحة، بدون ملفات) ---------- */
+const SND={on:true,ctx:null};
+try{SND.on=localStorage.getItem('bibi_snd')!=='0'}catch(e){}
+function actx(){if(!SND.ctx){try{SND.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(SND.ctx&&SND.ctx.state==='suspended')SND.ctx.resume().catch(()=>{});return SND.ctx}
+function tn(c,t,f,d,type='sine',v=.14,f2){const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.03)}
+function cluck(c,t,d,f1,f2,v=.22){
+  const o=c.createOscillator(),lfo=c.createOscillator(),lg=c.createGain(),bp=c.createBiquadFilter(),g=c.createGain();
+  o.type='sawtooth';o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  lfo.frequency.value=38;lg.gain.value=f1*.12;lfo.connect(lg);lg.connect(o.frequency);
+  bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=2.2;
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(bp);bp.connect(g);g.connect(c.destination);o.start(t);lfo.start(t);o.stop(t+d+.03);lfo.stop(t+d+.03)}
+const SOUNDS={
+  in:(c,t)=>{tn(c,t,660,.14,'triangle');tn(c,t+.11,990,.22,'triangle')},
+  out:(c,t)=>{cluck(c,t,.11,620,300);cluck(c,t+.15,.11,600,290);cluck(c,t+.30,.11,580,280);cluck(c,t+.48,.34,560,230,.26)},
+  soft:(c,t)=>{tn(c,t,520,.07,'sine',.1,380)},
+  cash:(c,t)=>{tn(c,t,1318,.12,'square',.07);tn(c,t+.09,1760,.35,'square',.07)},
+  vote:(c,t)=>{tn(c,t,700,.18,'triangle',.14,1000)},
+  bell:(c,t)=>{tn(c,t,988,.5,'sine',.14);tn(c,t+.16,1319,.6,'sine',.12)},
+  warn:(c,t)=>{tn(c,t,240,.18,'square',.08,180);tn(c,t+.22,240,.22,'square',.08,170)},
+  ach:(c,t)=>{[523,659,784,1047].forEach((f,i)=>tn(c,t+i*.11,f,.35,'triangle',.14));[523,659,784,1047].forEach(f=>tn(c,t+.5,f,1.0,'sine',.07))}
+};
+function playSnd(n){if(!SND.on)return;const c=actx();if(!c)return;try{SOUNDS[n](c,c.currentTime+.02)}catch(e){}}
+function sndBtnRender(){$('#sndBtn').textContent=SND.on?'🔊':'🔇'}
+document.addEventListener('click',e=>{if(e.target.closest('#sndBtn')){SND.on=!SND.on;try{localStorage.setItem('bibi_snd',SND.on?'1':'0')}catch(err){}sndBtnRender();if(SND.on)playSnd('in')}},true);
+
 /* ---------- تنبيهات من المنظم (الجرس) ---------- */
 const inboxMine=()=>Object.entries(S.inbox).filter(([k,v])=>v&&v.to===myId).map(([k,v])=>({key:k,...v}))
   .filter(n=>!(n.k==='pay'&&(!S.matches.some(m=>m.id===n.mid)||isPaid(n.mid,myId)))).sort((a,b)=>(b.ts||0)-(a.ts||0));
+function openInbox(){
+  renderInbox();$('#dInbox').showModal();
+  try{const heard=JSON.parse(localStorage.getItem('bibi_ach')||'[]');const fresh=inboxMine().filter(n=>n.k==='ach'&&!heard.includes(n.key));
+    if(fresh.length){playSnd('ach');localStorage.setItem('bibi_ach',JSON.stringify(heard.concat(fresh.map(n=>n.key)).slice(-60)))}else playSnd('bell')}catch(e){playSnd('bell')}
+}
 function updateBell(){
   if(!myId||isAdmin())return;
   const n=inboxMine().length,c=$('#bellCnt');c.hidden=!n;c.textContent=n;
@@ -854,15 +906,19 @@ function updateBell(){
 }
 function renderInbox(){
   const l=inboxMine();
-  $('#inBody').innerHTML=`<h3>🔔 تنبيهاتي</h3>`+(l.length?l.map(n=>{const m=S.matches.find(x=>x.id===n.mid);return `<div class="card inb"><div>${esc(n.t||'')}<small>${esc(fmtTs(n.ts||0))}</small></div><div class="row">${m?`<button data-inopen="${esc(n.mid)}">افتح المباراة</button>`:''}<button class="ghost" data-indel="${esc(n.key)}">تمام</button></div></div>`}).join(''):'<div class="empty">ما عندك تنبيهات 👌</div>');
+  $('#inBody').innerHTML=`<h3>🔔 تنبيهاتي</h3>`+(l.length?l.map(n=>{const m=S.matches.find(x=>x.id===n.mid);return `<div class="card inb ${n.k==='ach'?'ach':''}"><div>${n.k==='ach'?'<div class="achh">🏆 إنجاز جديد</div>':''}${esc(n.t||'')}<small>${esc(fmtTs(n.ts||0))}</small></div><div class="row">${m?`<button data-inopen="${esc(n.mid)}">افتح المباراة</button>`:''}<button class="ghost" data-indel="${esc(n.key)}">تمام</button></div></div>`}).join(''):'<div class="empty">ما عندك تنبيهات 👌</div>');
 }
-$('#bellBtn').onclick=()=>{renderInbox();$('#dInbox').showModal()};
+$('#bellBtn').onclick=openInbox;
 $('#inBody').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.inopen){openId=b.dataset.inopen;$('#dInbox').close();renderSheet();$('#dSheet').showModal();return}
   if(b.dataset.indel){const k=b.dataset.indel;db.doc('inbox/'+k).delete().then(()=>{delete S.inbox[k];updateBell();renderStatus()}).catch(()=>note('ما انحذف'))}
 });
 const PAY_MSG=(m,u)=>`هلا ${nameOf(u)} 🌹 تذكير لطيف: قطية «${matchTitle(m)}» (${m.fee} د.ك) للحين ما انسجلت دفعتها. إذا دفعت اضغط «دفعت القطية» في صفحة المباراة، وإذا لسه فدّها وقت يناسبك. مشكور وما قصّرت 🙏`;
+async function sendAch(uid,suffix,text,mid){
+  const rec={to:uid,k:'ach',t:text,ts:Date.now()};if(mid)rec.mid=mid;
+  try{await db.doc('inbox/'+uid+'_'+suffix).set(rec);S.inbox[uid+'_'+suffix]=rec}catch(e){}
+}
 async function sendPayReminder(mid,uids){
   const m=S.matches.find(x=>x.id===mid);if(!m||!isAdmin()||!db)return 0;
   let n=0;
@@ -898,7 +954,7 @@ function renderStatus(){
   h+=st==='new'?'<div class="card cta"><div><b>👋 خطوة أولى: أنشئ بروفايلك</b><br><small>اكتب اسمك ومركزك، وينرسل طلبك لحمد. بعد الموافقة تقدر تأكد حضورك.</small></div><button id="joinBtn">أنشئ بروفايلي</button></div>'
     :st==='pending'?'<div class="card">⏳ طلبك بانتظار موافقة حمد</div>'
     :st==='no'?'<div class="card">❌ ما تمت الموافقة على طلبك</div>':'';
-  {const ib=isAdmin()?[]:inboxMine();if(ib.length)h+=`<div class="card"><span>🔔 عندك ${ib.length} ${ib.length===1?'تنبيه':'تنبيهات'} من المنظم</span><button id="inOpen">افتح</button></div>`}
+  {const ib=isAdmin()?[]:inboxMine();if(ib.length){const hasA=ib.some(n=>n.k==='ach');h+=`<div class="card ${hasA?'cta':''}"><span>${hasA?'🏆 مبروك! عندك إنجاز جديد':`🔔 عندك ${ib.length} ${ib.length===1?'تنبيه':'تنبيهات'} من المنظم`}</span><button id="inOpen">افتح</button></div>`}}
   {const bi0=banInfo(myId);if(bi0&&bi0.active)h+=`<div class="card ban"><div><b>${esc(banText(bi0))}</b><br><small>ما تقدر تسجل حضور في المباريات المشمولة بالحرمان. للاستفسار كلم حمد.</small></div></div>`}
   const NP=loadNP(),now=Date.now();
   if(st==='ok'||isAdmin()){
@@ -927,7 +983,7 @@ function renderStatus(){
 }
 $('#status').addEventListener('click',e=>{
   if(e.target.id==='joinBtn')openPlayer(myId);
-  if(e.target.id==='inOpen'){renderInbox();$('#dInbox').showModal()}
+  if(e.target.id==='inOpen')openInbox()
   if(e.target.id==='awBtn'){renderAdmin();$('#dAdmin').showModal()}
   const v=e.target.closest('[data-vo]');if(v)openVote(v.dataset.vo);
   const mo=e.target.closest('[data-mo]');if(mo){openId=mo.dataset.mo;renderSheet();$('#dSheet').showModal()}
@@ -1131,7 +1187,7 @@ $('#adBody').addEventListener('click',async e=>{
       /* ألغِ تسجيله (Going/احتياط) في المباريات المشمولة */
       const i=banInfo(u),r=S.rsvps[u];
       if(i&&r&&r.m){const m={...r.m},e2={...(r.e||{})};let ch=false;for(const id of i.ids){if(m[id]&&(m[id].s==='in'||m[id].s==='sub')){delete m[id];delete e2[id];ch=true}}if(ch)await db.doc('rsvps/'+u).set({...r,m,e:e2})}
-      sanc={uid:'',games:1,reason:BAN_REASONS[0],other:''};renderAdmin();note('تم تطبيق الحرمان');setTimeout(()=>note(''),2500);
+      sanc={uid:'',games:1,reason:BAN_REASONS[0],other:''};renderAdmin();playSnd('warn');note('تم تطبيق الحرمان');setTimeout(()=>note(''),2500);
     }else if(b.dataset.scdel){
       if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟';return}
       await db.doc('bans/'+b.dataset.scdel).delete();delete S.bans[b.dataset.scdel];renderAdmin();
@@ -1175,6 +1231,7 @@ function renderMedia(){
 }
 function openMedia(id){
   const g=S.gallery.find(x=>x.id===id);if(!g)return;
+  if(myId&&db&&!isAdmin()&&myStatus()==='ok'&&!gView(myId,id))saveOwn('views',cur=>{const v={...(cur.v||{})};if(v[id])return null;v[id]=Date.now();return {...cur,v}});
   const u=g.assetId?'/_blob/'+encodeURIComponent(g.assetId):'';
   const body=g.type==='link'
     ?`<div class="stp" style="text-align:center"><div style="font-size:34px">▶</div><div dir="ltr" style="word-break:break-all;font-size:12px;color:var(--mute)">${esc(g.url)}</div><div class="row"><a class="btn" href="${esc(safeUrl(g.url))}" target="_blank" rel="noopener">فتح الفيديو</a></div></div>`
@@ -1196,7 +1253,7 @@ $('#vwBody').addEventListener('click',e=>{
   const g=S.gallery.find(x=>x.id===b.dataset.delm);
   db.doc('gallery/'+b.dataset.delm).delete().then(()=>{if(g&&g.assetId&&assets)assets.delete(g.assetId).catch(()=>{});$('#dView').close()}).catch(()=>note('ما انحذف'));
 });
-for(const id of ['#gal','#mediaGrid'])$(id).addEventListener('click',e=>{const f=e.target.closest('figure');if(f)openMedia(f.dataset.id)});
+for(const id of ['#gal','#mediaGrid'])$(id).addEventListener('click',e=>{const gv=e.target.closest('[data-gviews]');if(gv&&isAdmin()){openGViews(gv.dataset.gviews);return}const f=e.target.closest('figure');if(f)openMedia(f.dataset.id)});
 
 /* ---------- Leaderboard ---------- */
 const NOW=new Date();
@@ -1406,7 +1463,9 @@ $('#awBody').addEventListener('click',e=>{
   if(r){awCtx.pick=r.dataset.pick;renderAward();return}
   const b=e.target.closest('button');if(!b)return;
   const {type,key}=awCtx;
-  const save=(winner,tally)=>db.doc('awards/'+awardId(type,key)).set({type,key,winner,tally,ts:Date.now()}).then(()=>{$('#dAward').close()}).catch(()=>note('ما انحفظت الجائزة'));
+  const save=(winner,tally)=>db.doc('awards/'+awardId(type,key)).set({type,key,winner,tally,ts:Date.now()}).then(async()=>{
+    if(winner)await sendAch(winner,'a'+awardId(type,key),`🏆 مبروك ${nameOf(winner)}! أنت ${type==='month'?'Player of the Month':'Player of the Year'} — ${periodName(type,key)} 👑`,null);
+    $('#dAward').close()}).catch(()=>note('ما انحفظت الجائزة'));
   if(b.dataset.ok&&awCtx.pick){
     const tally={};awardRows(type,key).forEach(x=>{if(x.v)tally[x.uid]=x.v});
     save(awCtx.pick,tally);
@@ -1693,7 +1752,8 @@ async function finalizeMotm(){
     const sc=u=>{const r=S.stats[u]&&S.stats[u].m&&S.stats[u].m[m.id];return r?(+r.goals||0)*3+(+r.assists||0)*2:0};
     ids.sort((a,b)=>tally[b]-tally[a]||sc(b)-sc(a)||a.localeCompare(b));
     finSet.add(m.id);
-    try{await db.doc('motm/'+m.id).set({winner:ids[0],tally,ts:Date.now()})}catch(e){finSet.delete(m.id)}
+    try{await db.doc('motm/'+m.id).set({winner:ids[0],tally,ts:Date.now()});
+      await sendAch(ids[0],'a'+m.id,`🌟 مبروك ${nameOf(ids[0])}! اختارك اللاعبين رجل المباراة في «${matchTitle(m)}» 👏`,m.id)}catch(e){finSet.delete(m.id)}
   }
 }
 
@@ -1846,14 +1906,14 @@ function sub(path,key,toMap){
   },e=>{clearTimeout(timer);note('تعذر تحميل البيانات')});
 }
 async function init(){
-  renderAll();
+  sndBtnRender();renderAll();
   try{user=await claude.use('user');}catch(e){}
   try{db=await claude.use('db');}catch(e){}
   try{assets=await claude.use('assets');}catch(e){}
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
   if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}
