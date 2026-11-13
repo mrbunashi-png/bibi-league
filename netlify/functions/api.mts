@@ -4,7 +4,7 @@ import { getUser } from '@netlify/identity';
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
 const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','profiles'];
 const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans']);
-const SELF_WRITE = new Set(['rsvps','stats','players','reacts','votes']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
+const SELF_WRITE = new Set(['rsvps','stats','players','reacts','votes','inbox']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
 
@@ -73,7 +73,7 @@ export default async (req: Request) => {
     }
     if (url.searchParams.get('rev') === rev && rev !== '0') return json({ same: true, rev, me });
     const colls: Record<string, any> = { profiles };
-    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans'] : []);
+    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox'] : []);
     const got = await Promise.all(names.map((c) => readColl(c)));
     names.forEach((c, i) => (colls[c] = got[i]));
     if (!admin) {
@@ -81,6 +81,8 @@ export default async (req: Request) => {
       colls.votes = v[uid] ? { [uid]: v[uid] } : {};
       const bn = await readColl('bans');
       colls.bans = bn[uid] ? { [uid]: bn[uid] } : {};
+      const ib = await readColl('inbox');
+      colls.inbox = Object.fromEntries(Object.entries(ib).filter(([k]) => k.startsWith(uid + '_')));
     }
     return json({ rev, me, colls });
   }
@@ -101,7 +103,8 @@ export default async (req: Request) => {
       if (!id) return bad('no id');
       if (!admin) {
         if (ADMIN_ONLY.has(c)) return bad('forbidden', 403);
-        if (!SELF_WRITE.has(c) || id !== uid) return bad('forbidden', 403);
+        if (!SELF_WRITE.has(c)) return bad('forbidden', 403);
+        if (c === 'inbox' ? !id.startsWith(uid + '_') : id !== uid) return bad('forbidden', 403);
       } else if (!ADMIN_ONLY.has(c) && !SELF_WRITE.has(c)) return bad('forbidden', 403);
       if (!admin && c === 'rsvps' && o.op !== 'delete') {
         const ban = (await readColl('bans'))[uid];

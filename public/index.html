@@ -72,6 +72,37 @@ dialog.sheet{margin:auto auto 0;width:100%;max-width:560px;border-radius:22px 22
 .guests .st{display:flex;align-items:center;gap:12px}
 .guests .st button{width:34px;height:34px;padding:0;font-size:20px}
 .grp{margin-top:12px}
+dialog.sheet{max-height:90vh;max-height:90dvh}
+.mhead{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.mhead h3{margin:0 0 6px;font-size:18px;display:inline}.mhead .tag{margin-inline-start:8px;vertical-align:middle}
+.mrows{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mr{display:flex;gap:8px;align-items:flex-start;background:#f8f6ee;border-radius:12px;padding:8px 10px}
+.mr .ic{font-size:18px}.mr small{display:block;font-size:11px;color:var(--mute)}.mr b{font-size:13px;line-height:1.5}
+.mnote{margin-top:8px;font-size:13px;color:var(--wood)}
+.mine{background:#f4f7e8;border:1.5px solid var(--olive);border-radius:16px;padding:12px;margin-bottom:10px}
+.mine .mlab{font-size:13px;color:var(--mute)}.mine .mlab b{color:var(--olive-d);margin-inline-start:6px;font-size:15px}
+.mine .opts{margin:8px 0}
+details.sec{background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:8px;padding:0 12px}
+details.sec>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:11px 0;font-weight:800;font-size:14px;color:var(--wood)}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary b{background:var(--paper,#f4efe3);border-radius:12px;padding:1px 10px;font-size:13px}
+details.sec[open]>summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+details.sec .grp{margin-top:0;padding-bottom:10px}
+details.sec ul{list-style:none;padding:0;margin:0 0 10px;display:flex;flex-wrap:wrap;gap:6px}
+details.sec li{background:#f8f6ee;border:1px solid var(--line);border-radius:12px;padding:4px 11px;font-size:13px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:2px}
+details.sec li .ts{grid-column:1/-1;font-size:11px;color:var(--mute)}details.sec li i{font-style:normal;color:var(--olive-d);font-weight:700}
+details.sec>ul,details.sec>.none{margin-bottom:10px}
+.payh{font-size:12px;font-weight:800;color:var(--mute);margin:8px 0 4px}
+.pr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.pr small{display:block;font-size:11px;color:var(--mute)}.pr .b{display:flex;gap:6px}
+.pr button{padding:5px 10px;font-size:13px}button.bellb{background:#f7ecc4;color:#6b4a0a;border:1px solid #d4b252}
+.row.wrap{flex-wrap:wrap}.row.wrap button{flex:1 1 40%}
+.grp.motm{background:#fff8e1;border:1.5px solid #e3c766;border-radius:16px;padding:10px 12px;margin-top:10px}
+.grp.motm h4.mh{font-size:15px}
+.mvg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.mvg .mv{margin:0;width:100%}
+.score{text-align:center;font-weight:800;font-size:18px;margin:6px 0}
+.card.inb{display:block}.card.inb small{display:block;color:var(--mute);margin-top:4px}
+
 .grp h4{font-size:14px;color:var(--wood);display:flex;justify-content:space-between}
 .grp ul{list-style:none;padding:0;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px}
 .grp li{background:#fff;border:1px solid var(--line);border-radius:20px;padding:2px 11px;font-size:13px}
@@ -107,6 +138,7 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .ent button{padding:5px 9px;font-size:12px}
 .ent button.red{background:#9a3b2e}
 .adm{left:auto;right:12px}
+.me.bell{left:auto;right:12px}.me.bell b{background:#c0392b;color:#fff;border-radius:10px;padding:0 7px;margin-inline-start:3px;font-size:12px}
 .adm b{background:#c0392b;color:#fff;border-radius:10px;padding:0 7px;margin-inline-start:4px;font-size:12px}
 .av{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--olive);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;vertical-align:middle;flex-shrink:0}
 .av.big{width:64px;height:64px;font-size:26px}
@@ -217,6 +249,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 <div id="note"></div>
 <header class="hero">
   <button class="me" id="meBtn" hidden>👤 بروفايلي</button>
+  <button class="me bell" id="bellBtn" hidden aria-label="التنبيهات">🔔 <b id="bellCnt" hidden></b></button>
   <button class="me adm" id="adminBtn" hidden>🛠 الأدمن <b id="admCnt" hidden></b></button>
   <button class="me adm2" id="memBtn" hidden aria-label="اللاعبين"><span>👥 <b id="mReg">0</b></span><span>🔥 <b id="mAct">0</b></span></button>
   <div class="ball">⚽</div>
@@ -293,6 +326,11 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 <dialog class="sheet" id="dSeen">
   <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div id="snBody" style="clear:both"></div>
+</dialog>
+
+<dialog class="sheet" id="dInbox">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="inBody" style="clear:both"></div>
 </dialog>
 
 <dialog class="sheet" id="dNotif">
@@ -390,7 +428,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <div class="tabs" id="pKind"><button data-k="file" class="on">رفع ملف</button><button data-k="link">لينك فيديو</button></div>
   <div id="pFileBox"><label>الملف (صورة أو فيديو، حد أقصى 20MB)</label><input type="file" id="pFile" accept="image/*,video/*"></div>
   <div id="pLinkBox" hidden><label>لينك الفيديو (YouTube، Instagram، TikTok…)</label><input id="pUrl" type="url" dir="ltr" placeholder="https://"></div>
-  <label>ربط بلعب سابق (اختياري)</label><select id="pMatch"></select>
+  <label>ربط بلعب (اختياري)</label><select id="pMatch"></select>
   <label>وصف (اختياري)</label><input id="pCap">
   <div class="row"><button id="pSave">حفظ</button><button class="ghost" data-close>إلغاء</button></div>
 </dialog>
@@ -463,7 +501,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -604,7 +642,7 @@ function renderGal(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,6);
   $('#gal').innerHTML=list.length?list.map(thumb).join(''):'<div class="card empty" style="grid-column:1/-1">الصور تنضاف قريب</div>';
 }
-function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
+function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
 /* ---------- تذييل تفاصيل الإعلان ---------- */
 async function ensureNames(ids){
@@ -618,6 +656,10 @@ async function ensureNames(ids){
   }catch(e){}
 }
 function safeUrl(u){return /^https?:\/\//i.test(u||'')?u:''}
+const secOpen={going:true,queue:true,out:false,watch:false,teams:true,pay:true,adm:false};
+function sec(key,title,count,body,note=''){
+  return `<details class="sec" data-sec="${key}" ${secOpen[key]?'open':''}><summary><span>${title}</span><b>${count}</b></summary>${note?`<div class="hint">${note}</div>`:''}${body}</details>`;
+}
 function renderSheet(){
   const m=S.matches.find(x=>x.id===openId);if(!m)return;
   const f=fmtDate(m.date);
@@ -626,9 +668,8 @@ function renderSheet(){
   const past=isDone(m);
   ensureNames(Object.keys(S.rsvps));
   const url=safeUrl(m.mapUrl);
-    const li=(p,i,g)=>`<li>${i!=null?`<b>${i+1}.</b> `:''}${avatar(p.uid,'sm')}${nameLink(p.uid)}${g?` <i>+${g}</i>`:''}<span class="ts">${esc(fmtTs(p.ts))}</span>${m.fee&&isAdmin()&&L.going.includes(p)?`<button class="pay ${isPaid(openId,p.uid)?'on':''}" data-payu="${esc(p.uid)}">${isPaid(openId,p.uid)?'✅ دفع':'⭕ ما دفع'}</button>`:''}</li>`;
-  const grp=(label,ic,count,rows,numbered)=>`<div class="grp"><h4><span>${ic} ${label}</span><span>${count}</span></h4>
-    ${rows.length?'<ul>'+rows.map((p,i)=>li(p,numbered?i:null,p.gEff!=null?p.gEff:0)).join('')+'</ul>':'<div class="none">ما أحد للحين</div>'}</div>`;
+  const li=(p,i,g)=>`<li>${i!=null?`<b>${i+1}.</b> `:''}${avatar(p.uid,'sm')}${nameLink(p.uid)}${g?` <i>+${g}</i>`:''}<span class="ts">${esc(fmtTs(p.ts))}</span></li>`;
+  const list=(rows,numbered)=>rows.length?'<ul>'+rows.map((p,i)=>li(p,numbered?i:null,p.gEff!=null?p.gEff:0)).join('')+'</ul>':'<div class="none">ما أحد للحين</div>';
   const eff=myId?effOf(openId,myId):null;
   const qi=L.queue.findIndex(p=>p.uid===myId);
   const me=L.going.find(p=>p.uid===myId);
@@ -638,31 +679,51 @@ function renderSheet(){
   else if(my.s==='sub'&&my.w===0)msg='أنت مسجل احتياط. ما تصعد تلقائيًا؛ إذا تبي مقعد اضغط Going.';
   if(me&&my.s==='in'&&me.gEff<my.g)msg=(msg?msg+'<br>':'')+`تم تقليص Guests إلى ${me.gEff} حسب المقاعد المتاحة.`;
   const full=L.cap!==Infinity&&L.used>=L.cap;
-  const subOk=true;
   const bi=myId?banBlocks(myId,openId):null;
-  $('#shBody').innerHTML=`
-    <h3>${esc(matchTitle(m))}</h3>
-    <div class="sub">📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}</div>
-    <div class="sub">📍 ${esc(m.place||'يُحدد لاحقًا')}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener">افتح Location الملعب</a>`:''}</div>
-    ${m.fee?`<div class="feeb big">💰 القطية ${esc(m.fee)} د.ك على الشخص${isAdmin()?` · دفعوا ${L.going.filter(p=>isPaid(openId,p.uid)).length}/${L.going.length}`:''}</div>`:''}
-    ${L.cap!==Infinity?`<div class="sub">👥 السعة: ${L.cap} (${m.format} ضد ${m.format})</div>`:''}
-    ${m.note?`<div class="sub">📝 ${esc(m.note)}</div>`:''}
-    ${past?`<div class="msg">هذي المباراة انلعبت</div>`:`<div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&(k!=='sub'||subOk)&&!(bi&&(k==='in'||k==='sub'))?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
-        ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
-    ${m.fee&&eff==='in'&&!past?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
+  const stLabel=eff==='in'?'✅ أنت Going':eff==='wait'?`🪑 في الاحتياط (رقم ${qi+1})`:my.s==='sub'?'🪑 احتياط':my.s==='out'?'❌ Not Going':my.s==='watch'?'👀 مشاهد':'ما سجلت بعد';
+  const paidN=L.going.filter(p=>isPaid(openId,p.uid)).length;
+  const row=(ic,l,v)=>`<div class="mr"><span class="ic">${ic}</span><div><small>${l}</small><b>${v}</b></div></div>`;
+  const head=`<div class="mhead"><h3>${esc(matchTitle(m))}</h3>${past?'<span class="tag done">انلعبت</span>':'<span class="tag up">قادمة</span>'}
+    <div class="mrows">
+      ${row('📅','الموعد',esc(f.wk)+' '+esc(f.day)+' '+esc(f.mon)+(m.time?' · '+esc(time12(m.time)):''))}
+      ${row('📍','المكان',esc(m.place||'يُحدد لاحقًا')+(url?` <a href="${esc(url)}" target="_blank" rel="noopener">Location</a>`:''))}
+      ${m.fee?row('💰','القطية',esc(m.fee)+' د.ك على الشخص'):''}
+      ${L.cap!==Infinity?row('👥','السعة',`${L.used}/${L.cap} (${esc(m.format)} ضد ${esc(m.format)})`):row('👥','Going',String(L.used))}
+    </div>${m.note?`<div class="mnote">📝 ${esc(m.note)}</div>`:''}</div>`;
+  const mine=past?`<div class="msg">هذي المباراة انلعبت${myId&&my.s?` · حالتك: ${stLabel}`:''}</div>`:`<div class="mine"><div class="mlab">تسجيلك <b>${stLabel}</b></div>
+    <div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&!(bi&&(k==='in'||k==='sub'))?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
+    ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
+    ${m.fee&&eff==='in'?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
     ${bi?`<div class="msg ban">${esc(banText(bi))}<br><small>ما تقدر تسجل Going أو احتياط في هذي المباراة. تقدر تختار Not Going أو مشاهد.</small></div>`:''}
     ${msg?`<div class="msg">${msg}</div>`:''}
-    ${accessHint()}`}
-    ${grp('Going','✅',L.cap===Infinity?L.used:L.used+'/'+L.cap,L.going,false)}
-    ${grp('احتياط','🪑',L.queue.length+L.vol.length,L.queue.concat(L.vol),true)}
-    ${grp('Not Going','❌',L.out.length,L.out,false)}
-    ${grp('مشاهد','👀',L.watch.length,L.watch,false)}
-    ${teamsHtml(openId)}
-    ${motmHtml(m)}
-    ${(()=>{const l=S.gallery.filter(g=>g.mid===openId);return l.length?`<div class="grp"><h4><span>📸 صور وفيديو المباراة</span><span>${l.length}</span></h4><div class="gal" id="shGal">${l.map(thumb).join('')}</div></div>`:''})()}
-    ${isFB(m)?matchStatsHtml(openId):''}
-    ${isAdmin()?`<div class="row"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button>${(full||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button>`:''}</div><div class="row"><button data-delmatch="${esc(openId)}" style="background:#9a3b2e">حذف هذا الإعلان</button></div>`:''}`;
+    ${accessHint()}</div>`;
+  /* الأدمن: القطية والتذكيرات */
+  let payHtml='';
+  if(isAdmin()&&m.fee&&L.going.length){
+    const unpaid=L.going.filter(p=>!isPaid(openId,p.uid)),paid=L.going.filter(p=>isPaid(openId,p.uid));
+    const sent=u=>{const r=S.inbox[u+'_p'+openId];return r&&r.ts?`<small>آخر تذكير: ${esc(fmtTs(r.ts))}</small>`:''};
+    payHtml=sec('pay','💰 القطية (لك فقط)',`${paid.length}/${L.going.length}`,
+      (unpaid.length?`<div class="payh">ما دفعوا (${unpaid.length})</div>`+unpaid.map(p=>`<div class="pr"><div class="who">${avatar(p.uid,'sm')}<div>${nameLink(p.uid)}${sent(p.uid)}</div></div><div class="b"><button class="ghost" data-payu="${esc(p.uid)}">✅ دفع</button><button class="bellb" data-remind="${esc(p.uid)}" title="أرسل تذكير لطيف">🔔</button></div></div>`).join('')+`<div class="row"><button data-remind="all">🔔 ذكّر كل اللي ما دفعوا (${unpaid.length})</button></div>`:'<div class="none">الكل دفع 🎉</div>')+
+      (paid.length?`<div class="payh">دفعوا (${paid.length})</div><ul>`+paid.map(p=>`<li>${avatar(p.uid,'sm')}${nameLink(p.uid)} <button class="pay on" data-payu="${esc(p.uid)}">✅ دفع</button></li>`).join('')+'</ul>':''),
+      'التذكير يوصل اللاعب في أيقونة 🔔 فوق، بصيغة لطيفة.');
+  }
+  const teams=teamsHtml(openId);
+  const adm=isAdmin()?sec('adm','🛠 أدوات الأدمن','',`<div class="row wrap"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button>${(full||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button>`:''}</div>
+    <div class="row wrap">${past&&m.done===true?`<button class="ghost" data-mkdone="0">↩️ رجّعها قادمة</button>`:!past?`<button class="ghost" data-mkdone="1">✅ حوّلها إلى «انلعبت» الحين</button>`:''}<button data-delmatch="${esc(openId)}" style="background:#9a3b2e">حذف هذا الإعلان</button></div>
+    ${!past?'<div class="hint">لو ما حوّلتها يدويًا، تتحول تلقائيًا بعد 3 ساعات من وقت البداية.</div>':''}`):'';
+  const galL=S.gallery.filter(g=>g.mid===openId);
+  $('#shBody').innerHTML=head+mine+
+    (teams?`<details class="sec" data-sec="teams" ${secOpen.teams?'open':''}><summary><span>⚔️ التشكيلة</span><b></b></summary>${teams}</details>`:'')+
+    sec('going','✅ Going',L.cap===Infinity?L.used:L.used+'/'+L.cap,list(L.going,false))+
+    ((L.queue.length+L.vol.length)?sec('queue','🪑 احتياط',L.queue.length+L.vol.length,list(L.queue.concat(L.vol),true)):'')+
+    motmHtml(m)+
+    (L.out.length?sec('out','❌ Not Going',L.out.length,list(L.out,false)):'')+
+    (L.watch.length?sec('watch','👀 مشاهد',L.watch.length,list(L.watch,false)):'')+
+    (isFB(m)?matchStatsHtml(openId):'')+
+    (galL.length?`<div class="grp"><h4><span>📸 صور وفيديو المباراة</span><span>${galL.length}</span></h4><div class="gal" id="shGal">${galL.map(thumb).join('')}</div></div>`:'')+
+    payHtml+adm;
 }
+$('#shBody').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.sec;if(k)secOpen[k]=e.target.open},true);
 
 /* حفظ ردي: كل التعديلات تمر بطابور واحد عشان ما تتداخل */
 function saveOwn(coll,fn,uid=myId){
@@ -732,6 +793,17 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     if(!myId)return;const mid=openId;
     saveOwn('rsvps',cur=>{const pp={...(cur.p||{})};if(pp[mid])delete pp[mid];else pp[mid]=Date.now();return {...cur,p:pp}}).then(()=>{renderSheet();renderAnn();renderLog()});return;
   }
+  if(b.dataset.remind){
+    if(!isAdmin())return;const mid=openId,L2=layout(mid);
+    const un=L2.going.filter(p=>!isPaid(mid,p.uid)).map(p=>p.uid);
+    const uids=b.dataset.remind==='all'?un:[b.dataset.remind];
+    b.disabled=true;
+    sendPayReminder(mid,uids).then(n=>{renderSheet();note(n?`تم إرسال التذكير (${n})`:'ما انرسل، جرب مرة ثانية');setTimeout(()=>note(''),2500)});return;
+  }
+  if(b.dataset.mkdone!==undefined){
+    if(!isAdmin())return;const mid=openId,v=b.dataset.mkdone==='1';
+    db.doc('matches/'+mid).update({done:v}).then(()=>{const mm=S.matches.find(x=>x.id===mid);if(mm)mm.done=v;renderAll()}).catch(()=>note('ما انحفظ'));return;
+  }
   if(b.dataset.payu){
     if(!isAdmin())return;const u=b.dataset.payu,mid=openId;
     const cur=JSON.parse(JSON.stringify(S.rsvps[u]||{}));const pp={...(cur.p||{})};
@@ -761,6 +833,34 @@ function statusOf(uid){
   return S.players[uid]?'pending':'new';
 }
 const myStatus=()=>myId?statusOf(myId):'out';
+/* ---------- تنبيهات من المنظم (الجرس) ---------- */
+const inboxMine=()=>Object.entries(S.inbox).filter(([k,v])=>v&&v.to===myId).map(([k,v])=>({key:k,...v}))
+  .filter(n=>!(n.k==='pay'&&(!S.matches.some(m=>m.id===n.mid)||isPaid(n.mid,myId)))).sort((a,b)=>(b.ts||0)-(a.ts||0));
+function updateBell(){
+  if(!myId||isAdmin())return;
+  const n=inboxMine().length,c=$('#bellCnt');c.hidden=!n;c.textContent=n;
+  if($('#dInbox').open)renderInbox();
+}
+function renderInbox(){
+  const l=inboxMine();
+  $('#inBody').innerHTML=`<h3>🔔 تنبيهاتي</h3>`+(l.length?l.map(n=>{const m=S.matches.find(x=>x.id===n.mid);return `<div class="card inb"><div>${esc(n.t||'')}<small>${esc(fmtTs(n.ts||0))}</small></div><div class="row">${m?`<button data-inopen="${esc(n.mid)}">افتح المباراة</button>`:''}<button class="ghost" data-indel="${esc(n.key)}">تمام</button></div></div>`}).join(''):'<div class="empty">ما عندك تنبيهات 👌</div>');
+}
+$('#bellBtn').onclick=()=>{renderInbox();$('#dInbox').showModal()};
+$('#inBody').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.inopen){openId=b.dataset.inopen;$('#dInbox').close();renderSheet();$('#dSheet').showModal();return}
+  if(b.dataset.indel){const k=b.dataset.indel;db.doc('inbox/'+k).delete().then(()=>{delete S.inbox[k];updateBell();renderStatus()}).catch(()=>note('ما انحذف'))}
+});
+const PAY_MSG=(m,u)=>`هلا ${nameOf(u)} 🌹 تذكير لطيف: قطية «${matchTitle(m)}» (${m.fee} د.ك) للحين ما انسجلت دفعتها. إذا دفعت اضغط «دفعت القطية» في صفحة المباراة، وإذا لسه فدّها وقت يناسبك. مشكور وما قصّرت 🙏`;
+async function sendPayReminder(mid,uids){
+  const m=S.matches.find(x=>x.id===mid);if(!m||!isAdmin()||!db)return 0;
+  let n=0;
+  for(const u of uids){
+    const rec={to:u,k:'pay',mid,t:PAY_MSG(m,u),ts:Date.now()};
+    try{await db.doc('inbox/'+u+'_p'+mid).set(rec);S.inbox[u+'_p'+mid]=rec;n++}catch(e){}
+  }
+  return n;
+}
 /* ---------- العقوبات (الحرمان من اللعب) ---------- */
 const BAN_REASONS=['لعب خشن','عدم الالتزام بقوانين القروب','التسبب بإصابة لاعب آخر','عدم حضور اللعب بالرغم من التسجيل كحاضر','الانسحاب بالساعة الأخيرة قبل اللعب','شتم لاعب آخر','تصرف غير لائق','التعدي على صلاحية المنظم'];
 /* الحرمان يغطي أول N مباريات تبدأ بعد وقت فرض العقوبة */
@@ -787,6 +887,7 @@ function renderStatus(){
   h+=st==='new'?'<div class="card cta"><div><b>👋 خطوة أولى: أنشئ بروفايلك</b><br><small>اكتب اسمك ومركزك، وينرسل طلبك لحمد. بعد الموافقة تقدر تأكد حضورك.</small></div><button id="joinBtn">أنشئ بروفايلي</button></div>'
     :st==='pending'?'<div class="card">⏳ طلبك بانتظار موافقة حمد</div>'
     :st==='no'?'<div class="card">❌ ما تمت الموافقة على طلبك</div>':'';
+  {const ib=isAdmin()?[]:inboxMine();if(ib.length)h+=`<div class="card"><span>🔔 عندك ${ib.length} ${ib.length===1?'تنبيه':'تنبيهات'} من المنظم</span><button id="inOpen">افتح</button></div>`}
   {const bi0=banInfo(myId);if(bi0&&bi0.active)h+=`<div class="card ban"><div><b>${esc(banText(bi0))}</b><br><small>ما تقدر تسجل حضور في المباريات المشمولة بالحرمان. للاستفسار كلم حمد.</small></div></div>`}
   const NP=loadNP(),now=Date.now();
   if(st==='ok'||isAdmin()){
@@ -815,6 +916,7 @@ function renderStatus(){
 }
 $('#status').addEventListener('click',e=>{
   if(e.target.id==='joinBtn')openPlayer(myId);
+  if(e.target.id==='inOpen'){renderInbox();$('#dInbox').showModal()}
   if(e.target.id==='awBtn'){renderAdmin();$('#dAdmin').showModal()}
   const v=e.target.closest('[data-vo]');if(v)openVote(v.dataset.vo);
   const mo=e.target.closest('[data-mo]');if(mo){openId=mo.dataset.mo;renderSheet();$('#dSheet').showModal()}
@@ -850,7 +952,7 @@ function toAvatar(file){
 let curP=null,newPhoto=null,lastSig='';
 const todayStr=()=>new Date().toLocaleDateString('en-CA');
 /* المباراة تعتبر منتهية بعد 3 ساعات من وقت بدايتها */
-const isDone=m=>{if(!m||!m.date)return false;if(!m.time)return m.date<todayStr();const st=matchStartMs(m);return isFinite(st)?Date.now()>=st+3*3600000:m.date<todayStr()};
+const isDone=m=>{if(!m||!m.date)return false;if(m.done===true)return true;if(!m.time)return m.date<todayStr();const st=matchStartMs(m);return isFinite(st)?Date.now()>=st+3*3600000:m.date<todayStr()};
 const canEditP=uid=>!!myId&&(uid===myId||isAdmin());
 const canStat=uid=>canEditP(uid)&&(isAdmin()||statusOf(uid)==='ok');
 function pastAll(){return S.matches.filter(m=>isDone(m)).sort((a,b)=>b.date.localeCompare(a.date))}
@@ -1054,7 +1156,7 @@ function thumb(g){
     ?`<figure data-id="${esc(g.id)}"><video src="${u}#t=0.1" preload="metadata" muted playsinline></video><div class="play">▶</div></figure>`
     :`<figure data-id="${esc(g.id)}"><img loading="lazy" src="${u}" alt="${esc(g.caption||'')}"></figure>`;
 }
-const matchOpts=sel=>`<option value="">بدون ربط</option>`+pastAll().map(m=>`<option value="${esc(m.id)}" ${m.id===sel?'selected':''}>${esc(m.date)} · ${esc(matchTitle(m))}</option>`).join('');
+const matchOpts=sel=>`<option value="">بدون ربط</option>`+S.matches.filter(m=>m.date&&m.date<=todayStr()).sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||'')).map(m=>`<option value="${esc(m.id)}" ${m.id===sel?'selected':''}>${esc(m.date)} · ${esc(matchTitle(m))}</option>`).join('');
 const mediaMatchLabel=g=>{const m=g.mid&&S.matches.find(x=>x.id===g.mid);return m?`🏟 ${esc(matchTitle(m))} · ${esc(m.date)}`:''};
 function renderMedia(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -1418,7 +1520,7 @@ function teamsHtml(mid){
   const T=S.teams[mid];if(!T||!((T.g||[]).length||(T.c||[]).length))return '';
   const col=a=>a.length?'<ul>'+a.map(u=>`<li>${avatar(u,'sm')}${nameLink(u)}</li>`).join('')+'</ul>':'<div class="none">—</div>';
   const sc=Number.isFinite(T.gs)&&Number.isFinite(T.cs);
-  return `<div class="grp"><h4><span>⚔️ التشكيلة</span>${sc?`<span>🟢 ${T.gs} - ${T.cs} 🎨</span>`:''}</h4><div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
+  return `<div class="grp">${sc?`<div class="score">🟢 ${T.gs} - ${T.cs} 🎨</div>`:''}<div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
 }
 let tm=null;
 function openTeams(mid){
@@ -1553,12 +1655,12 @@ function motmHtml(m){
   const d=S.motm[m.id];
   if(d&&d.winner)return `<div class="crown"><b>🌟 Man of the Match</b><div class="nm2">${esc(nameOf(d.winner))}</div></div>`;
   const st=motmState(m);
-  const head=(r='')=>`<h4><span>🌟 Man of the Match</span><span>${r}</span></h4>`;
+  const head=(r='')=>`<h4 class="mh"><span>🌟 Man of the Match</span><span>${r}</span></h4>`;
   if(st.s==='open'){
     if(!motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">التصويت مفتوح لين منتصف الليل للمسجلين Going في هذي المباراة فقط.</div></div>`;
     const my=myMotm(m.id);
     const cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
-    return `<div class="grp">${head('يقفل منتصف الليل')}<div class="hint">صوتك سرّي، وتقدر تغيّره أو تلغيه قبل الإقفال.</div>${cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-mv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')||'<div class="none">ما فيه مرشحين</div>'}</div>`;
+    return `<div class="grp motm">${head('يقفل منتصف الليل')}<div class="hint">اختر أحسن لاعب في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div>${'<div class="mvg">'+cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-mv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')+'</div>'||''}${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
   }
   if(st.s==='before'&&motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">يفتح التصويت بعد انتهاء المباراة وينتهي منتصف الليل.</div></div>`;
   if(st.s==='closed'&&isAdmin()&&!d)return `<div class="grp">${head()}<div class="hint">انتهى التصويت. تنحسب النتيجة تلقائيًا لما تفتح الصفحة لو كان فيه أصوات.</div></div>`;
@@ -1740,8 +1842,8 @@ async function init(){
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
-  if(myId&&!isAdmin())$('#meBtn').hidden=false;
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
+  if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}
 }
