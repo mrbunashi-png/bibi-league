@@ -57,11 +57,11 @@ input,textarea{width:100%;font-family:inherit;font-size:15px;padding:9px 10px;bo
 .row{display:flex;gap:8px;margin-top:14px}
 #note{background:#f3e2c8;color:var(--wood);font-size:13px;text-align:center;padding:6px;display:none}
 select{width:100%;font-family:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
-dialog{max-height:90vh;overflow:auto}
+dialog{max-height:90vh;max-height:88dvh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .ann{cursor:pointer}
 .ann .s{margin-top:1px}
 .fee{font-weight:700;color:var(--olive-d)}
-dialog.sheet{margin:auto auto 0;width:100%;max-width:560px;border-radius:22px 22px 0 0;max-height:88vh}
+dialog.sheet{margin:auto auto 0;width:100%;max-width:560px;border-radius:22px 22px 0 0;max-height:80vh;max-height:78dvh;margin-bottom:env(safe-area-inset-bottom,0)}
 .sheet .sub{font-size:13px;color:var(--mute);margin-bottom:2px}
 .sheet a{color:var(--olive-d);font-weight:700}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -117,6 +117,8 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .phrow input{flex:1}
 .who{display:flex;align-items:center;gap:10px;min-width:0}
 .ent button.ok{background:var(--olive)}
+#status .card.cta{border:2px solid var(--olive);background:#f4f7e8;font-size:15px}
+#status .card.cta button{background:var(--olive);color:#fff;white-space:nowrap}
 #status .card{margin-top:10px;font-size:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gal figure{cursor:pointer}
 .gal video{width:100%;height:100%;object-fit:cover;display:block}
@@ -207,7 +209,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 <body>
 <div id="note"></div>
 <header class="hero">
-  <button class="me" id="meBtn" hidden>👤 ملفي</button>
+  <button class="me" id="meBtn" hidden>👤 بروفايلي</button>
   <button class="me adm" id="adminBtn" hidden>🛠 الأدمن <b id="admCnt" hidden></b></button>
   <button class="me adm2" id="memBtn" hidden aria-label="اللاعبين"><span>👥 <b id="mReg">0</b></span><span>🔥 <b id="mAct">0</b></span></button>
   <div class="ball">⚽</div>
@@ -266,7 +268,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <div class="gal" id="mediaGrid"></div>
     <div class="admin" data-admin><button class="ghost" id="addPhoto2">+ إضافة صورة أو فيديو</button></div>
   </main>
-  <div class="foot"><button class="ghost" id="instBtn" hidden>📲 أضف الصفحة للشاشة الرئيسية</button></div>
+  
 </div>
 
 <dialog class="sheet" id="dPost">
@@ -296,10 +298,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <div id="tmBody" style="clear:both"></div>
 </dialog>
 
-<dialog class="sheet" id="dInstall">
-  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <div id="inBody" style="clear:both"></div>
-</dialog>
+
 
 <dialog class="sheet" id="dShare">
   <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -593,7 +592,7 @@ function renderGal(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,6);
   $('#gal').innerHTML=list.length?list.map(thumb).join(''):'<div class="card empty" style="grid-column:1/-1">الصور تنضاف قريب</div>';
 }
-function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();renderMedia();renderLog();renderBoard();renderAwardsPage();renderInstBtn();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
+function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
 /* ---------- تذييل تفاصيل الإعلان ---------- */
 async function ensureNames(ids){
@@ -750,7 +749,7 @@ function accessHint(){
   const st=myStatus();
   if(st==='ok')return '<div class="hint">اضغط على خيارك مرة ثانية لإلغائه</div>';
   if(st==='out')return '<div class="hint">سجّل دخولك بحساب قوقل عشان تأكد حضورك</div>';
-  if(st==='new')return '<div class="hint">سجّل ملفك أول (زر ملفي) عشان تقدر تأكد حضورك</div>';
+  if(st==='new')return '<div class="hint">أنشئ بروفايلك أول (الزر الأخضر فوق: «أنشئ بروفايلي») عشان تقدر تأكد حضورك</div>';
   if(st==='pending')return '<div class="hint">طلبك بانتظار موافقة حمد</div>';
   return '<div class="hint">ما تمت الموافقة على طلبك</div>';
 }
@@ -758,7 +757,7 @@ function renderStatus(){
   const el=$('#status');
   if(!myId||!db||!(S.ready.players&&S.ready.access)){el.innerHTML='';return}
   const st=myStatus();let h='';
-  h+=st==='new'?'<div class="card">👋 أول مرة؟ سجّل ملفك عشان ينرسل طلبك لحمد <button id="joinBtn">سجّل ملفي</button></div>'
+  h+=st==='new'?'<div class="card cta"><div><b>👋 خطوة أولى: أنشئ بروفايلك</b><br><small>اكتب اسمك ومركزك، وينرسل طلبك لحمد. بعد الموافقة تقدر تأكد حضورك.</small></div><button id="joinBtn">أنشئ بروفايلي</button></div>'
     :st==='pending'?'<div class="card">⏳ طلبك بانتظار موافقة حمد</div>'
     :st==='no'?'<div class="card">❌ ما تمت الموافقة على طلبك</div>':'';
   const NP=loadNP(),now=Date.now();
@@ -1400,24 +1399,6 @@ $('#awPage').addEventListener('click',e=>{
 });
 
 /* ---------- الشاشة الرئيسية + التنبيهات ---------- */
-function renderInstBtn(){const b=$('#instBtn');if(b)b.hidden=!(myId&&(myStatus()==='ok'||isAdmin()))}
-$('#instBtn').onclick=()=>{
-  const ua=navigator.userAgent||'';const ios=/iPhone|iPad|iPod/i.test(ua);
-  const ios_=`<div class="stp ${ios?'me':''}"><h4> iPhone / iPad ${ios?'(جهازك)':''}</h4>1. افتح الرابط في <b>Safari</b> (مو من داخل الواتساب).<br>2. اضغط زر المشاركة (المربع اللي فيه سهم لفوق).<br>3. اختر <b>Add to Home Screen</b>.<br>4. اضغط <b>Add</b>.</div>`;
-  const and_=`<div class="stp ${ios?'':'me'}"><h4>Android ${ios?'':'(جهازك)'}</h4>1. افتح الرابط في <b>Chrome</b> (مو من داخل الواتساب).<br>2. اضغط النقاط الثلاث ⋮ فوق.<br>3. اختر <b>Add to Home screen</b> (أو <b>Install app</b>).<br>4. اضغط <b>Add</b>.</div>`;
-  $('#inBody').innerHTML=`<h3>📲 أضف الصفحة للشاشة الرئيسية</h3>
-    <div class="hint">تضيف الاختصار من المتصفح نفسه، والصفحة ما تقدر تسويه عنك. انسخ الرابط وافتحه في المتصفح ثم اتبع الخطوات.</div>
-    ${ios?ios_+and_:and_+ios_}
-    <div class="row"><button id="inCopy">📋 انسخ الرابط</button><a class="btn ghost" href="${esc(APP_URL)}" target="_blank" rel="noopener">فتح الرابط</a></div>
-    <div class="stp"><h4>🔔 التنبيهات</h4>تنبيهات الصفحة (تصعيدك من الاحتياط، وتذكير التصويت) تظهر لك داخل الصفحة. إشعارات الجوال الخارجية ما تدعمها الصفحة حاليًا، فيبقى قروب الواتساب هو القناة الأساسية لإعلان الألعاب.</div>`;
-  $('#dInstall').showModal();
-};
-$('#inBody').addEventListener('click',async e=>{
-  const b=e.target.closest('#inCopy');if(!b)return;
-  try{await navigator.clipboard.writeText(APP_URL);b.textContent='✅ اننسخ'}
-  catch(err){const ta=document.createElement('textarea');ta.value=APP_URL;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');b.textContent='✅ اننسخ'}catch(e2){b.textContent=APP_URL}ta.remove()}
-});
-
 /* ---------- مشاركة الإعلان بالواتساب ---------- */
 function shareText(m){
   const f=m.date?fmtDate(m.date):null;
@@ -1534,7 +1515,7 @@ function feedCard(it){
   let adm='';
   if(isAdmin()){
     const st=seenStats(it);
-    adm=`<div class="adm2r"><button data-wa="${esc(it.id)}">📤 أرسل للقروب</button><button class="ghost" data-seen="${esc(it.id)}">👁 ${st.seen.length}/${st.seen.length+st.not.length}</button>${it.kind==='post'?`<button class="ghost" data-delpost="${esc(it.id)}" style="color:#9a3b2e">حذف</button>`:''}</div>`;
+    adm=`<div class="adm2r"><button data-wa="${esc(it.id)}">📤 أرسل للقروب</button><button class="ghost" data-seen="${esc(it.id)}">👁 ${st.seen.length}/${st.seen.length+st.not.length}</button><button class="ghost" data-delpost="${esc(it.id)}" data-kind="${it.kind}" style="color:#9a3b2e">🗑 ${it.kind==='post'?'حذف المنشور':'حذف الإعلان'}</button></div>`;
   }
   return `<div class="card fd"><div class="fh"><span>${head}</span><span>${esc(fmtTs(it.ts))}</span></div>${body}<div class="rxs">${bar}</div>${adm}</div>`;
 }
@@ -1570,8 +1551,9 @@ $('#feed').addEventListener('click',e=>{
   const sn=e.target.closest('[data-seen]');if(sn&&isAdmin()){openSeen(sn.dataset.seen);return}
   const dp=e.target.closest('[data-delpost]');
   if(dp&&isAdmin()){
-    if(!dp.dataset.sure){dp.dataset.sure='1';dp.textContent='تأكيد الحذف؟';return}
-    db.doc('feed/'+dp.dataset.delpost).delete().catch(()=>note('ما انحذف'));
+    if(!dp.dataset.sure){dp.dataset.sure='1';dp.textContent=dp.dataset.kind==='match'?'تأكيد حذف الإعلان؟':'تأكيد الحذف؟';return}
+    if(dp.dataset.kind==='match')db.doc('matches/'+dp.dataset.delpost.replace(/^m_/,'')).delete().catch(()=>note('ما انحذف'));
+    else db.doc('feed/'+dp.dataset.delpost).delete().catch(()=>note('ما انحذف'));
   }
 });
 function openSeen(id){
@@ -1603,20 +1585,27 @@ function loadNP(){try{return {...NP_DEF,...JSON.parse(localStorage.getItem('bibi
 function saveNP(o){npMem=o;try{localStorage.setItem('bibi_np',JSON.stringify(o))}catch(e){}}
 function renderNotifCard(){
   const el=$('#notifCard');if(!el)return;
-  el.innerHTML=(myId&&(myStatus()==='ok'||isAdmin()))?'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px">🔔 <span>التنبيهات وإضافة الصفحة للشاشة الرئيسية</span><button id="ntOpen">إعدادات</button></div>':'';
+  el.innerHTML=(myId&&(myStatus()==='ok'||isAdmin()))?'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px">🔔 <span>التنبيهات وإضافة الصفحة للشاشة الرئيسية</span><button id="ntOpen">الطريقة</button></div>':'';
 }
 $('#notifCard').addEventListener('click',e=>{if(e.target.id==='ntOpen')openNotif()});
 function openNotif(){
   const np=loadNP();
-  $('#ntBody').innerHTML=`<h3>🔔 التنبيهات</h3>
-    <div class="stp"><h4>1) أضف الصفحة للشاشة الرئيسية</h4>تفتحها كتطبيق بضغطة وحدة.<div class="row"><button id="ntInst">طريقة الإضافة</button></div></div>
-    <div class="stp"><h4>2) اختر التنبيهات اللي تبيها</h4>
+  const ua=navigator.userAgent||'';const ios=/iPhone|iPad|iPod/i.test(ua);
+  const ios_=`<details class="stp ${ios?'me':''}" ${ios?'open':''}><summary><b>iPhone / iPad ${ios?'(جهازك)':''}</b></summary>1. افتح الرابط في <b>Safari</b> (مو من داخل الواتساب).<br>2. اضغط زر المشاركة (المربع اللي فيه سهم لفوق).<br>3. اختر <b>Add to Home Screen</b> ثم <b>Add</b>.</details>`;
+  const and_=`<details class="stp ${ios?'':'me'}" ${ios?'':'open'}><summary><b>Android ${ios?'':'(جهازك)'}</b></summary>1. افتح الرابط في <b>Chrome</b> (مو من داخل الواتساب).<br>2. اضغط النقاط الثلاث ⋮ فوق.<br>3. اختر <b>Add to Home screen</b> (أو <b>Install app</b>) ثم <b>Add</b>.</details>`;
+  $('#ntBody').innerHTML=`<h3>🔔 التنبيهات والشاشة الرئيسية</h3>
+    <div class="stp"><h4>📲 أضف الصفحة للشاشة الرئيسية</h4>تفتحها بعدها كتطبيق بضغطة وحدة. الاختصار يتضاف من المتصفح نفسه، والصفحة ما تقدر تسويه عنك.${ios?ios_+and_:and_+ios_}</div>
+    <div class="stp"><h4>🔔 التنبيهات</h4>الصفحة ما ترسل إشعارات لجوالك وهي مسكّرة. التنبيهات تطلع لك كبطاقات في الصفحة الرئيسية أول ما تفتحها، واللي تبيه منها اختره تحت. إعلانات اللعب توصل لك بالواتساب بنفس الوقت.
     ${NP_LBL.map(([k,l])=>`<label class="tgl"><span>${l}</span><input type="checkbox" data-np="${k}" ${np[k]?'checked':''}></label>`).join('')}</div>
-    <div class="msg">التنبيهات تطلع لك كبطاقات في الصفحة الرئيسية لما تفتح الصفحة. الصفحة ما تقدر ترسل إشعارات لجوالك وهي مسكّرة، عشان كذا كل إعلان لعب يوصل بنفس الوقت لقروب الواتساب.</div>`;
+    <div class="row"><button id="inCopy">📋 انسخ رابط الصفحة</button></div>`;
   $('#dNotif').showModal();
 }
 $('#ntBody').addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.np;if(!k)return;const np=loadNP();np[k]=e.target.checked;saveNP(np);renderStatus()});
-$('#ntBody').addEventListener('click',e=>{if(e.target.id==='ntInst'){$('#dNotif').close();$('#instBtn').click()}});
+$('#ntBody').addEventListener('click',async e=>{
+  const b=e.target.closest('#inCopy');if(!b)return;
+  try{await navigator.clipboard.writeText(APP_URL);b.textContent='✅ اننسخ'}
+  catch(err){const ta=document.createElement('textarea');ta.value=APP_URL;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');b.textContent='✅ اننسخ'}catch(e2){b.textContent=APP_URL}ta.remove()}
+});
 let lastMst='';
 setInterval(()=>{
   try{renderStatus();finalizeMotm();
