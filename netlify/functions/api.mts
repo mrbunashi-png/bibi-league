@@ -2,9 +2,9 @@ import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
-const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','profiles'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans']);
-const SELF_WRITE = new Set(['rsvps','stats','players','reacts','votes','inbox','views']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
+const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles'];
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats']);
+const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
 
@@ -109,6 +109,9 @@ export default async (req: Request) => {
         if (c === 'inbox' ? !id.startsWith(uid + '_') : id !== uid) return bad('forbidden', 403);
       } else if (!ADMIN_ONLY.has(c) && !SELF_WRITE.has(c)) return bad('forbidden', 403);
       if (!admin && c === 'rsvps' && o.op !== 'delete') {
+        const mm0 = (o.data && o.data.m) || {};
+        const mAll = await readColl('matches');
+        for (const k of Object.keys(mm0)) if (mAll[k] && mAll[k].guests === false && +(mm0[k] && mm0[k].g) > 0) return bad('guests closed', 403);
         const ban = (await readColl('bans'))[uid];
         if (ban) {
           const ids = bannedMatchIds(ban, await readColl('matches'));

@@ -168,6 +168,28 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .tabs button{flex:1;background:var(--card);color:var(--mute);border:1px solid var(--line);padding:8px 4px}
 .tabs button.on{background:var(--olive);color:#fff;border-color:var(--olive)}
 .ann.pastc{opacity:.92}
+.card.latest{background:linear-gradient(135deg,#fff3d6,#ffe2b0);border:2px solid #e0a63c;box-shadow:0 4px 14px rgba(224,166,60,.35)}
+.tag.lat{background:#c0562b;color:#fff}
+.ann .s.live{font-weight:800;color:var(--olive-d)}
+.livecard{background:linear-gradient(135deg,#1f3d2b,#2e7d4f);color:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;text-align:center}
+.livecard b{font-size:34px;letter-spacing:2px;display:block;line-height:1.2}.livecard small{opacity:.85}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.cbox{border-radius:16px;padding:12px 8px;text-align:center;color:#fff}
+.cbox.g{background:#2e7d4f}.cbox.c{background:#c0562b}
+.cbox b{display:block;font-size:46px;line-height:1.1}.cbox span{font-size:13px;opacity:.95}
+.cbox .cb{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.cbox .cb button{width:58px;height:48px;font-size:28px;padding:0;background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.5)}
+.evr{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-top:6px;font-size:13px}
+.evr .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-inline-end:6px}
+.evr button{padding:2px 10px;font-size:12px}
+.svr{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-top:6px}
+.svr .st{display:flex;align-items:center;gap:10px}.svr .st button{width:34px;height:34px;padding:0;font-size:20px}
+.guests.off{color:var(--mute);background:#f3ece0}
+#goalBody label{display:block;margin-top:8px;font-size:13px;color:var(--mute)}
+#goalBody select{width:100%}
+.rl h4{margin:14px 0 6px;font-size:16px}.rl p,.rl li{font-size:14px;line-height:1.8}.rl ul{margin:4px 0;padding-inline-start:20px}
+.rl table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.rl td,.rl th{border:1px solid var(--line);padding:5px 8px;text-align:right}.rl th{background:#f3ece0}
+
 .mst{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-top:6px;font-size:13px}
 .adm2{left:auto;right:12px;top:54px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;font-size:12px;padding:5px 11px;line-height:1.5}
 .adm2 b{background:none;padding:0;margin:0;font-size:13px}
@@ -359,6 +381,10 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 
 
 
+<dialog class="sheet" id="dGoal">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="goalBody" style="clear:both"></div>
+</dialog>
 <dialog class="sheet" id="dShare">
   <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div id="shrBody" style="clear:both"></div>
@@ -510,7 +536,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -534,11 +560,11 @@ const STATUS=[['in','Going','✅'],['out','Not Going','❌'],['watch','مشاه�
 const byTs=(a,b)=>a.ts-b.ts||(a.uid<b.uid?-1:1);
 function capOf(m){return m&&+m.format?2*(+m.format):Infinity}
 function entries(mid,rs){
-  const a=[];
+  const a=[];const gOpen=guestsOpen(S.matches.find(x=>x.id===mid));
   for(const [uid,r] of Object.entries(rs)){
     if(!isOk(uid))continue;
     const x=r&&r.m&&r.m[mid];
-    if(x&&x.s)a.push({uid,s:x.s,g:Math.max(0,Math.min(5,+x.g||0)),ts:+x.ts||0,vol:x.s==='sub'&&x.w===0});
+    if(x&&x.s)a.push({uid,s:x.s,g:gOpen?Math.max(0,Math.min(5,+x.g||0)):0,ts:+x.ts||0,vol:x.s==='sub'&&x.w===0});
   }
   return a.sort(byTs);
 }
@@ -588,12 +614,15 @@ function fmtDate(d){
   const dt=new Date(d+'T00:00:00');
   return {day:dt.toLocaleDateString('ar-KW',{day:'numeric'}),mon:dt.toLocaleDateString('ar-KW',{month:'short'}),wk:dt.toLocaleDateString('ar-KW',{weekday:'long'})};
 }
+function latestMatchId(){let b=null;for(const m of S.matches){if(!b||(m.createdAt||0)>(b.createdAt||0))b=m}return b?b.id:null}
+function liveLine(mid){const ag=evAgg(mid);return ag?`<div class="s live">⚽ النتيجة: 🟢 ${ag.gs} - ${ag.cs} 🎨</div>`:''}
 function matchCard(m){
   const today=todayStr();
-  const f=fmtDate(m.date);const up=!isDone(m);
-  return `<div class="card ann ${up?'':'pastc'}" data-id="${esc(m.id)}"><div class="d"><b>${esc(f.day)}</b><span>${esc(f.mon)}</span></div>
-      <div><div class="t">${esc(matchTitle(m))}<span class="tag ${up?'up':'done'}">${up?'قادم':'انلعب'}</span></div>
-      <div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}${m.note?' · '+esc(m.note):''}</div>
+  const f=fmtDate(m.date);const up=!isDone(m);const lat=m.id===latestMatchId()&&S.matches.length>1;
+  return `<div class="card ann ${up?'':'pastc'} ${lat?'latest':''}" data-id="${esc(m.id)}"><div class="d"><b>${esc(f.day)}</b><span>${esc(f.mon)}</span></div>
+      <div><div class="t">${esc(matchTitle(m))}<span class="tag ${up?'up':'done'}">${up?'قادم':'انلعب'}</span>${lat?'<span class="tag lat">🆕 آخر إعلان</span>':''}</div>
+      ${m.time?`<div class="s">⏰ ${esc(time12(m.time))}</div>`:''}
+      <div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}${m.note?' · '+esc(m.note):''}</div>${liveLine(m.id)}
       <div class="s">✅ Going: ${goingLabel(m.id)}</div>${m.fee?`<div class="feeb">💰 القطية ${esc(m.fee)} د.ك${myId&&isPaid(m.id,myId)?' · ✅ دفعت':''}</div>`:''}</div>
       <div class="more">${up?'اضغط لتأكيد حضورك':'اضغط للتفاصيل'} <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div></div>`;
 }
@@ -614,15 +643,45 @@ function renderLog(){
   $('#logList').innerHTML=list.length?list.map(matchCard).join(''):'<div class="card empty">ما فيه مباريات هني</div>';
 }
 $('#logTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){logTab=b.dataset.t;renderLog()}});
+
+/* ---------- آلة المباراة: الأحداث تغذي الإحصائيات ---------- */
+function evAgg(mid){
+  const d=S.events[mid];if(!d)return null;
+  const u={};const add=(id,k,n=1)=>{if(!id||id==='guest')return;(u[id]=u[id]||{goals:0,assists:0,saves:0})[k]+=n};
+  let gs=0,cs=0;
+  for(const e of (d.g||[])){
+    if(e.side==='g')gs++;else cs++;
+    if(!e.og){add(e.s,'goals');add(e.a,'assists')}
+  }
+  for(const [id,n] of Object.entries(d.sv||{}))if(+n>0)add(id,'saves',+n);
+  return {u,gs,cs};
+}
+function mRec(uid,mid){
+  const ag=evAgg(mid);
+  if(ag)return ag.u[uid]||null;
+  const r=S.stats[uid]&&S.stats[uid].m&&S.stats[uid].m[mid];
+  return r?{goals:+r.goals||0,assists:+r.assists||0,saves:+r.saves||0}:null;
+}
+function mScore(mid){
+  const ag=evAgg(mid);if(ag)return {gs:ag.gs,cs:ag.cs};
+  const T=S.teams[mid];if(T&&Number.isFinite(T.gs)&&Number.isFinite(T.cs))return {gs:T.gs,cs:T.cs};
+  return null;
+}
+function mUids(mid){
+  const ag=evAgg(mid);if(ag)return Object.keys(ag.u);
+  return Object.keys(S.stats).filter(u=>S.stats[u]&&S.stats[u].m&&S.stats[u].m[mid]);
+}
+function evUids(){const out=new Set();for(const k of Object.keys(S.events))mUids(k).forEach(u=>out.add(u));return [...out]}
+const guestsOpen=m=>!m||m.guests!==false;
 function matchStatsHtml(mid){
   const rows=[];
-  for(const uid of Object.keys(S.stats)){
+  for(const uid of mUids(mid)){
     if(!isOk(uid))continue;
-    const r=S.stats[uid]&&S.stats[uid].m&&S.stats[uid].m[mid];
-    if(r)rows.push({uid,g:+r.goals||0,a:+r.assists||0,sv:+r.saves||0,gk:isGK((S.players[uid]||{}).pos)});
+    const r=mRec(uid,mid);
+    if(r)rows.push({uid,g:r.goals,a:r.assists,sv:r.saves,gk:isGK((S.players[uid]||{}).pos)});
   }
   if(!rows.length)return '';
-  rows.sort((x,y)=>y.g-x.g||y.a-x.a);
+  rows.sort((x,y)=>(y.g+y.a)-(x.g+x.a)||y.g-x.g||y.sv-x.sv);
   const tg=rows.reduce((n,r)=>n+r.g,0);
   return `<div class="grp"><h4><span>📊 إحصائيات المباراة</span><span>⚽ ${tg}</span></h4>${rows.map(r=>`<div class="mst"><span>${avatar(r.uid,'sm')}${nameLink(r.uid)}</span><span>⚽ ${r.g} · 🎯 ${r.a}${r.gk||r.sv?` · 🧤 ${r.sv}`:''}</span></div>`).join('')}</div>`;
 }
@@ -630,13 +689,15 @@ const isPaid=(mid,uid)=>!!(S.rsvps[uid]&&S.rsvps[uid].p&&S.rsvps[uid].p[mid]);
 const nameOf=uid=>(S.players[uid]&&S.players[uid].name)||S.names[uid]||'لاعب';
 const nameLink=uid=>`<a class="pl" data-uid="${esc(uid)}">${esc(nameOf(uid))}</a>`;
 function totals(uid){
-  const e=(S.stats[uid]&&S.stats[uid].m)||{};let g=0,a=0,sv=0,n=0;
-  for(const k in e){const mm=S.matches.find(x=>x.id===k);if(!mm||!isFB(mm))continue;n++;g+=+e[k].goals||0;a+=+e[k].assists||0;sv+=+e[k].saves||0}
+  let g=0,a=0,sv=0,n=0;
+  const ids=new Set(Object.keys((S.stats[uid]&&S.stats[uid].m)||{}));
+  for(const k of Object.keys(S.events))if(mRec(uid,k))ids.add(k);
+  ids.forEach(k=>{const mm=S.matches.find(x=>x.id===k);if(!mm||!isFB(mm)||!isDone(mm))return;const r=mRec(uid,k);n++;if(r){g+=r.goals;a+=r.assists;sv+=r.saves}});
   let mv=0;for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm))mv++}}
   return {n,g,a,sv,mv};
 }
 function renderTops(){
-  const ids=[...new Set(Object.keys(S.stats).concat(Object.values(S.motm).map(d=>d&&d.winner).filter(Boolean)))].filter(isOk);
+  const ids=[...new Set(Object.keys(S.stats).concat(evUids()).concat(Object.values(S.motm).map(d=>d&&d.winner).filter(Boolean)))].filter(isOk);
   ensureNames(ids);
   const all=ids.map(uid=>({uid,...totals(uid)}));
   const defs=[['⚽ Top Scorer','g','هدف'],['🎯 Top Assists','a','Assist'],['🔥 Top Appearances','n','مباراة'],['🌟 Man of the Match','mv','مرة']];
@@ -673,7 +734,14 @@ function renderGal(){
   const list=[...S.gallery].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,3);
   $('#gal').innerHTML=list.length?list.map(mediaCard).join(''):'<div class="card empty">الصور تنضاف قريب</div>';
 }
-function renderAll(){renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
+function ensureAdminOk(){
+  if(adminSeeded||!db||!myId||!isAdmin()||!S.ready.access||isOk(myId))return;
+  adminSeeded=true;
+  const used=Object.keys(S.access).some(u=>u!==myId&&+(S.access[u]||{}).no===1);
+  const rec={status:'ok',ts:Date.now()};if(!used)rec.no=1;
+  db.doc('access/'+myId).set(rec).then(()=>{S.access[myId]=rec;renderAll();assignNumbers()}).catch(()=>{}).finally(()=>{setTimeout(()=>{adminSeeded=false},20000)});
+}
+function renderAll(){ensureAdminOk();renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
 /* ---------- تذييل تفاصيل الإعلان ---------- */
 async function ensureNames(ids){
@@ -687,10 +755,84 @@ async function ensureNames(ids){
   }catch(e){}
 }
 function safeUrl(u){return /^https?:\/\//i.test(u||'')?u:''}
-const secOpen={going:true,queue:true,out:false,watch:false,teams:true,pay:true,adm:false};
+const secOpen={going:true,queue:true,out:false,watch:false,teams:true,pay:true,adm:false,calc:true};
 function sec(key,title,count,body,note=''){
   return `<details class="sec" data-sec="${key}" ${secOpen[key]?'open':''}><summary><span>${title}</span><b>${count}</b></summary>${note?`<div class="hint">${note}</div>`:''}${body}</details>`;
 }
+
+/* ---------- واجهة آلة المباراة (للأدمن) ---------- */
+function partUids(mid){
+  const L=layout(mid);const set=new Set([...L.going,...L.queue,...L.vol].map(p=>p.uid));
+  const T=S.teams[mid]||S.teamsDraft[mid]||{};(T.g||[]).concat(T.c||[]).forEach(u=>set.add(u));
+  return [...set].filter(isOk);
+}
+const evNm=u=>u==='guest'?'ضيف':u?esc(nameOf(u)):'';
+function calcHtml(mid){
+  const ag=evAgg(mid)||{gs:0,cs:0};
+  const d=S.events[mid]||{g:[],sv:{}};
+  const parts=partUids(mid);ensureNames(parts);
+  const sv=d.sv||{};
+  const gks=parts.filter(u=>isGK((S.players[u]||{}).pos)||+sv[u]>0);
+  const others=parts.filter(u=>!gks.includes(u));
+  const evRow=e=>`<div class="evr"><span><i class="dot" style="background:${e.side==='g'?'#2e7d4f':'#c0562b'}"></i>${e.og?`🙈 هدف عكسي${e.s?' ('+evNm(e.s)+')':''}`:`⚽ ${evNm(e.s)}${e.a?` · 🎯 ${evNm(e.a)}`:''}`}</span><button class="ghost" data-evdel="${esc(e.id)}">حذف</button></div>`;
+  const svRow=u=>`<div class="svr"><span>${avatar(u,'sm')}${esc(nameOf(u))}</span><span class="st"><button data-svb="${esc(u)}|-1">−</button><b>${+sv[u]||0}</b><button data-svb="${esc(u)}|1">+</button></span></div>`;
+  return `<div class="calc">
+      <div class="cbox g"><b>${ag.gs}</b><span>🟢 الفريق الأخضر</span><div class="cb"><button data-cg="g|+">+</button><button data-cg="g|-">−</button></div></div>
+      <div class="cbox c"><b>${ag.cs}</b><span>🎨 الفريق الملون</span><div class="cb"><button data-cg="c|+">+</button><button data-cg="c|-">−</button></div></div>
+    </div>
+    ${(d.g||[]).length?`<div class="payh">الأحداث (${d.g.length})</div>`+(d.g||[]).slice().reverse().map(evRow).join(''):'<div class="none">اضغط + عند كل هدف</div>'}
+    <div class="payh" style="margin-top:12px">🧤 تصديات الحراس (حد ${SV_CAP} للمباراة بالنقاط)</div>
+    ${gks.length?gks.map(svRow).join(''):'<div class="none">ما فيه حارس بين المشاركين</div>'}
+    ${others.length?`<select id="svAdd" style="margin-top:8px;width:100%"><option value="">＋ تصدية للاعب آخر…</option>${others.map(u=>`<option value="${esc(u)}">${esc(nameOf(u))}</option>`).join('')}</select>`:''}`;
+}
+function saveEv(mid,fn){
+  chain=chain.then(async()=>{
+    if(!db||!isAdmin())return;
+    const cur=JSON.parse(JSON.stringify(S.events[mid]||{g:[],sv:{}}));
+    cur.g=cur.g||[];cur.sv=cur.sv||{};
+    const next=fn(cur);if(!next)return;
+    next.ts=Date.now();
+    await db.doc('events/'+mid).set(next);
+    S.events[mid]=next;
+  }).catch(()=>note('ما انحفظ، جرب مرة ثانية'));
+  return chain.then(()=>{renderSheet();renderAnn();renderTops()});
+}
+let gl=null;
+function glOpts(side,placeholder,excl){
+  const mid=gl.mid,parts=partUids(mid);ensureNames(parts);
+  const T=S.teams[mid]||S.teamsDraft[mid]||{};
+  const mine=(side==='g'?T.g:T.c)||[];
+  const A=parts.filter(u=>u!==excl&&mine.includes(u)),B=parts.filter(u=>u!==excl&&!mine.includes(u));
+  const o=u=>`<option value="${esc(u)}">${esc(nameOf(u))}</option>`;
+  return `<option value="">${placeholder}</option>`+(A.length?`<optgroup label="${side==='g'?'🟢 الأخضر':'🎨 الملون'}">${A.map(o).join('')}</optgroup>`:'')+(B.length?`<optgroup label="${A.length?'باقي المشاركين':'المشاركين'}">${B.map(o).join('')}</optgroup>`:'')+'<option value="guest">ضيف / لاعب غير مسجل</option>';
+}
+function openGoal(side){
+  if(!isAdmin()||!openId)return;
+  gl={mid:openId,side};
+  $('#goalBody').innerHTML=`<h3>⚽ هدف للفريق ${side==='g'?'🟢 الأخضر':'🎨 الملون'}</h3>
+    <label>من سجّل؟</label><select id="glS">${glOpts(side,'اختر اللاعب')}</select>
+    <label>صانع الهدف (اختياري)</label><select id="glA">${glOpts(side,'بدون أسيست')}</select>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="glOg" style="width:auto"> هدف عكسي (يُحسب لهذا الفريق ولا يُحسب هدف لأحد)</label>
+    <div class="msg" id="glMsg" hidden></div>
+    <div class="row"><button id="glSave">✅ سجّل الهدف</button></div>`;
+  $('#dGoal').showModal();
+}
+$('#goalBody').addEventListener('change',e=>{if(e.target.id==='glOg'){$('#glA').disabled=e.target.checked;if(e.target.checked)$('#glA').value=''}});
+$('#goalBody').addEventListener('click',e=>{
+  if(e.target.id!=='glSave'||!gl)return;
+  const og=$('#glOg').checked,sc=$('#glS').value,as=og?'':$('#glA').value;
+  const msg=t=>{const m=$('#glMsg');m.textContent=t;m.hidden=false};
+  if(!og&&!sc)return msg('اختر من سجّل الهدف');
+  if(!og&&as&&as===sc&&sc!=='guest')return msg('اللاعب ما يصنع هدف لنفسه');
+  const {mid,side}=gl;
+  const ev={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),side,s:sc||'',a:as||'',ts:Date.now()};
+  if(og)ev.og=true;
+  $('#dGoal').close();playSnd('in');
+  saveEv(mid,cur=>{cur.g.push(ev);return cur});
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='svAdd'&&e.target.value&&openId&&isAdmin()){const u=e.target.value,mid=openId;saveEv(mid,cur=>{cur.sv[u]=(+cur.sv[u]||0)+1;return cur})}
+});
 function renderSheet(){
   const m=S.matches.find(x=>x.id===openId);if(!m)return;
   const f=fmtDate(m.date);
@@ -723,7 +865,7 @@ function renderSheet(){
     </div>${m.note?`<div class="mnote">📝 ${esc(m.note)}</div>`:''}</div>`;
   const mine=past?`<div class="msg">هذي المباراة انلعبت${myId&&my.s?` · حالتك: ${stLabel}`:''}</div>`:`<div class="mine"><div class="mlab">تسجيلك <b>${stLabel}</b></div>
     <div class="opts">${STATUS.map(([k,l,ic])=>`<button class="opt ${my.s===k?'on':''}" data-s="${k}" ${myStatus()==='ok'&&!(bi&&(k==='in'||k==='sub'))?'':'disabled'}>${ic} ${l}</button>`).join('')}</div>
-    ${my.s==='in'?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:''}
+    ${my.s==='in'?(guestsOpen(m)?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:`<div class="guests off">🚫 الضيوف غير مسموح في هذي المباراة</div>`):''}
     ${m.fee&&eff==='in'?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
     ${bi?`<div class="msg ban">${esc(banText(bi))}<br><small>ما تقدر تسجل Going أو احتياط في هذي المباراة. تقدر تختار Not Going أو مشاهد.</small></div>`:''}
     ${msg?`<div class="msg">${msg}</div>`:''}
@@ -739,11 +881,14 @@ function renderSheet(){
       'التذكير يوصل اللاعب في أيقونة 🔔 فوق، بصيغة لطيفة.');
   }
   const teams=teamsHtml(openId);
-  const adm=isAdmin()?sec('adm','🛠 أدوات الأدمن','',`<div class="row wrap"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button>${(full||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button>`:''}</div>
+  const agL=evAgg(openId);
+  const liveCard=agL?`<div class="livecard"><small>${past?'النتيجة النهائية':'🔴 مباشر'}</small><b>🟢 ${agL.gs} - ${agL.cs} 🎨</b></div>`:'';
+  const adm=isAdmin()?sec('adm','🛠 أدوات الأدمن','',`<div class="row wrap"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button><button class="ghost" data-guestsw="${guestsOpen(m)?'0':'1'}">${guestsOpen(m)?'🚫 اقفل الضيوف':'✅ افتح الضيوف'}</button>${(full||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button>`:''}</div>
     <div class="row wrap">${past&&m.done===true?`<button class="ghost" data-mkdone="0">↩️ رجّعها قادمة</button>`:!past?`<button class="ghost" data-mkdone="1">✅ حوّلها إلى «انلعبت» الحين</button>`:''}<button data-delmatch="${esc(openId)}" style="background:#9a3b2e">حذف هذا الإعلان</button></div>
     ${!past?'<div class="hint">لو ما حوّلتها يدويًا، تتحول تلقائيًا بعد 3 ساعات من وقت البداية.</div>':''}`):'';
   const galL=S.gallery.filter(g=>g.mid===openId);
-  $('#shBody').innerHTML=head+mine+
+  const calc=(isAdmin()&&isFB(m))?sec('calc','🎮 آلة المباراة (لك فقط)',agL?`${agL.gs}-${agL.cs}`:'',calcHtml(openId),'الأهداف والأسيست والتصديات تنحسب للاعبين تلقائيًا بعد ما تصير المباراة «انلعبت».'):'';
+  $('#shBody').innerHTML=head+liveCard+mine+
     (teams?`<details class="sec" data-sec="teams" ${secOpen.teams?'open':''}><summary><span>⚔️ التشكيلة</span><b></b></summary>${teams}</details>`:'')+
     sec('going','✅ Going',L.cap===Infinity?L.used:L.used+'/'+L.cap,list(L.going,false))+
     ((L.queue.length+L.vol.length)?sec('queue','🪑 احتياط',L.queue.length+L.vol.length,list(L.queue.concat(L.vol),true)):'')+
@@ -752,7 +897,7 @@ function renderSheet(){
     (L.watch.length?sec('watch','👀 مشاهد',L.watch.length,list(L.watch,false)):'')+
     (isFB(m)?matchStatsHtml(openId):'')+
     (galL.length?`<div class="grp"><h4><span>📸 صور وفيديو المباراة</span><span>${galL.length}</span></h4><div class="gal" id="shGal">${galL.map(thumb).join('')}</div></div>`:'')+
-    payHtml+adm;
+    calc+payHtml+adm;
 }
 $('#shBody').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.sec;if(k)secOpen[k]=e.target.open},true);
 
@@ -770,7 +915,7 @@ function saveOwn(coll,fn,uid=myId){
 }
 const saveMine=fn=>saveOwn('rsvps',fn);
 function setRsvp(s,gst){
-  const mid=openId;
+  const mid=openId;{const mx=S.matches.find(x=>x.id===mid);if(!guestsOpen(mx))gst=0}
   if(!db||!myId||!mid||myStatus()!=='ok')return;
   if((s==='in'||s==='sub')){const bi=banBlocks(myId,mid);if(bi){playSnd('warn');note(banText(bi));setTimeout(()=>note(''),6000);return}}
   saveMine(cur=>{
@@ -847,6 +992,33 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     const m=S.matches.find(x=>x.id===openId);if(!m||!motmEligible(m,myId)||motmState(m).s!=='open')return;
     const t=b.dataset.mv,mid=openId;if(myMotm(mid)!==t)playSnd('vote');
     saveOwn('votes',cur=>{const o={...(cur.o||{})};if(o[mid]===t)delete o[mid];else o[mid]=t;return {...cur,o,ts:Date.now()}}).then(()=>{renderSheet();renderStatus()});return;
+  }
+  if(b.dataset.cg){
+    if(!isAdmin())return;const [side,op]=b.dataset.cg.split('|'),mid=openId;
+    if(op==='+')openGoal(side);
+    else saveEv(mid,cur=>{let i=-1;for(let k=cur.g.length-1;k>=0;k--)if(cur.g[k].side===side){i=k;break}if(i<0)return null;cur.g.splice(i,1);return cur});
+    return;
+  }
+  if(b.dataset.evdel){
+    if(!isAdmin())return;const id=b.dataset.evdel,mid=openId;
+    if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟';return}
+    saveEv(mid,cur=>{cur.g=cur.g.filter(e=>e.id!==id);return cur});return;
+  }
+  if(b.dataset.svb){
+    if(!isAdmin())return;const [u,d]=b.dataset.svb.split('|'),mid=openId;
+    saveEv(mid,cur=>{const n=Math.max(0,(+cur.sv[u]||0)+(+d));if(n)cur.sv[u]=n;else delete cur.sv[u];return cur});return;
+  }
+  if(b.dataset.guestsw){
+    if(!isAdmin())return;const mid=openId,open=b.dataset.guestsw==='1';
+    if(!open&&!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟ يصفّر كل الـ Guests';return}
+    (async()=>{
+      try{
+        await db.doc('matches/'+mid).update({guests:open});
+        const mm=S.matches.find(x=>x.id===mid);if(mm)mm.guests=open;
+        if(!open){for(const [u,r] of Object.entries(S.rsvps)){const x=r&&r.m&&r.m[mid];if(x&&+x.g>0){const cur=JSON.parse(JSON.stringify(r));cur.m[mid].g=0;await db.doc('rsvps/'+u).set(cur);S.rsvps[u]=cur}}}
+        renderAll();
+      }catch(err){note('ما انحفظ، جرب مرة ثانية')}
+    })();return;
   }
   if(b.dataset.share){const m=S.matches.find(x=>x.id===b.dataset.share);if(m)openShare(m);return}
   if(b.dataset.teams){if(isAdmin())openTeams(b.dataset.teams);return}
@@ -1058,16 +1230,6 @@ function renderPlayerForm(){
       <label>الاسم</label><input id="pfName" value="${esc(prof.name||S.names[uid]||'')}" maxlength="30">
       <label>المركز</label><select id="pfPos">${posOpts(prof.pos)}</select>
       <div class="row"><button data-act="prof">${hasProf?'حفظ':'إرسال الطلب'}</button></div></div>`;
-  if(canStat(uid)){
-    h+=`<div class="pf"><h4>سجّل إحصائية مباراة</h4>
-      ${pm.length?`<label>المباراة</label><select id="stMatch">${opts}</select>
-      <div class="g3" style="margin-top:6px">
-        <div><label>Goals</label><input id="stG" type="number" min="0" max="30" inputmode="numeric" value="0"></div>
-        <div><label>Assists</label><input id="stA" type="number" min="0" max="30" inputmode="numeric" value="0"></div>
-        ${gk?'<div><label>Saves</label><input id="stS" type="number" min="0" max="99" inputmode="numeric" value="0"></div>':''}
-      </div>
-      <div class="row"><button data-act="stat">حفظ الإحصائية</button></div>`:'<div class="empty">ما فيه مباريات منتهية للحين</div>'}</div>`;
-  }
   el.innerHTML=h;
   loadEntry();
 }
@@ -1080,9 +1242,11 @@ function loadEntry(){
 function renderPlayerDyn(){
   const uid=curP;if(!uid)return;
   const t=totals(uid);const gk=isGK((S.players[uid]||{}).pos);
-  const ent=Object.entries((S.stats[uid]&&S.stats[uid].m)||{}).map(([mid,v])=>({mid,m:S.matches.find(x=>x.id===mid),...v}))
-    .filter(r=>r.m&&isFB(r.m)).sort((a,b)=>b.m.date.localeCompare(a.m.date));
-  const can=canStat(uid);
+  const mids=new Set(Object.keys((S.stats[uid]&&S.stats[uid].m)||{}));
+  Object.keys(S.events).forEach(k=>{if(mRec(uid,k))mids.add(k)});
+  const ent=[...mids].map(mid=>({mid,m:S.matches.find(x=>x.id===mid),...(mRec(uid,mid)||{})}))
+    .filter(r=>r.m&&isFB(r.m)&&isDone(r.m)).sort((a,b)=>b.m.date.localeCompare(a.m.date));
+  const can=false;
   $('#plDyn').innerHTML=`
     <div class="tot"><div><b>${t.n}</b><span>مباريات</span></div><div><b>${t.g}</b><span>Goals</span></div><div><b>${t.a}</b><span>Assists</span></div>${gk?`<div><b>${t.sv}</b><span>Saves</span></div>`:`<div><b>${t.g+t.a}</b><span>مساهمات</span></div>`}</div>
     <h2 style="margin-top:6px">🏆 الإنجازات</h2>
@@ -1108,25 +1272,55 @@ $('#plForm').addEventListener('click',e=>{
     const pos=$('#pfPos').value;
     saveOwn('players',cur=>({...cur,name,pos,photo:newPhoto||cur.photo||'',ts:cur.ts||Date.now()}),uid)
       .then(()=>{newPhoto=null;renderPlayerHead();renderPlayerForm();renderPlayerDyn();renderTops();renderStatus()});
-  }else if(b.dataset.act==='stat'&&canStat(uid)){
-    const mid=$('#stMatch').value;if(!mid)return;
-    const num=id=>{const v=Math.floor(+($(id)&&$(id).value)||0);return Math.max(0,Math.min(99,v))};
-    const rec={goals:num('#stG'),assists:num('#stA'),ts:Date.now()};
-    if($('#stS'))rec.saves=num('#stS');
-    saveOwn('stats',cur=>({...cur,m:{...(cur.m||{}),[mid]:rec}}),uid).then(()=>{renderPlayerDyn();renderTops()});
-  }
-});
-$('#plDyn').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  const uid=curP;if(!canStat(uid))return;
-  if(b.dataset.edit){const sel=$('#stMatch');if(sel){sel.value=b.dataset.edit;loadEntry();sel.scrollIntoView({block:'center'})}}
-  else if(b.dataset.del){
-    if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟';return}
-    const mid=b.dataset.del;
-    saveOwn('stats',cur=>{const m={...(cur.m||{})};delete m[mid];return {...cur,m}},uid).then(()=>{renderPlayerDyn();renderTops()});
   }
 });
 
+
+/* ---------- قوانين اللعب ---------- */
+const RULE_BANS=[['لعب خشن','1–2'],['عدم الالتزام بقوانين القروب','1–3'],['التسبب بإصابة لاعب آخر','3–10'],['عدم الحضور بعد التسجيل كحاضر','1–2'],['الانسحاب بالساعة الأخيرة','1'],['شتم لاعب آخر','2–4'],['تصرف غير لائق','1–3'],['التعدي على صلاحية المنظم','2–5'],['أخرى','حسب تقدير المنظم']];
+function renderRules(){
+  const n=x=>String(x).replace('.5','٫٥');
+  $('#rulesBody').className='card rl';
+  $('#rulesBody').innerHTML=`
+  <p>القروب والموقع مخصصين لإعلانات اللعب فقط، والرسائل داخل القروب للمنظم وحده. التسجيل يكون من الإعلان أو الحدث على الموقع. إذا ما اكتمل العدد خلال 24 ساعة من نزول الإعلان تنلغي المباراة ويعلن المنظم ذلك.</p>
+  <h4>1) التسجيل والحضور</h4>
+  <ul><li>أربع خيارات: Going، Not Going، احتياط، مشاهد. المقاعد تنوزع حسب وقت التسجيل.</li>
+  <li>الاحتياط اللي يسجل بعد اكتمال المقاعد يتصعد تلقائيًا إذا انسحب أحد. واللي يسجل احتياط والمقاعد لسا فاضية ما يتصعد تلقائيًا، لازم يضغط Going بنفسه.</li>
+  <li>Guests: حد أقصى 5 لكل لاعب ويحسبون من العدد الكلي. المنظم يفتح أو يقفل خاصية الضيوف لكل مباراة، وإذا انقفلت ما أحد يقدر يجيب ضيف. اللي سجّل الضيف مسؤول عنه.</li>
+  <li>التسجيل التزام، مو مجرد حجز مكان.</li></ul>
+  <h4>2) الوقت</h4>
+  <p>تعال قبل بداية المباراة بوقت كافي عشان تسخّن. التأخير أكثر من 15 دقيقة يتعوض بلاعب احتياط داخل الفريق.</p>
+  <h4>3) القطية والدفع</h4>
+  <ul><li>اللي سجّل وانسحب يوم المباراة يدفع القطية.</li>
+  <li>الدفع عن طريق «ومض» فقط، مو كاش. بعد الدفع اضغط «دفعت القطية».</li>
+  <li>المنظم يرسل تذكير لطيف. ومن تأخر بالدفع ما يقدر يسجل بالمباراة اللي بعدها إلا بعد ما يدفع.</li></ul>
+  <h4>4) الألوان</h4>
+  <p>لون الفريقين يتعلن مع كل مباراة، والتزم فيه. إذا ما عندك اللون المطلوب البس لون قريب منه.</p>
+  <h4>5) الأجواء والاحترام</h4>
+  <p>المباريات للمتعة مو للتنافس الزايد. ممنوع اللعب الخشن، وكسر الأغراض، والسب، والإساءة لأي لاعب أو للمنظم.</p>
+  <h4>6) الانضمام للقروب</h4>
+  <p>اللي يضيف أحد للقروب مسؤول عنه وعن أخلاقه. ممنوع لاعبين الأندية، وممنوع أي أحد غير موثوق.</p>
+  <h4>7) الانسحاب وعدم الحضور</h4>
+  <ul><li>«الساعة الأخيرة» تعني أقل من 3 ساعات قبل بداية المباراة.</li>
+  <li>الانسحاب المتأخر أو عدم الحضور بعد التسجيل = دفع القطية + عقوبة.</li>
+  <li>عدم الحضور = القطية + إيقاف من مباراة إلى مباراتين.</li></ul>
+  <h4>8) العقوبات</h4>
+  <p>المنظم يقرر ويطبق الإيقاف من 1 إلى 10 مباريات، ويشمل أول المباريات اللي تنزل بعد القرار. اللاعب يشوف السبب والمتبقي، وما يقدر يسجل Going أو احتياط خلال الإيقاف. تكرار المخالفة يضاعف العقوبة.</p>
+  <table><tr><th>المخالفة</th><th>الإيقاف (مباريات)</th></tr>${RULE_BANS.map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('')}</table>
+  <h4>9) نظام النقاط</h4>
+  <ul><li>المشاركة بالمباراة: ${n(W.n)} نقطة (الحارس ${n(W.nGK)}).</li>
+  <li>الهدف: ${n(W.g)} · الأسيست: ${n(W.a)}.</li>
+  <li>تصدية الحارس: ${n(W.sv)} نقطة، وحد أقصى ${SV_CAP} تصدية بالمباراة.</li>
+  <li>فوز الفريق: +${n(W.win)} لكل لاعب.</li>
+  <li>الشباك النظيف: الحارس +${n(W.csGK)} والمدافع +${n(W.csDef)}.</li>
+  <li>رجل المباراة: +${n(W.motm)}.</li>
+  <li>المباراة تنحسب للاعب بعد ما تنلعب فقط (بعد 3 ساعات من وقت البداية، أو إذا حولها المنظم يدويًا إلى «انلعبت»).</li></ul>
+  <h4>10) التصويت والجوائز</h4>
+  <ul><li>رجل المباراة: يصوّت اللاعبين المشاركين، ويقفل التصويت منتصف الليل. ممنوع تصوت لنفسك، والأصوات سرية.</li>
+  <li>لاعب الشهر ولاعب السنة: ${Math.round((1-VOTE.w)*100)}% إحصائيات + ${Math.round(VOTE.w*100)}% تصويت. يفتح التصويت آخر ${VOTE.monthDays} أيام من الشهر وآخر ${VOTE.yearDays} أيام من ديسمبر. المنظم يعتمد الفائز، والفائز يوصله إشعار إنجاز.</li></ul>
+  <h4>11) أمور أخرى</h4>
+  <p>للمنظم كامل الصلاحية في تنظيم المباريات وتعديل القوانين، ويعلن أي تغيير في القروب.</p>`;
+}
 /* ---------- لوحة الأدمن ---------- */
 let sanc={uid:'',games:1,reason:BAN_REASONS[0],other:''};
 function sancHtml(){
@@ -1258,8 +1452,8 @@ for(const id of ['#gal','#mediaGrid'])$(id).addEventListener('click',e=>{const g
 /* ---------- Leaderboard ---------- */
 const NOW=new Date();
 let boardTab='ov',lbSig='',per={mode:'all',y:NOW.getFullYear(),m:NOW.getMonth()+1};
-const W={g:3,a:2,n:1,nGK:2,sv:0.5,win:1,csGK:2,csDef:1,motm:3}; /* هدف 3، أسيست 2، مباراة 1 (الحارس 2)، تصدية 0.5 (حد 8/مباراة)، فوز +1، شباك نظيف: حارس +2 ومدافع +1 */
-const SV_CAP=8;const DEF=new Set(['CB','LB','RB','LWB','RWB']);
+const W={g:3,a:2,n:1,nGK:2,sv:0.5,win:1,csGK:2,csDef:1,motm:3}; /* هدف 3، أسيست 2، مباراة 1 (الحارس 2)، تصدية 0.5 (حد 15/مباراة)، فوز +1، شباك نظيف: حارس +2 ومدافع +1 */
+const SV_CAP=15;const DEF=new Set(['CB','LB','RB','LWB','RWB']);
 const VOTE={w:0.3,monthDays:3,yearDays:7}; /* وزن التصويت 30%، يفتح آخر 3 أيام من الشهر وآخر 7 أيام من ديسمبر */
 const statScore=(t,gk)=>t.g*W.g+t.a*W.a+t.n*(gk?W.nGK:W.n)+t.svc*W.sv+t.win*W.win+t.csp+(t.mv||0)*W.motm;
 const BOARD=[['ov','🏅 Overall'],['g','⚽ Goals'],['a','🎯 Assists'],['ga','⭐ G+A'],['n','🔥 Appearances'],['sv','🧤 Saves'],['mv','🌟 MOTM'],['avg','📈 معدل الأهداف']];
@@ -1277,20 +1471,21 @@ function totalsP(uid,pred){
   const pos=(S.players[uid]||{}).pos,gk=isGK(pos),df=DEF.has(pos);
   const ids=new Set(Object.keys(e));
   for(const k of Object.keys(S.teams))if(teamOf(S.teams[k],uid))ids.add(k);
+  for(const k of Object.keys(S.events)){if(mRec(uid,k)||layout(k).going.some(p=>p.uid===uid))ids.add(k)}
   ids.forEach(k=>{
-    const m=S.matches.find(x=>x.id===k);if(!m||!isFB(m)||!pred(m.date||''))return;
+    const m=S.matches.find(x=>x.id===k);if(!m||!isFB(m)||!isDone(m)||!pred(m.date||''))return;
     n++;
-    const r=e[k];
-    if(r){g+=+r.goals||0;a+=+r.assists||0;const x=+r.saves||0;sv+=x;svc+=Math.min(x,SV_CAP)}
-    const T=S.teams[k],side=teamOf(T,uid);
-    if(side&&Number.isFinite(T.gs)&&Number.isFinite(T.cs)){
-      const mine=side==='g'?T.gs:T.cs,opp=side==='g'?T.cs:T.gs;
+    const r=mRec(uid,k);
+    if(r){g+=r.goals;a+=r.assists;const x=r.saves;sv+=x;svc+=Math.min(x,SV_CAP)}
+    const T=S.teams[k],side=teamOf(T,uid),sc=mScore(k);
+    if(side&&sc){
+      const mine=side==='g'?sc.gs:sc.cs,opp=side==='g'?sc.cs:sc.gs;
       if(mine>opp)win++;
       if(opp===0)csp+=gk?W.csGK:df?W.csDef:0;
     }
   });
   let mv=0;
-  for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&pred(mm.date||''))mv++}}
+  for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))mv++}}
   return {n,g,a,sv,svc,win,csp,mv};
 }
 function renderBoardControls(){
@@ -1309,7 +1504,7 @@ function periodKeys(){
 function renderBoard(){
   if(lbSig!==per.mode+'|'+lbYears().join(''))renderBoardControls();
   const pred=perPred();
-  const ids=regList();ensureNames(ids);
+  const ids=regList();if(isAdmin()&&myId&&!ids.includes(myId))ids.unshift(myId);ensureNames(ids);
   const no=u=>(+(S.access[u]||{}).no)||1e9;
   const rows=ids.map(uid=>{const t=totalsP(uid,pred);const gk=isGK((S.players[uid]||{}).pos);return {uid,...t,gk,ga:t.g+t.a,avg:t.n>=3?t.g/t.n:0,ov:statScore(t,gk),v:0}});
   const pk=periodKeys();const aw=pk&&S.awards[pk.id];
@@ -1531,7 +1726,7 @@ function activeInfo(){
   const cnt={};
   for(const m of last){
     const here=new Set(layout(m.id).going.map(p=>p.uid));
-    for(const uid of Object.keys(S.stats)){if(isOk(uid)&&S.stats[uid]&&S.stats[uid].m&&S.stats[uid].m[m.id])here.add(uid)}
+    for(const uid of mUids(m.id)){if(isOk(uid))here.add(uid)}
     here.forEach(u=>{cnt[u]=(cnt[u]||0)+1});
   }
   return {n:last.length,cnt};
@@ -1589,8 +1784,8 @@ $('#memBody').addEventListener('click',async e=>{
 function teamsHtml(mid){
   const T=S.teams[mid];if(!T||!((T.g||[]).length||(T.c||[]).length))return '';
   const col=a=>a.length?'<ul>'+a.map(u=>`<li>${avatar(u,'sm')}${nameLink(u)}</li>`).join('')+'</ul>':'<div class="none">—</div>';
-  const sc=Number.isFinite(T.gs)&&Number.isFinite(T.cs);
-  return `<div class="grp">${sc?`<div class="score">🟢 ${T.gs} - ${T.cs} 🎨</div>`:''}<div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
+  const scx=mScore(mid),sc=!!scx;
+  return `<div class="grp">${sc?`<div class="score">🟢 ${scx.gs} - ${scx.cs} 🎨</div>`:''}<div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
 }
 let tm=null;
 function openTeams(mid){
@@ -1749,7 +1944,7 @@ async function finalizeMotm(){
       if(t&&t!==v&&going.includes(v)&&going.includes(t))tally[t]=(tally[t]||0)+1;
     }
     const ids=Object.keys(tally);if(!ids.length)continue;
-    const sc=u=>{const r=S.stats[u]&&S.stats[u].m&&S.stats[u].m[m.id];return r?(+r.goals||0)*3+(+r.assists||0)*2:0};
+    const sc=u=>{const r=mRec(u,m.id);return r?r.goals*3+r.assists*2:0};
     ids.sort((a,b)=>tally[b]-tally[a]||sc(b)-sc(a)||a.localeCompare(b));
     finSet.add(m.id);
     try{await db.doc('motm/'+m.id).set({winner:ids[0],tally,ts:Date.now()});
@@ -1785,7 +1980,7 @@ function feedCard(it){
   if(it.kind==='match'){
     const m=it.m,f=m.date?fmtDate(m.date):null;
     head='⚽ إعلان لعب';
-    body=`<div class="ft" data-open="${esc(m.id)}" style="cursor:pointer">${esc(matchTitle(m))}<div class="s">${f?`📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)} · `:''}📍 ${esc(m.place||'يُحدد لاحقًا')}</div>${m.fee?`<span class="feeb">💰 القطية ${esc(m.fee)} د.ك</span>`:''}</div>`;
+    body=`<div class="ft" data-open="${esc(m.id)}" style="cursor:pointer">${esc(matchTitle(m))}${m.id===latestMatchId()&&S.matches.length>1?'<span class="tag lat">🆕 آخر إعلان</span>':''}<div class="s">${f?`📅 ${esc(f.wk)} ${esc(f.day)} ${esc(f.mon)}`:''}${m.time?` · ⏰ ${esc(time12(m.time))}`:''}</div><div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}</div>${m.fee?`<span class="feeb">💰 القطية ${esc(m.fee)} د.ك</span>`:''}</div>`;
   }else{
     head='📢 إعلان';
     body=`<div class="ft">${esc(it.text).replace(/\n/g,'<br>')}</div>`;
@@ -1795,7 +1990,7 @@ function feedCard(it){
     const st=seenStats(it);
     adm=`<div class="adm2r"><button data-wa="${esc(it.id)}">📤 أرسل للقروب</button><button class="ghost" data-seen="${esc(it.id)}">👁 ${st.seen.length}/${st.seen.length+st.not.length}</button><button class="ghost" data-delpost="${esc(it.id)}" data-kind="${it.kind}" style="color:#9a3b2e">🗑 ${it.kind==='post'?'حذف المنشور':'حذف الإعلان'}</button></div>`;
   }
-  return `<div class="card fd"><div class="fh"><span>${head}</span><span>${esc(fmtTs(it.ts))}</span></div>${body}<div class="rxs">${bar}</div>${adm}</div>`;
+  return `<div class="card fd ${it.kind==='match'&&it.m.id===latestMatchId()&&S.matches.length>1?'latest':''}"><div class="fh"><span>${head}</span><span>${esc(fmtTs(it.ts))}</span></div>${body}<div class="rxs">${bar}</div>${adm}</div>`;
 }
 function renderFeed(){
   const el=$('#feed');if(!el)return;
@@ -1898,22 +2093,19 @@ function sub(path,key,toMap){
     if(!sn.metadata.fromCache)S.ready[key]=true;
     if(toMap){S[key]={};sn.docs.forEach(d=>S[key][d.id]=d.data())}
     else S[key]=sn.docs.map(d=>({id:d.id,...d.data()}));
-    if(key==='access'&&S.ready.access&&myId&&isAdmin()&&!isOk(myId)&&!adminSeeded){
-      adminSeeded=true;db.doc('access/'+myId).set({status:'ok',ts:Date.now()}).catch(()=>{adminSeeded=false});
-    }
     renderAll();
     if(key==='access'||key==='config')assignNumbers();
   },e=>{clearTimeout(timer);note('تعذر تحميل البيانات')});
 }
 async function init(){
-  sndBtnRender();renderAll();
+  sndBtnRender();renderRules();renderAll();
   try{user=await claude.use('user');}catch(e){}
   try{db=await claude.use('db');}catch(e){}
   try{assets=await claude.use('assets');}catch(e){}
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
   if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}
