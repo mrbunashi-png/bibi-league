@@ -60,13 +60,14 @@ async function sendPush(origin: string, uids: string[], payload: { t: string; b:
   const k = await vapid();
   const all = await readColl('push');
   let sent = 0, dead: Array<[string, string]> = [];
+  const reached = new Set<string>();
   for (const uid of uids) {
     const rec = all[uid];
     if (!rec || !Array.isArray(rec.subs)) continue;
     for (const sub of rec.subs) {
       try {
         await webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 86400, vapidDetails: { subject: origin, publicKey: k.publicKey, privateKey: k.privateKey } });
-        sent++;
+        sent++; reached.add(uid);
       } catch (e: any) {
         if (e && (e.statusCode === 404 || e.statusCode === 410)) dead.push([uid, sub.endpoint]);
       }
@@ -77,7 +78,7 @@ async function sendPush(origin: string, uids: string[], payload: { t: string; b:
     for (const [u, ep] of dead) if (n[u]) n[u] = { ...n[u], subs: (n[u].subs || []).filter((s: any) => s.endpoint !== ep) };
     return n;
   });
-  return sent;
+  return { sent, reached: reached.size };
 }
 
 async function notifyAdmins(origin: string, t: string, b: string) {
@@ -226,8 +227,8 @@ export default async (req: Request) => {
     if (!admin) return bad('forbidden', 403);
     let b: any; try { b = JSON.parse(await req.text()); } catch { return bad('bad json'); }
     const to: string[] = Array.isArray(b.to) ? b.to.filter((x: any) => typeof x === 'string').slice(0, 100) : [];
-    const sent = await sendPush(url.origin, to, { t: String(b.t || '').slice(0, 80), b: String(b.b || '').slice(0, 220), u: typeof b.u === 'string' ? b.u.slice(0, 200) : '/' });
-    return json({ ok: true, sent });
+    const res = await sendPush(url.origin, to, { t: String(b.t || '').slice(0, 80), b: String(b.b || '').slice(0, 220), u: typeof b.u === 'string' ? b.u.slice(0, 200) : '/' });
+    return json({ ok: true, sent: res.sent, reached: res.reached, total: to.length });
   }
 
   /* ---- النسخ الاحتياطي (للأدمن فقط) ---- */

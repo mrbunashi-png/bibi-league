@@ -541,7 +541,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 <script>
 /* ===== طبقة الربط مع السيرفر (بدل قدرات claude) ===== */
 (function(){
-  const cache={};let rev='0',me=null,polling=false,timer=null;const subs={};
+  const cache={};let rev='0',me=null,polling=false,timer=null,quiet=0;const subs={};
   let gateRes;const gate=new Promise(r=>gateRes=r);
   const css=document.createElement('style');css.textContent='#lg{position:fixed;inset:0;z-index:9999;background:#3e281c;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-family:Tajawal,sans-serif}#lg h1{font-size:26px;margin:0}#lg p{opacity:.85;margin:0;max-width:320px;line-height:1.7}#lg button{font:inherit;font-weight:800;font-size:17px;padding:14px 26px;border:0;border-radius:14px;background:#fff;color:#222;cursor:pointer}#lgout{position:fixed;bottom:6px;left:6px;font:12px Tajawal,sans-serif;opacity:.5;background:none;border:0;color:inherit;cursor:pointer;z-index:5}';document.head.appendChild(css);
   function loginScreen(msg){
@@ -557,6 +557,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
       const r=await fetch('/api/snapshot?rev='+(force?'0':rev),{credentials:'same-origin',cache:'no-store'});
       if(r.status===401){loginScreen('انتهت الجلسة، سجّل دخولك من جديد');return}
       const j=await r.json();me=j.me||me;
+      if(force||!j.same)quiet=0;else quiet++;
       if(!j.same){rev=j.rev;Object.keys(j.colls).forEach(c=>cache[c]=j.colls[c]);Object.keys(subs).forEach(fire)}
     }catch(e){Object.keys(subs).forEach(c=>subs[c].forEach(s=>s.err&&s.err(e)))}
     finally{polling=false}
@@ -568,6 +569,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   }
   function localApply(path,fn){const[c,id]=path.split('/');cache[c]=cache[c]||{};fn(cache[c],id);fire(c)}
   const dbShim={
+    async batchSet(list){for(let i=0;i<list.length;i+=20){const part=list.slice(i,i+20);await write(part.map(([path,data])=>({op:'set',path,data})));part.forEach(([path,data])=>localApply(path,(m,id)=>m[id]=data))}setTimeout(()=>refresh(true),600)},
     collection(c){return{
       onSnapshot(cb,err){(subs[c]=subs[c]||[]).push({cb,err});if(rev!=='0'||Object.keys(cache).length)setTimeout(()=>fire(c),0);return()=>{}},
       async add(o){const r=await write([{op:'add',path:c,data:o}]);const id=r.out[0].path.split('/')[1];localApply(c+'/'+id,(m,i)=>m[id]=o);setTimeout(()=>refresh(true),600);return{id}}
@@ -595,7 +597,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     let u=null;try{u=await BibiAuth.getUser()}catch(e){}
     if(!u){loginScreen();return}
     await refresh(true);gateRes();
-    timer=setInterval(()=>{if(!document.hidden)refresh(false)},40000);
+    const tick=()=>{if(!document.hidden)refresh(false);timer=setTimeout(tick,quiet>=6?120000:quiet>=3?90000:60000)};timer=setTimeout(tick,60000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(false)});
     const b=document.createElement('button');b.id='lgout';b.textContent='تسجيل الخروج';b.onclick=async()=>{await BibiAuth.logout();location.reload()};document.body.appendChild(b);
   })();
@@ -1696,14 +1698,14 @@ let ntSel=new Set(),ntQ='',ntTx='';
 function openNotify(){ntSel=new Set();ntQ='';ntTx='';ensureNames(regList());renderNotify();$('#dNotify').showModal()}
 function renderNotify(){
   const no=u=>(+(S.access[u]||{}).no)||1e9;
-  const ids=regList().filter(u=>u!==myId).sort((a,b)=>no(a)-no(b));
+  const ids=regList().concat(myId&&!regList().includes(myId)?[myId]:[]).sort((a,b)=>no(a)-no(b));
   const shown=ids.filter(u=>!ntQ||nameOf(u).includes(ntQ));
   const keep=document.activeElement&&document.activeElement.id;
   $('#ntfBody').innerHTML=`<h3>📣 إشعار مخصص</h3>
     <div class="hint">اكتب رسالتك واختر اللاعب أو اللاعبين. توصل كإشعار على الجهاز وتبقى في صندوق 🔔 داخل الموقع.</div>
     <textarea id="ntTx" maxlength="300" placeholder="نص الإشعار…">${esc(ntTx)}</textarea>
     <div class="row"><input id="ntQ" placeholder="ابحث عن لاعب…" value="${esc(ntQ)}" style="flex:1;width:100%"></div><div class="row"><button class="ghost" data-ntall="1">تحديد الكل</button><button class="ghost" data-ntnone="1">إلغاء التحديد</button></div>
-    <div class="ntl">${shown.map(u=>`<label><input type="checkbox" data-ntu="${esc(u)}" ${ntSel.has(u)?'checked':''}> ${esc(nameOf(u))}<small style="margin-inline-start:auto;color:var(--mute)">#${no(u)>1e8?'—':no(u)}</small></label>`).join('')||'<div class="empty">لا يوجد لاعبين</div>'}</div>
+    <div class="ntl">${shown.map(u=>`<label><input type="checkbox" data-ntu="${esc(u)}" ${ntSel.has(u)?'checked':''}> ${esc(nameOf(u))}${u===myId?' (أنت)':''}<small style="margin-inline-start:auto;color:var(--mute)">#${no(u)>1e8?'—':no(u)}</small></label>`).join('')||'<div class="empty">لا يوجد لاعبين</div>'}</div>
     <div class="row"><button data-ntsend="1" ${ntSel.size&&ntTx.trim()?'':'disabled'}>📨 أرسل (${ntSel.size})</button></div>`;
   if(keep){const el=document.getElementById(keep);if(el&&el.focus){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}
 }
@@ -1718,18 +1720,15 @@ $('#ntfBody').addEventListener('change',e=>{
 });
 $('#ntfBody').addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||!isAdmin())return;
-  if(b.dataset.ntall){regList().filter(u=>u!==myId&&(!ntQ||nameOf(u).includes(ntQ))).forEach(u=>ntSel.add(u));renderNotify();return}
+  if(b.dataset.ntall){regList().filter(u=>(!ntQ||nameOf(u).includes(ntQ))).forEach(u=>ntSel.add(u));renderNotify();return}
   if(b.dataset.ntnone){ntSel=new Set();renderNotify();return}
   if(b.dataset.ntsend){
     const text=ntTx.trim();if(!text||!ntSel.size)return;
     b.disabled=true;b.textContent='جاري الإرسال…';
-    const ts=Date.now();let n=0;
-    for(const u of ntSel){
-      const rec={to:u,k:'adm',t:text,ts};
-      try{await db.doc('inbox/'+u+'_n'+ts.toString(36)).set(rec);S.inbox[u+'_n'+ts.toString(36)]=rec;n++}catch(err){}
-    }
-    fetch('/api/push',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({to:[...ntSel],t:'📣 رسالة من الإدارة',b:text,u:'/'})}).catch(()=>{});
-    playSnd('in');$('#dNotify').close();note(`✅ انرسل الإشعار لـ ${n} لاعب`);setTimeout(()=>note(''),2800);
+    const ts=Date.now(),tg=ts.toString(36);const list=[...ntSel].map(u=>['inbox/'+u+'_n'+tg,{to:u,k:'adm',t:text,ts}]);
+    let n=0;try{await db.batchSet(list);n=list.length}catch(err){note('تعذّر الإرسال، جرب مرة ثانية');setTimeout(()=>note(''),3000);b.disabled=false;b.textContent='📨 أرسل ('+ntSel.size+')';return}
+    let rc=0;try{const r=await fetch('/api/push',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({to:[...ntSel],t:'📣 رسالة من الإدارة',b:text,u:'/'})});if(r.ok)rc=(await r.json()).reached||0}catch(err){}
+    playSnd('in');$('#dNotify').close();note(`✅ انرسل لـ ${n} · وصل إشعار الجهاز لـ ${rc}، والباقي يشوفه في 🔔 داخل الموقع`);setTimeout(()=>note(''),5000);
   }
 });
 
