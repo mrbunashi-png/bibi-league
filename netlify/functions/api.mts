@@ -4,8 +4,8 @@ import * as webpush from 'web-push';
 import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/backup.mts';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
-const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats']);
+const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock'];
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts']);
 const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
@@ -80,6 +80,13 @@ async function sendPush(origin: string, uids: string[], payload: { t: string; b:
   return sent;
 }
 
+async function notifyAdmins(origin: string, t: string, b: string) {
+  try {
+    const au: any = (await docs().get('adminuids', { type: 'json' })) || {};
+    await sendPush(origin, Object.keys(au), { t, b, u: '/' });
+  } catch {}
+}
+
 export default async (req: Request) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, '');
@@ -98,6 +105,7 @@ export default async (req: Request) => {
   if (path === 'snapshot' && req.method === 'GET') {
     const revDoc: any = await docs().get('rev', { type: 'json' });
     const rev = (revDoc && revDoc.v) || '0';
+    if (admin) { const au: any = (await docs().get('adminuids', { type: 'json' })) || {}; if (!au[uid]) { au[uid] = Date.now(); await docs().setJSON('adminuids', au); } }
     const me = { uid, admin, name: user.name || '', pic: user.pictureUrl || '' };
     // سجّل الاسم/الصورة العامة مرة وحدة
     let profiles: Record<string, any> = await readColl('profiles');
@@ -109,7 +117,7 @@ export default async (req: Request) => {
     }
     if (url.searchParams.get('rev') === rev && rev !== '0') return json({ same: true, rev, me });
     const colls: Record<string, any> = { profiles };
-    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions'] : []);
+    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions', 'alerts'] : []);
     const got = await Promise.all(names.map((c) => readColl(c)));
     names.forEach((c, i) => (colls[c] = got[i]));
     if (!admin) {
@@ -148,7 +156,28 @@ export default async (req: Request) => {
         if (Object.entries(cur).filter(([k, v]: any) => k.startsWith(uid + '_') && (v.ts || 0) > day).length >= 5) return bad('limit', 429);
         await mutate('suggestions', (c0) => ({ ...c0, [idIn]: { uid, text, ts: Date.now(), st: 'new' } }));
         await bump();
+        await notifyAdmins(url.origin, '📬 اقتراح جديد', text.slice(0, 120));
         out.push({ path: 'suggestions/' + idIn });
+        continue;
+      }
+      if (c === 'alerts' && !admin) {
+        /* تنبيه انسحاب متأخر: اللاعب ينشئه عن نفسه فقط، والسيرفر يتحقق من الوقت والحالة */
+        if (o.op !== 'set' || !idIn || !idIn.startsWith(uid + '_late_')) return bad('forbidden', 403);
+        const mid = idIn.slice((uid + '_late_').length);
+        const mt: any = (await readColl('matches'))[mid];
+        if (!mt || !mt.date) return bad('no match', 404);
+        const st = Date.parse(mt.date + 'T' + (mt.time || '00:00') + ':00+03:00');
+        const now = Date.now();
+        if (!isFinite(st) || now < st - 3 * 3600000 || now > st + 6 * 3600000) return bad('window', 403);
+        const rr: any = ((await readColl('rsvps'))[uid] || {}).m;
+        if (!rr || !rr[mid] || rr[mid].s !== 'out') return bad('not out', 403);
+        const curA = await readColl('alerts');
+        if (curA[idIn]) return json({ ok: true, out: [{ path: 'alerts/' + idIn }] });
+        await mutate('alerts', (c0) => ({ ...c0, [idIn]: { type: 'late', uid, mid, ts: now, st: 'new' } }));
+        await bump();
+        const pn: any = (await readColl('players'))[uid];
+        await notifyAdmins(url.origin, '⏰ انسحاب متأخر', (pn && pn.name ? pn.name : 'لاعب') + ' انسحب قبل المباراة بأقل من 3 ساعات');
+        out.push({ path: 'alerts/' + idIn });
         continue;
       }
       if (c === 'suggestions' && admin && o.op === 'add') return bad('forbidden', 403);
