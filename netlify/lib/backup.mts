@@ -1,7 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
 /* كل مجموعات البيانات اللي تدخل النسخة الاحتياطية (بدون اشتراكات الإشعارات لأنها حساسة وتنعاد بسهولة) */
-export const BK_COLLS = ['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','rsvps','stats','players','reacts','events','votes','inbox','views','profiles','suggestions','rock','alerts'];
+export const BK_COLLS = ['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','rsvps','stats','players','reacts','events','votes','inbox','views','profiles','suggestions','rock','alerts','nlog'];
 const docs = () => getStore({ name: 'bibi-docs', consistency: 'strong' });
 export const backups = () => getStore({ name: 'bibi-backups', consistency: 'strong' });
 

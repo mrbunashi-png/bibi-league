@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
 import * as webpush from 'web-push';
+import { checkFull, onTeamsPublished, onCancel, queueGallery, sendTests } from '../lib/notify.mts';
 import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/backup.mts';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
@@ -209,6 +210,17 @@ export default async (req: Request) => {
           for (const k of Object.keys(mm)) if (ids.has(k) && (mm[k].s === 'in' || mm[k].s === 'sub')) return bad('banned', 403);
         }
       }
+      let postHook: null | (() => Promise<void>) = null;
+      if (admin && c === 'matches') {
+        try {
+          const prev: any = (await readColl('matches'))[id];
+          if (prev) {
+            if (o.op === 'delete' && !prev.cancelled) { const st0 = startMs(prev); if (isFinite(st0) && st0 > Date.now() - 3 * 3600000) await onCancel(id, prev, '', true); }
+            else if (o.op === 'update' && o.data && o.data.cancelled === true && !prev.cancelled) { const rs = String(o.data.cancelReason || '').slice(0, 120); o.data.cancelReason = rs; postHook = () => onCancel(id, { ...prev, ...o.data }, rs, true); }
+            else if (o.op === 'update' && o.data && o.data.cancelled === false && prev.cancelled) postHook = () => onCancel(id, prev, '', false);
+          }
+        } catch {}
+      }
       if (o.op === 'delete') await mutate(c, (cur) => { const n = { ...cur }; delete n[id]; return n; });
       else if (o.op === 'update') await mutate(c, (cur) => ({ ...cur, [id]: { ...(cur[id] || {}), ...(o.data || {}) } }));
       else if (o.op === 'set' || o.op === 'add') {
@@ -216,8 +228,14 @@ export default async (req: Request) => {
         await mutate(c, (cur) => ({ ...cur, [id]: o.data }));
       } else return bad('bad op');
       out.push({ path: c + '/' + id });
+      try {
+        if (postHook) await postHook();
+        if (admin && c === 'teams' && o.op === 'set') await onTeamsPublished(id, o.data);
+        if (admin && c === 'gallery' && o.op === 'add') await queueGallery();
+      } catch {}
     }
     await bump();
+    if (ops.some((x: any) => String(x.path || '').startsWith('rsvps'))) { try { await checkFull(); } catch {} }
     return json({ ok: true, out });
   }
 
@@ -229,6 +247,11 @@ export default async (req: Request) => {
     const to: string[] = Array.isArray(b.to) ? b.to.filter((x: any) => typeof x === 'string').slice(0, 100) : [];
     const res = await sendPush(url.origin, to, { t: String(b.t || '').slice(0, 80), b: String(b.b || '').slice(0, 220), u: typeof b.u === 'string' ? b.u.slice(0, 200) : '/' });
     return json({ ok: true, sent: res.sent, reached: res.reached, total: to.length });
+  }
+
+  if (path === 'notifytest' && req.method === 'POST') {
+    if (!admin) return bad('forbidden', 403);
+    return json({ ok: true, ...(await sendTests(uid)) });
   }
 
   /* ---- النسخ الاحتياطي (للأدمن فقط) ---- */
