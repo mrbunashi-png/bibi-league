@@ -1,10 +1,12 @@
 import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
+import * as webpush from 'web-push';
+import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/backup.mts';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
 const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles'];
 const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats']);
-const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
+const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
 
@@ -44,6 +46,40 @@ function bannedMatchIds(ban: any, matches: Record<string, any>): Set<string> {
 }
 const bump = () => docs().setJSON('rev', { v: Date.now() + '-' + Math.random().toString(36).slice(2, 7) });
 
+/* ---- مفاتيح الإشعارات: تتولد مرة وحدة وتنحفظ على السيرفر فقط ---- */
+async function vapid(): Promise<{ publicKey: string; privateKey: string }> {
+  const st = docs();
+  let k: any = await st.get('vapid', { type: 'json' });
+  if (!k) {
+    await st.setJSON('vapid', webpush.generateVAPIDKeys(), { onlyIfNew: true });
+    k = await st.get('vapid', { type: 'json' });
+  }
+  return k;
+}
+async function sendPush(origin: string, uids: string[], payload: { t: string; b: string; u?: string }) {
+  const k = await vapid();
+  const all = await readColl('push');
+  let sent = 0, dead: Array<[string, string]> = [];
+  for (const uid of uids) {
+    const rec = all[uid];
+    if (!rec || !Array.isArray(rec.subs)) continue;
+    for (const sub of rec.subs) {
+      try {
+        await webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 86400, vapidDetails: { subject: origin, publicKey: k.publicKey, privateKey: k.privateKey } });
+        sent++;
+      } catch (e: any) {
+        if (e && (e.statusCode === 404 || e.statusCode === 410)) dead.push([uid, sub.endpoint]);
+      }
+    }
+  }
+  if (dead.length) await mutate('push', (cur) => {
+    const n = { ...cur };
+    for (const [u, ep] of dead) if (n[u]) n[u] = { ...n[u], subs: (n[u].subs || []).filter((s: any) => s.endpoint !== ep) };
+    return n;
+  });
+  return sent;
+}
+
 export default async (req: Request) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, '');
@@ -73,7 +109,7 @@ export default async (req: Request) => {
     }
     if (url.searchParams.get('rev') === rev && rev !== '0') return json({ same: true, rev, me });
     const colls: Record<string, any> = { profiles };
-    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views'] : []);
+    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions'] : []);
     const got = await Promise.all(names.map((c) => readColl(c)));
     names.forEach((c, i) => (colls[c] = got[i]));
     if (!admin) {
@@ -101,13 +137,37 @@ export default async (req: Request) => {
       const [c, idIn] = String(o.path || '').split('/');
       if (!okName(c || '') || (idIn && !okName(idIn))) return bad('bad path');
       if (c === 'profiles') return bad('forbidden', 403);
+      if (c === 'suggestions' && !admin) {
+        /* اللاعب يرسل فقط، ما يقرا ولا يعدل. الحد 500 حرف و5 باليوم */
+        if (o.op !== 'set' || !idIn || !idIn.startsWith(uid + '_')) return bad('forbidden', 403);
+        const text = String((o.data && o.data.text) || '').trim().slice(0, 500);
+        if (!text) return bad('empty');
+        const cur = await readColl('suggestions');
+        if (cur[idIn]) return bad('exists', 409);
+        const day = Date.now() - 86400000;
+        if (Object.entries(cur).filter(([k, v]: any) => k.startsWith(uid + '_') && (v.ts || 0) > day).length >= 5) return bad('limit', 429);
+        await mutate('suggestions', (c0) => ({ ...c0, [idIn]: { uid, text, ts: Date.now(), st: 'new' } }));
+        await bump();
+        out.push({ path: 'suggestions/' + idIn });
+        continue;
+      }
+      if (c === 'suggestions' && admin && o.op === 'add') return bad('forbidden', 403);
+      if (c === 'push' && o.op === 'set' && idIn === uid) {
+        const subs = o.data && Array.isArray(o.data.subs) ? o.data.subs.slice(0, 5) : [];
+        if (!subs.length || !subs.every((s: any) => s && typeof s.endpoint === 'string' && s.endpoint.startsWith('https://') && s.keys && s.keys.p256dh && s.keys.auth)) return bad('bad sub');
+        const old: any = (await readColl('push'))[uid];
+        const mine = subs.map((s: any) => ({ endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth } }));
+        const eps = new Set(mine.map((s: any) => s.endpoint));
+        const merged = [...mine, ...((old && Array.isArray(old.subs)) ? old.subs : []).filter((s: any) => s && !eps.has(s.endpoint))].slice(0, 5);
+        o.data = { subs: merged, ts: Date.now() };
+      } else if (c === 'push' && !admin) return bad('forbidden', 403);
       const id = idIn || (o.op === 'add' ? crypto.randomUUID().replace(/-/g, '').slice(0, 20) : '');
       if (!id) return bad('no id');
       if (!admin) {
         if (ADMIN_ONLY.has(c)) return bad('forbidden', 403);
         if (!SELF_WRITE.has(c)) return bad('forbidden', 403);
         if (c === 'inbox' ? !id.startsWith(uid + '_') : id !== uid) return bad('forbidden', 403);
-      } else if (!ADMIN_ONLY.has(c) && !SELF_WRITE.has(c)) return bad('forbidden', 403);
+      } else if (!ADMIN_ONLY.has(c) && !SELF_WRITE.has(c) && c !== 'suggestions') return bad('forbidden', 403);
       if (!admin && c === 'rsvps' && o.op !== 'delete') {
         const mm0 = (o.data && o.data.m) || {};
         const mAll = await readColl('matches');
@@ -129,6 +189,48 @@ export default async (req: Request) => {
     }
     await bump();
     return json({ ok: true, out });
+  }
+
+  /* ---- الإشعارات ---- */
+  if (path === 'pushkey' && req.method === 'GET') return json({ key: (await vapid()).publicKey });
+  if (path === 'push' && req.method === 'POST') {
+    if (!admin) return bad('forbidden', 403);
+    let b: any; try { b = JSON.parse(await req.text()); } catch { return bad('bad json'); }
+    const to: string[] = Array.isArray(b.to) ? b.to.filter((x: any) => typeof x === 'string').slice(0, 100) : [];
+    const sent = await sendPush(url.origin, to, { t: String(b.t || '').slice(0, 80), b: String(b.b || '').slice(0, 220), u: typeof b.u === 'string' ? b.u.slice(0, 200) : '/' });
+    return json({ ok: true, sent });
+  }
+
+  /* ---- النسخ الاحتياطي (للأدمن فقط) ---- */
+  if (path === 'backup' && req.method === 'GET') {
+    if (!admin) return bad('forbidden', 403);
+    return json(await dumpAll());
+  }
+  if (path === 'backups' && req.method === 'GET') {
+    if (!admin) return bad('forbidden', 403);
+    const { blobs } = await backups().list();
+    return json({ list: blobs.map((x: any) => x.key).sort().reverse() });
+  }
+  if (path === 'backups' && req.method === 'POST') {
+    if (!admin) return bad('forbidden', 403);
+    return json({ ok: true, key: await saveBackup('manual-', 8) });
+  }
+  if (path === 'restore' && req.method === 'POST') {
+    if (!admin) return bad('forbidden', 403);
+    let b: any; try { b = JSON.parse(await req.text()); } catch { return bad('bad json'); }
+    if (b.confirm !== 'RESTORE') return bad('no confirm');
+    await saveBackup('prerestore-', 3);
+    if (b.key) {
+      if (!/^[A-Za-z0-9_.-]{1,120}$/.test(String(b.key))) return bad('bad key');
+      const d: any = await backups().get(String(b.key), { type: 'json' });
+      if (!d || !d.data) return bad('not found', 404);
+      await restoreFrom(d.data);
+    } else if (b.data && typeof b.data === 'object') {
+      const st = docs();
+      for (const c of Object.keys(b.data)) if (BK_COLLS.includes(c) && c !== 'profiles' && b.data[c] && typeof b.data[c] === 'object') await st.setJSON(key(c), b.data[c]);
+      await bump();
+    } else return bad('nothing');
+    return json({ ok: true });
   }
 
   /* ---- الملفات (صور) ---- */

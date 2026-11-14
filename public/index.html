@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>تقسيمة بوبيبي للأنشطة الرياضية</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="theme-color" content="#3e281c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -185,6 +190,21 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .evr button{padding:2px 10px;font-size:12px}
 .svr{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin-top:6px}
 .svr .st{display:flex;align-items:center;gap:10px}.svr .st button{width:34px;height:34px;padding:0;font-size:20px}
+.pc{display:inline-block;margin:3px;padding:5px 11px;border-radius:18px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:13px}
+.pc.on{background:var(--olive);color:#fff;border-color:var(--olive)}
+.pp .pg{margin:4px 0}.pp .pg b{font-size:12px;color:var(--mute);margin-inline-end:6px}
+.lvi{font-style:normal;font-size:12px;margin-inline-start:3px}
+.lvb{display:inline-block;background:#f3ece0;border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-size:12px;margin:2px}
+.lvb.h{background:#fff3d6;border-color:#e0a63c}.lvb.c{background:#e8efd8}
+.lvbar{height:10px;background:#eadfce;border-radius:6px;overflow:hidden;margin:6px 0}.lvbar i{display:block;height:100%;background:linear-gradient(90deg,var(--olive),#c0562b)}
+.lvcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0}
+.stwrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px;background:#fff}
+.stt{border-collapse:collapse;font-size:12px;white-space:nowrap}.stt th,.stt td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:center}
+.stt th{position:sticky;top:0;background:#f3ece0;cursor:pointer}.stt td:first-child,.stt th:first-child{position:sticky;right:0;background:#fff;text-align:right;font-weight:700}.stt th:first-child{background:#f3ece0;z-index:2}
+.atools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.atools button{padding:10px 6px;font-size:13px}
+.sgi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:8px}.sgi small{color:var(--mute);display:block}.sgi p{margin:6px 0;white-space:pre-wrap;line-height:1.7}
+.sgi .b{display:flex;gap:6px;flex-wrap:wrap}.sgi .b button{padding:3px 10px;font-size:12px}
+#sugBox textarea{width:100%;min-height:90px}
 .guests.off{color:var(--mute);background:#f3ece0}
 #goalBody label{display:block;margin-top:8px;font-size:13px;color:var(--mute)}
 #goalBody select{width:100%}
@@ -340,6 +360,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <main id="v-rules" hidden>
     <h2>📜 قوانين اللعب</h2>
     <div class="card" id="rulesBody"><div class="empty">القوانين قيد الصياغة، راح تنزل هني قريب بإذن الله.</div></div>
+    <div class="card" id="sugBox"></div>
   </main>
   <main id="v-media" hidden>
     <h2>صور وفيديو</h2>
@@ -383,6 +404,26 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 
 
 
+<dialog class="sheet" id="dStats">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="stBody" style="clear:both"></div>
+</dialog>
+<dialog class="sheet" id="dSugg">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="sgBody" style="clear:both"></div>
+</dialog>
+<dialog class="sheet" id="dLevels">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="lvBody" style="clear:both"></div>
+</dialog>
+<dialog class="sheet" id="dBackup">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="bkBody" style="clear:both"></div>
+</dialog>
+<dialog class="sheet" id="dRole">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="roleBody" style="clear:both"></div>
+</dialog>
 <dialog class="sheet" id="dGoal">
   <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div id="goalBody" style="clear:both"></div>
@@ -538,7 +579,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},suggestions:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -648,7 +689,7 @@ $('#logTabs').addEventListener('click',e=>{const b=e.target.closest('button');if
 
 /* ---------- آلة المباراة: الأحداث تغذي الإحصائيات ---------- */
 function evAgg(mid){
-  const d=S.events[mid];if(!d)return null;
+  const d=S.events[mid];if(!d||!(d.live||(d.g||[]).length||Object.keys(d.sv||{}).length))return null;
   const u={};const add=(id,k,n=1)=>{if(!id||id==='guest')return;(u[id]=u[id]||{goals:0,assists:0,saves:0})[k]+=n};
   let gs=0,cs=0;
   for(const e of (d.g||[])){
@@ -680,7 +721,7 @@ function matchStatsHtml(mid){
   for(const uid of mUids(mid)){
     if(!isOk(uid))continue;
     const r=mRec(uid,mid);
-    if(r)rows.push({uid,g:r.goals,a:r.assists,sv:r.saves,gk:isGK((S.players[uid]||{}).pos)});
+    if(r)rows.push({uid,g:r.goals,a:r.assists,sv:r.saves,gk:isGKIn(uid,mid)});
   }
   if(!rows.length)return '';
   rows.sort((x,y)=>(y.g+y.a)-(x.g+x.a)||y.g-x.g||y.sv-x.sv);
@@ -689,7 +730,7 @@ function matchStatsHtml(mid){
 }
 const isPaid=(mid,uid)=>!!(S.rsvps[uid]&&S.rsvps[uid].p&&S.rsvps[uid].p[mid]);
 const nameOf=uid=>(S.players[uid]&&S.players[uid].name)||S.names[uid]||'لاعب';
-const nameLink=uid=>`<a class="pl" data-uid="${esc(uid)}">${esc(nameOf(uid))}</a>`;
+const nameLink=uid=>`<a class="pl" data-uid="${esc(uid)}">${esc(nameOf(uid))}</a>${lvTag(uid)}`;
 function totals(uid){
   let g=0,a=0,sv=0,n=0;
   const ids=new Set(Object.keys((S.stats[uid]&&S.stats[uid].m)||{}));
@@ -743,7 +784,7 @@ function ensureAdminOk(){
   const rec={status:'ok',ts:Date.now()};if(!used)rec.no=1;
   db.doc('access/'+myId).set(rec).then(()=>{S.access[myId]=rec;renderAll();assignNumbers()}).catch(()=>{}).finally(()=>{setTimeout(()=>{adminSeeded=false},20000)});
 }
-function renderAll(){ensureAdminOk();renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
+function renderAll(){ensureAdminOk();ensureLevelCfg();ensurePushSub();renderSugBox();renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
 /* ---------- تذييل تفاصيل الإعلان ---------- */
 async function ensureNames(ids){
@@ -774,7 +815,8 @@ function calcHtml(mid){
   const d=S.events[mid]||{g:[],sv:{}};
   const parts=partUids(mid);ensureNames(parts);
   const sv=d.sv||{};
-  const gks=parts.filter(u=>isGK((S.players[u]||{}).pos)||+sv[u]>0);
+  const gkSet=new Set(parts.filter(u=>isGKIn(u,mid)));
+  const gks=parts.filter(u=>gkSet.has(u)||+sv[u]>0);
   const others=parts.filter(u=>!gks.includes(u));
   const evRow=e=>`<div class="evr"><span><i class="dot" style="background:${e.side==='g'?'#2e7d4f':'#c0562b'}"></i>${e.og?`🙈 هدف عكسي${e.s?' ('+evNm(e.s)+')':''}`:`⚽ ${evNm(e.s)}${e.a?` · 🎯 ${evNm(e.a)}`:''}`}</span><button class="ghost" data-evdel="${esc(e.id)}">حذف</button></div>`;
   const svRow=u=>`<div class="svr"><span>${avatar(u,'sm')}${esc(nameOf(u))}</span><span class="st"><button data-svb="${esc(u)}|-1">−</button><b>${+sv[u]||0}</b><button data-svb="${esc(u)}|1">+</button></span></div>`;
@@ -786,18 +828,21 @@ function calcHtml(mid){
     </div>
     ${undoB}
     ${(d.g||[]).length?`<div class="payh">الأحداث (${d.g.length})</div>`+(d.g||[]).slice().reverse().map(evRow).join(''):'<div class="none">اضغط + عند كل هدف</div>'}
+    <div class="payh" style="margin-top:12px">🧤 الحراس بالمباراة</div>
+    <div>${parts.map(u=>`<button class="pc ${gkSet.has(u)?'on':''}" data-gkt="${esc(u)}">${esc(nameOf(u))}</button>`).join('')}</div>
+    <div class="hint">اضغط اللاعب عشان تحدده حارس بهذي المباراة (تقدر تحدد أكثر من واحد للتناوب). بونص الحارس والشباك النظيف يروحون لهم.</div>
     <div class="payh" style="margin-top:12px">🧤 تصديات الحراس (حد ${SV_CAP} للمباراة بالنقاط)</div>
     ${gks.length?gks.map(svRow).join(''):'<div class="none">ما فيه حارس بين المشاركين</div>'}
     ${others.length?`<select id="svAdd" style="margin-top:8px;width:100%"><option value="">＋ تصدية للاعب آخر…</option>${others.map(u=>`<option value="${esc(u)}">${esc(nameOf(u))}</option>`).join('')}</select>`:''}`;
 }
 let evUndo=null;
-function saveEv(mid,fn){
+function saveEv(mid,fn,live=true){
   chain=chain.then(async()=>{
     if(!db||!isAdmin())return;
     const cur=JSON.parse(JSON.stringify(S.events[mid]||{g:[],sv:{}}));
     cur.g=cur.g||[];cur.sv=cur.sv||{};
     const next=fn(cur);if(!next)return;
-    next.ts=Date.now();
+    next.ts=Date.now();if(live)next.live=true;
     await db.doc('events/'+mid).set(next);
     S.events[mid]=next;
   }).catch(()=>note('ما انحفظ، جرب مرة ثانية'));
@@ -847,7 +892,7 @@ function renderSheet(){
   const past=isDone(m);
   ensureNames(Object.keys(S.rsvps));
   const url=safeUrl(m.mapUrl);
-  const li=(p,i,g)=>`<li>${i!=null?`<b>${i+1}.</b> `:''}${avatar(p.uid,'sm')}${nameLink(p.uid)}${g?` <i>+${g}</i>`:''}<span class="ts">${esc(fmtTs(p.ts))}</span></li>`;
+  const li=(p,i,g)=>`<li>${i!=null?`<b>${i+1}.</b> `:''}${avatar(p.uid,'sm')}${nameLink(p.uid)}${isFB(m)&&isGKIn(p.uid,openId)&&(hasGK(p.uid)||(S.events[openId]&&S.events[openId].gk))?' 🧤':''}${g?` <i>+${g}</i>`:''}<span class="ts">${esc(fmtTs(p.ts))}</span></li>`;
   const list=(rows,numbered)=>rows.length?'<ul>'+rows.map((p,i)=>li(p,numbered?i:null,p.gEff!=null?p.gEff:0)).join('')+'</ul>':'<div class="none">ما أحد للحين</div>';
   const eff=myId?effOf(openId,myId):null;
   const qi=L.queue.findIndex(p=>p.uid===myId);
@@ -875,6 +920,7 @@ function renderSheet(){
     ${my.s==='in'?(guestsOpen(m)?`<div class="guests"><span>Guests معك (حد أقصى 5)</span><span class="st"><button data-gd="-1">−</button><b>${+my.g||0}</b><button data-gd="1">+</button></span></div>`:`<div class="guests off">🚫 الضيوف غير مسموح في هذي المباراة</div>`):''}
     ${m.fee&&eff==='in'?`<button class="opt payb ${isPaid(openId,myId)?'on':''}" data-pay="me">${isPaid(openId,myId)?'✅ دفعت القطية (اضغط للإلغاء)':'💰 دفعت القطية'}</button>`:''}
     ${bi?`<div class="msg ban">${esc(banText(bi))}<br><small>ما تقدر تسجل Going أو احتياط في هذي المباراة. تقدر تختار Not Going أو مشاهد.</small></div>`:''}
+    ${(my.s==='in'||my.s==='sub')&&roleChoiceNeeded(myId)&&!past?`<div class="guests"><span>دورك بالمباراة</span><span class="st"><button class="opt ${isGKIn(myId,openId)?'on':''}" data-role="1" style="width:auto;padding:4px 12px">🧤 حارس</button><button class="opt ${!isGKIn(myId,openId)?'on':''}" data-role="0" style="width:auto;padding:4px 12px">⚽ لاعب</button></span></div>`:''}
     ${debt.length&&!past?debtHtml(debt):''}
     ${msg?`<div class="msg">${msg}</div>`:''}
     ${accessHint()}</div>`;
@@ -891,7 +937,7 @@ function renderSheet(){
   const teams=teamsHtml(openId);
   const agL=evAgg(openId);
   const liveCard=agL?`<div class="livecard"><small>${past?'النتيجة النهائية':'🔴 مباشر'}</small><b>🟢 ${agL.gs} - ${agL.cs} 🎨</b></div>`:'';
-  const adm=isAdmin()?sec('adm','🛠 أدوات الأدمن','',`<div class="row wrap"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button><button class="ghost" data-guestsw="${guestsOpen(m)?'0':'1'}">${guestsOpen(m)?'🚫 اقفل الضيوف':'✅ افتح الضيوف'}</button>${(L.going.length||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button>`:''}</div>
+  const adm=isAdmin()?sec('adm','🛠 أدوات الأدمن','',`<div class="row wrap"><button data-share="${esc(openId)}">📤 شارك بالواتساب</button><button class="ghost" data-guestsw="${guestsOpen(m)?'0':'1'}">${guestsOpen(m)?'🚫 اقفل الضيوف':'✅ افتح الضيوف'}</button>${(L.going.length||S.teams[openId]||S.teamsDraft[openId])?`<button data-teams="${esc(openId)}">⚔️ تقسيمة الفريقين</button><button class="ghost" data-autoteams="${esc(openId)}">⚖️ سوّ التشكيلة تلقائيًا</button>`:''}</div>
     <div class="row wrap">${past&&m.done===true?`<button class="ghost" data-mkdone="0">↩️ رجّعها قادمة</button>`:!past?`<button class="ghost" data-mkdone="1">✅ حوّلها إلى «انلعبت» الحين</button>`:''}<button data-delmatch="${esc(openId)}" style="background:#9a3b2e">حذف هذا الإعلان</button></div>
     ${!past?'<div class="hint">لو ما حوّلتها يدويًا، تتحول تلقائيًا بعد 3 ساعات من وقت البداية.</div>':''}`):'';
   const galL=S.gallery.filter(g=>g.mid===openId);
@@ -948,12 +994,27 @@ function setRsvp(s,gst){
     else{
       /* الوقت يتغير بس لما تتغير الحالة، تعديل Guests ما يضيع دورك */
       m[mid]={s,g:s==='in'?gst:0,ts:prev&&prev.s===s&&prev.ts?prev.ts:Date.now()};
+      {const kk=prev&&prev.k!==undefined?prev.k:(hasGK(myId)&&!roleChoiceNeeded(myId)?1:undefined);if(kk!==undefined)m[mid].k=kk}
       if(s==='sub'){const full0=(()=>{const L0=layout(mid,{...S.rsvps,[myId]:{...cur,m:Object.fromEntries(Object.entries(m).filter(([k])=>k!==mid))}});return L0.cap!==Infinity&&L0.used>=L0.cap})();m[mid].w=prev&&prev.s==='sub'&&prev.w!==undefined?prev.w:(full0?1:0)}
       e[mid]=effOf(mid,myId,{...S.rsvps,[myId]:{...cur,m}});
     }
     return {...cur,m,e,n};
+  }).then(()=>{
+    const r=((S.rsvps[myId]||{}).m||{})[mid];
+    if(r&&(r.s==='in'||r.s==='sub')&&r.k===undefined&&roleChoiceNeeded(myId))openRole(mid);
   });
 }
+/* اختيار دور الحارس لمن عنده مراكز متعددة */
+let roleMid=null;
+function openRole(mid){
+  roleMid=mid;const m=S.matches.find(x=>x.id===mid);if(!m)return;
+  const others=posList(myId).filter(x=>x!=='GK').join(' / ');
+  $('#roleBody').innerHTML=`<h3>🧤 تسجّل كحارس ولا بمركز ثاني؟</h3><div class="sub">${esc(matchTitle(m))}</div><div class="hint">مراكزك تشمل الحراسة، فحدد دورك بهالمباراة. تقدر تغيّره بعدين من بطاقة تسجيلك.</div>
+    <div class="row"><button data-rl="1">🧤 حارس</button><button class="ghost" data-rl="0">⚽ لاعب (${esc(others)})</button></div>`;
+  $('#dRole').showModal();playSnd('soft');
+}
+function setRole(mid,v){saveMine(cur=>{const m={...(cur.m||{})};if(!m[mid])return null;m[mid]={...m[mid],k:v};return {...cur,m}}).then(()=>{renderSheet();renderAll()})}
+$('#roleBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.rl===undefined)return;$('#dRole').close();setRole(roleMid,+b.dataset.rl)});
 /* إذا انتقلت من الاحتياط للأساسيين: نسجلها ونطلع إشعار */
 function checkSync(){
   if(!db||!myId||syncing||!S.matches.length)return;
@@ -1016,6 +1077,7 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     const t=b.dataset.mv,mid=openId;if(myMotm(mid)!==t)playSnd('vote');
     saveOwn('votes',cur=>{const o={...(cur.o||{})};if(o[mid]===t)delete o[mid];else o[mid]=t;return {...cur,o,ts:Date.now()}}).then(()=>{renderSheet();renderStatus()});return;
   }
+  if(b.dataset.role!==undefined&&b.dataset.role!==''){setRole(openId,+b.dataset.role);return}
   if(b.dataset.paylate){
     const mid=b.dataset.paylate;
     saveMine(cur=>({...cur,p:{...(cur.p||{}),[mid]:Date.now()}})).then(()=>{playSnd('cash');renderSheet();renderStatus()});return;
@@ -1035,6 +1097,11 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     if(op==='+')openGoal(side);
     else saveEv(mid,cur=>{let i=-1;for(let k=cur.g.length-1;k>=0;k--)if(cur.g[k].side===side){i=k;break}if(i<0)return null;evUndo={mid,idx:i,ev:cur.g[i]};cur.g.splice(i,1);return cur});
     return;
+  }
+  if(b.dataset.gkt){
+    if(!isAdmin())return;const u=b.dataset.gkt,mid=openId;
+    const base=partUids(mid).filter(x=>isGKIn(x,mid));const i=base.indexOf(u);if(i>=0)base.splice(i,1);else base.push(u);
+    saveEv(mid,cur=>{cur.gk=base;return cur},false);return;
   }
   if(b.dataset.evdel){
     if(!isAdmin())return;const id=b.dataset.evdel,mid=openId;
@@ -1059,6 +1126,7 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
   }
   if(b.dataset.share){const m=S.matches.find(x=>x.id===b.dataset.share);if(m)openShare(m);return}
   if(b.dataset.teams){if(isAdmin())openTeams(b.dataset.teams);return}
+  if(b.dataset.autoteams){if(isAdmin())openTeams(b.dataset.autoteams,true);return}
   const my=(S.rsvps[myId]&&S.rsvps[myId].m&&S.rsvps[myId].m[openId])||{};
   if(b.dataset.s){if(b.dataset.s===my.s)setRsvp(null,0);else{if(!((b.dataset.s==='in'||b.dataset.s==='sub')&&banBlocks(myId,openId)))playSnd(b.dataset.s==='in'?'in':b.dataset.s==='out'?'out':'soft');setRsvp(b.dataset.s,b.dataset.s==='in'?(+my.g||0):0)}}
   else if(b.dataset.gd){const n=Math.max(0,Math.min(5,(+my.g||0)+(+b.dataset.gd)));if(n!==(+my.g||0))setRsvp('in',n)}
@@ -1126,7 +1194,7 @@ $('#inBody').addEventListener('click',e=>{
 const PAY_MSG=(m,u)=>`هلا ${nameOf(u)} 🌹 تذكير لطيف: قطية «${matchTitle(m)}» (${m.fee} د.ك) للحين ما انسجلت دفعتها. إذا دفعت اضغط «دفعت القطية» في صفحة المباراة، وإذا لسه فدّها وقت يناسبك. مشكور وما قصّرت 🙏`;
 async function sendAch(uid,suffix,text,mid){
   const rec={to:uid,k:'ach',t:text,ts:Date.now()};if(mid)rec.mid=mid;
-  try{await db.doc('inbox/'+uid+'_'+suffix).set(rec);S.inbox[uid+'_'+suffix]=rec}catch(e){}
+  try{await db.doc('inbox/'+uid+'_'+suffix).set(rec);S.inbox[uid+'_'+suffix]=rec;pushTo(uid,'🏆 إنجاز جديد',text)}catch(e){}
 }
 const REG_MSG=(m,u)=>{const f=fmtDate(m.date);return `يا ${nameOf(u)} 👋 مباراة «${matchTitle(m)}» يوم ${f.wk} ${f.day} ${f.mon}${m.time?' الساعة '+time12(m.time):''} تنتظرك! ⚽ سجّل حضورك أو غيابك عشان نرتب المقاعد، ونتمنى نشوفك معنا 💚`};
 const notRegistered=mid=>regList().filter(u=>u!==myId&&!((S.rsvps[u]||{}).m||{})[mid]);
@@ -1135,7 +1203,7 @@ async function sendRegReminder(mid,uids){
   let n=0;
   for(const u of uids){
     const rec={to:u,k:'reg',mid,t:REG_MSG(m,u),ts:Date.now()};
-    try{await db.doc('inbox/'+u+'_r'+mid).set(rec);S.inbox[u+'_r'+mid]=rec;n++}catch(e){}
+    try{await db.doc('inbox/'+u+'_r'+mid).set(rec);S.inbox[u+'_r'+mid]=rec;n++;pushTo(u,'📣 مباراة تنتظرك',rec.t)}catch(e){}
   }
   return n;
 }
@@ -1144,7 +1212,7 @@ async function sendPayReminder(mid,uids){
   let n=0;
   for(const u of uids){
     const rec={to:u,k:'pay',mid,t:PAY_MSG(m,u),ts:Date.now()};
-    try{await db.doc('inbox/'+u+'_p'+mid).set(rec);S.inbox[u+'_p'+mid]=rec;n++}catch(e){}
+    try{await db.doc('inbox/'+u+'_p'+mid).set(rec);S.inbox[u+'_p'+mid]=rec;n++;pushTo(u,'🔔 تذكير لطيف',rec.t)}catch(e){}
   }
   return n;
 }
@@ -1174,6 +1242,7 @@ function renderStatus(){
   h+=st==='new'?'<div class="card cta"><div><b>👋 خطوة أولى: أنشئ بروفايلك</b><br><small>اكتب اسمك ومركزك، وينرسل طلبك لحمد. بعد الموافقة تقدر تأكد حضورك.</small></div><button id="joinBtn">أنشئ بروفايلي</button></div>'
     :st==='pending'?'<div class="card">⏳ طلبك بانتظار موافقة حمد</div>'
     :st==='no'?'<div class="card">❌ ما تمت الموافقة على طلبك</div>':'';
+  h+=pushCard();
   {const ib=isAdmin()?[]:inboxMine();if(ib.length){const hasA=ib.some(n=>n.k==='ach');h+=`<div class="card ${hasA?'cta':''}"><span>${hasA?'🏆 مبروك! عندك إنجاز جديد':`🔔 عندك ${ib.length} ${ib.length===1?'تنبيه':'تنبيهات'} من المنظم`}</span><button id="inOpen">افتح</button></div>`}}
   {const bi0=banInfo(myId);if(bi0&&bi0.active)h+=`<div class="card ban"><div><b>${esc(banText(bi0))}</b><br><small>ما تقدر تسجل حضور في المباريات المشمولة بالحرمان. للاستفسار كلم حمد.</small></div></div>`}
   const NP=loadNP(),now=Date.now();
@@ -1212,6 +1281,17 @@ $('#status').addEventListener('click',e=>{
 /* ---------- المراكز والصور ---------- */
 const POS=[['حراسة',['GK']],['دفاع',['CB','LB','RB','LWB','RWB']],['وسط',['CDM','CM','CAM','LM','RM']],['هجوم',['LW','RW','SS','CF','ST']]];
 const isGK=p=>p==='GK'||p==='gk';
+const posList=uid=>{const p=S.players[uid]||{};const a=Array.isArray(p.poss)&&p.poss.length?p.poss:(p.pos?[p.pos]:[]);return a.map(x=>x==='gk'?'GK':x).filter(x=>x&&x!=='pl')};
+const hasGK=uid=>posList(uid).includes('GK');
+const posText=uid=>posList(uid).join(' · ');
+const roleChoiceNeeded=uid=>hasGK(uid)&&posList(uid).length>1;
+/* هل اللاعب حارس في هذي المباراة؟ تحديد الأدمن ثم اختيار اللاعب ثم مركزه القديم */
+function isGKIn(uid,mid){
+  const d=S.events[mid];if(d&&Array.isArray(d.gk))return d.gk.includes(uid);
+  const r=((S.rsvps[uid]||{}).m||{})[mid];
+  if(r&&r.k===1)return true;if(r&&r.k===0)return false;
+  return isGK((S.players[uid]||{}).pos);
+}
 const posLabel=p=>!p||p==='pl'?'':(p==='gk'?'GK':p);
 const posOpts=cur=>'<option value="">اختر المركز</option>'+POS.map(([g,l])=>`<optgroup label="${g}">${l.map(x=>`<option value="${x}" ${cur===x||(x==='GK'&&cur==='gk')?'selected':''}>${x}</option>`).join('')}</optgroup>`).join('');
 const PHOTO_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
@@ -1247,7 +1327,7 @@ function pastMatches(){return S.matches.filter(m=>isFB(m)&&isDone(m)).sort((a,b)
 function formSig(){
   const uid=curP;if(!uid)return '';
   const pr=S.players[uid]||{};
-  return [statusOf(uid),pr.pos||'',!!pr.name,pastMatches().length,!!(S.ready.players&&S.ready.access),isAdmin()].join('|');
+  return [statusOf(uid),pr.pos||'',(pr.poss||[]).join(),!!pr.name,pastMatches().length,!!(S.ready.players&&S.ready.access),isAdmin()].join('|');
 }
 function openPlayer(uid){
   curP=uid;newPhoto=null;
@@ -1257,18 +1337,19 @@ function openPlayer(uid){
 }
 function renderPlayerHead(){
   const uid=curP;if(!uid)return;
-  const p=S.players[uid]||{};const st=statusOf(uid);const pl=posLabel(p.pos);
+  const p=S.players[uid]||{};const st=statusOf(uid);const pl=posText(uid);
   let msg='';
   if(uid===myId){if(st==='pending')msg='⏳ طلبك بانتظار موافقة حمد';else if(st==='no')msg='❌ ما تمت الموافقة على طلبك';}
   else if(isAdmin()&&st!=='ok')msg=st==='no'?'مرفوض':'بانتظار الموافقة';
   $('#plHead').innerHTML=`<div class="phead">${avatar(uid,'big')}<div><h3>${esc(nameOf(uid))}${pl?`<span class="pbadge">${esc(pl)}</span>`:''}${S.access[uid]&&S.access[uid].no?`<span class="pbadge">عضو #${S.access[uid].no}</span>`:''}</h3>${uid===myId?'<div class="sub">هذا ملفك</div>':''}</div></div>${msg?`<div class="msg">${msg}</div>`:''}`;
 }
+let pfSel=[];
 function renderPlayerForm(){
   const uid=curP;const el=$('#plForm');
   lastSig=formSig();
   if(!uid||!canEditP(uid)){el.innerHTML='';return}
   if(uid===myId&&!(S.ready.players&&S.ready.access)){el.innerHTML='<div class="empty">جاري التحميل…</div>';return}
-  const prof=S.players[uid]||{};const gk=isGK(prof.pos);
+  const prof=S.players[uid]||{};pfSel=posList(uid).slice();
   const hasProf=!!prof.name;const pm=pastMatches();
   const opts=pm.map(m=>{const f=fmtDate(m.date);return `<option value="${esc(m.id)}">${esc(matchTitle(m))} · ${esc(f.day)} ${esc(f.mon)}</option>`}).join('');
   const title=uid!==myId?'بيانات اللاعب':hasProf?'بياناتك':'سجّل ملفك (ينرسل طلب لحمد للموافقة)';
@@ -1276,7 +1357,7 @@ function renderPlayerForm(){
   let h=`<div class="pf"><h4>${title}</h4>
       <label>الصورة (اختياري)</label><div class="phrow"><span id="pfPrev">${prev}</span><input id="pfPhoto" type="file" accept="image/*"></div>
       <label>الاسم</label><input id="pfName" value="${esc(prof.name||S.names[uid]||'')}" maxlength="30">
-      <label>المركز</label><select id="pfPos">${posOpts(prof.pos)}</select>
+      <label>المراكز (تقدر تختار أكثر من مركز)</label><div class="pp" id="pfPoss">${POS.map(([g,l])=>`<div class="pg"><b>${g}</b>${l.map(x=>`<button type="button" class="pc ${pfSel.includes(x)?'on':''}" data-pp="${x}">${x}</button>`).join('')}</div>`).join('')}</div>
       <div class="row"><button data-act="prof">${hasProf?'حفظ':'إرسال الطلب'}</button></div></div>`;
   el.innerHTML=h;
   loadEntry();
@@ -1289,7 +1370,7 @@ function loadEntry(){
 }
 function renderPlayerDyn(){
   const uid=curP;if(!uid)return;
-  const t=totals(uid);const gk=isGK((S.players[uid]||{}).pos);
+  const t=totals(uid);const gk=hasGK(uid);
   const mids=new Set(Object.keys((S.stats[uid]&&S.stats[uid].m)||{}));
   Object.keys(S.events).forEach(k=>{if(mRec(uid,k))mids.add(k)});
   const ent=[...mids].map(mid=>({mid,m:S.matches.find(x=>x.id===mid),...(mRec(uid,mid)||{})}))
@@ -1297,6 +1378,7 @@ function renderPlayerDyn(){
   const can=false;
   $('#plDyn').innerHTML=`
     <div class="tot"><div><b>${t.n}</b><span>مباريات</span></div><div><b>${t.g}</b><span>Goals</span></div><div><b>${t.a}</b><span>Assists</span></div>${gk?`<div><b>${t.sv}</b><span>Saves</span></div>`:`<div><b>${t.g+t.a}</b><span>مساهمات</span></div>`}</div>
+    ${lvCard(uid)}
     <h2 style="margin-top:6px">🏆 الإنجازات</h2>
     ${achHtml(uid)}
     <h2>المباريات</h2>
@@ -1315,14 +1397,331 @@ $('#plForm').addEventListener('change',e=>{
 $('#plForm').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   const uid=curP;if(!canEditP(uid))return;
+  if(b.dataset.pp){const x=b.dataset.pp,i=pfSel.indexOf(x);if(i>=0)pfSel.splice(i,1);else if(pfSel.length<4)pfSel.push(x);else{note('أقصى حد 4 مراكز');setTimeout(()=>note(''),1800)}b.classList.toggle('on',pfSel.includes(x));return}
   if(b.dataset.act==='prof'){
     const name=$('#pfName').value.trim().slice(0,30);if(!name)return;
-    const pos=$('#pfPos').value;
-    saveOwn('players',cur=>({...cur,name,pos,photo:newPhoto||cur.photo||'',ts:cur.ts||Date.now()}),uid)
+    const poss=pfSel.slice(0,4),pos=poss[0]||'';
+    saveOwn('players',cur=>({...cur,name,pos,poss,photo:newPhoto||cur.photo||'',ts:cur.ts||Date.now()}),uid)
       .then(()=>{newPhoto=null;renderPlayerHead();renderPlayerForm();renderPlayerDyn();renderTops();renderStatus()});
   }
 });
 
+
+
+/* ---------- المستويات والألقاب ---------- */
+const LV_DEF={levels:[{i:'🌱',n:'مستجد',min:1},{i:'⚽',n:'لاعب',min:5},{i:'🔥',n:'منتظم',min:15},{i:'🛡',n:'محترف',min:30},{i:'👑',n:'أسطورة',min:60}],
+  honor:{i:'🏅',n:'عضو شرف',min:100},
+  custom:{'406f56ef-28ff-4c29-b710-65817dfccdd3':['عضو شرف'],'9bcba421-62ca-4bbb-95df-8439f32f43e0':['عضو شرف']},pin:{}};
+const lvCfg=()=>{const c=S.config.levels;return c&&Array.isArray(c.levels)?{levels:c.levels,honor:c.honor||LV_DEF.honor,custom:c.custom||{},pin:c.pin||{}}:LV_DEF};
+let lvCache={t:0,m:{}};
+function lvInfo(uid){
+  const now=Date.now();if(now-lvCache.t>2500)lvCache={t:now,m:{}};
+  if(lvCache.m[uid])return lvCache.m[uid];
+  const cfg=lvCfg(),lvs=cfg.levels.slice().sort((a,b)=>a.min-b.min);
+  const n=totalsP(uid,()=>true).n;
+  let auto=-1;lvs.forEach((l,i)=>{if(n>=l.min)auto=i});
+  const honor=n>=cfg.honor.min;
+  const pin=cfg.pin[uid];const pi=pin!==undefined&&pin!==''?lvs.findIndex(l=>l.min===+pin):-1;
+  const idx=pi>=0?pi:auto;const lv=idx>=0?lvs[idx]:null;
+  const next=idx+1<lvs.length?lvs[idx+1]:(honor?null:cfg.honor);
+  const from=lv?lv.min:0;
+  const r={n,lv,idx,autoIdx:honor?lvs.length:auto,next,need:next?Math.max(0,next.min-n):0,pct:next?Math.max(0,Math.min(1,(n-from)/Math.max(1,next.min-from))):1,honor,custom:cfg.custom[uid]||[],cfg};
+  return lvCache.m[uid]=r;
+}
+function lvTag(uid){
+  const L=lvInfo(uid);if(!L.lv&&!L.honor&&!L.custom.length)return '';
+  const t=[L.lv?L.lv.n:'',L.honor?L.cfg.honor.n:'',...L.custom].filter(Boolean).join(' · ');
+  return `<i class="lvi" title="${esc(t)}">${L.lv?esc(L.lv.i):''}${(L.honor||L.custom.length)?'🏅':''}</i>`;
+}
+function lvCard(uid){
+  const L=lvInfo(uid);
+  const chips=(L.lv?`<span class="lvb">${esc(L.lv.i)} ${esc(L.lv.n)}</span>`:'<span class="lvb">بدون مستوى بعد</span>')
+    +(L.honor?`<span class="lvb h">${esc(L.cfg.honor.i)} ${esc(L.cfg.honor.n)}</span>`:'')
+    +L.custom.map(c=>`<span class="lvb h">🎖 ${esc(c)}</span>`).join('');
+  const prog=L.next?`<div class="lvbar"><i style="width:${Math.round(L.pct*100)}%"></i></div><small>${L.n} مباراة · باقي ${L.need} للمستوى «${esc(L.next.n)}»</small>`:`<small>${L.n} مباراة · وصلت لأعلى مستوى 👑</small>`;
+  return `<div class="lvcard"><div>${chips}</div>${prog}</div>`;
+}
+let lvSeeding=false,lvBusy=false;
+function ensureLevelCfg(){
+  if(!isAdmin()||!db||!S.ready.config||S.config.levels||lvSeeding)return;
+  lvSeeding=true;db.doc('config/levels').set(LV_DEF).then(()=>{S.config.levels=LV_DEF}).catch(()=>{lvSeeding=false});
+}
+async function finalizeLevels(){
+  if(!isAdmin()||!db||lvBusy||!(S.ready.config&&S.ready.matches&&S.ready.rsvps&&S.ready.access))return;
+  lvBusy=true;
+  try{
+    const map={};regList().forEach(u=>{map[u]=lvInfo(u).autoIdx});
+    const st=S.config.lvlstate;
+    if(!st||!st.map){await db.doc('config/lvlstate').set({map,ts:Date.now()});S.config.lvlstate={map};return}
+    let ch=false;const nm={...st.map};
+    for(const u of Object.keys(map)){
+      const prev=nm[u]===undefined?-1:nm[u];
+      if(map[u]>prev){
+        const L=lvInfo(u),lvs=L.cfg.levels.slice().sort((a,b)=>a.min-b.min);
+        const lab=map[u]>=lvs.length?L.cfg.honor:lvs[map[u]];
+        if(lab)await sendAch(u,'l'+map[u],`🎖 مبروك ${nameOf(u)}! ترقيت لمستوى «${lab.i} ${lab.n}» 👏`);
+        nm[u]=map[u];ch=true;
+      }else if(nm[u]===undefined){nm[u]=map[u];ch=true}
+    }
+    if(ch){await db.doc('config/lvlstate').set({map:nm,ts:Date.now()});S.config.lvlstate={map:nm}}
+  }catch(e){}finally{lvBusy=false}
+}
+/* محرر المستويات (الأدمن) */
+let lvEd=null,lvPl='';
+function openLevels(){lvEd=JSON.parse(JSON.stringify(lvCfg()));ensureNames(regList());renderLevelsEd();$('#dLevels').showModal()}
+function renderLevelsEd(){
+  const lvs=lvEd.levels;
+  const row=(l,i)=>`<div class="ent"><div class="who"><input data-lf="i|${i}" value="${esc(l.i)}" maxlength="3" style="width:50px;text-align:center"><input data-lf="n|${i}" value="${esc(l.n)}" maxlength="20" style="width:110px"><input data-lf="min|${i}" type="number" min="1" inputmode="numeric" value="${esc(l.min)}" style="width:64px"></div><button class="red" data-ldel="${i}">حذف</button></div>`;
+  const hn=lvEd.honor;
+  const pl=lvPl&&regList().includes(lvPl)?lvPl:'';
+  const cu=pl?(lvEd.custom[pl]||[]):[];
+  const pinV=pl&&lvEd.pin[pl]!==undefined?lvEd.pin[pl]:'';
+  $('#lvBody').innerHTML=`<h3>🎖 المستويات والألقاب</h3>
+    <div class="hint">المستوى يتحسب تلقائيًا حسب عدد المباريات اللي لعبها اللاعب (المنتهية). عدّل الأسماء والأرقام، أو أضف مستوى.</div>
+    ${lvs.map(row).join('')}
+    <div class="row"><button class="ghost" id="lvAdd">＋ أضف مستوى</button></div>
+    <h4 style="margin:12px 0 4px">لقب الشرف التلقائي</h4>
+    <div class="ent"><div class="who"><input data-lh="i" value="${esc(hn.i)}" maxlength="3" style="width:50px;text-align:center"><input data-lh="n" value="${esc(hn.n)}" maxlength="20" style="width:110px"><input data-lh="min" type="number" min="1" value="${esc(hn.min)}" style="width:64px"></div></div>
+    <h4 style="margin:12px 0 4px">ألقاب خاصة للاعب</h4>
+    <select id="lvPl" style="width:100%"><option value="">اختر لاعب…</option>${regList().map(u=>`<option value="${esc(u)}" ${u===pl?'selected':''}>#${esc((S.access[u]||{}).no||'—')} ${esc(nameOf(u))}</option>`).join('')}</select>
+    ${pl?`<div style="margin-top:8px">${cu.map((c,i)=>`<span class="lvb h">🎖 ${esc(c)} <a data-lcdel="${i}" style="cursor:pointer">✕</a></span>`).join('')||'<small>ما عنده ألقاب خاصة</small>'}</div>
+      <div class="row"><input id="lvCT" placeholder="لقب جديد (مثال: عضو شرف)" maxlength="24" style="flex:1"><button id="lvCA">أضف</button></div>
+      <label style="margin-top:8px;display:block;font-size:13px;color:var(--mute)">تثبيت المستوى يدويًا (يتجاوز الحساب التلقائي)</label>
+      <select id="lvPin" style="width:100%"><option value="">تلقائي</option>${lvs.slice().sort((a,b)=>a.min-b.min).map(l=>`<option value="${esc(l.min)}" ${String(pinV)===String(l.min)?'selected':''}>${esc(l.i)} ${esc(l.n)}</option>`).join('')}</select>`:''}
+    <div class="row"><button id="lvSave">💾 حفظ</button></div>`;
+}
+$('#lvBody').addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.lf){const [k,i]=t.dataset.lf.split('|');lvEd.levels[+i][k]=k==='min'?Math.max(1,Math.floor(+t.value)||1):t.value}
+  else if(t.dataset.lh){lvEd.honor[t.dataset.lh]=t.dataset.lh==='min'?Math.max(1,Math.floor(+t.value)||1):t.value}
+});
+$('#lvBody').addEventListener('change',e=>{
+  if(e.target.id==='lvPl'){lvPl=e.target.value;renderLevelsEd()}
+  if(e.target.id==='lvPin'&&lvPl){if(e.target.value==='')delete lvEd.pin[lvPl];else lvEd.pin[lvPl]=+e.target.value}
+});
+$('#lvBody').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.id==='lvAdd'){const mx=Math.max(0,...lvEd.levels.map(l=>+l.min||0));lvEd.levels.push({i:'⭐',n:'مستوى جديد',min:mx+10});renderLevelsEd();return}
+  if(t.dataset.ldel!==undefined){lvEd.levels.splice(+t.dataset.ldel,1);renderLevelsEd();return}
+  if(t.id==='lvCA'){const v=$('#lvCT').value.trim();if(v&&lvPl){lvEd.custom[lvPl]=[...(lvEd.custom[lvPl]||[]),v]}renderLevelsEd();return}
+  if(t.dataset.lcdel!==undefined&&lvPl){const a=(lvEd.custom[lvPl]||[]).slice();a.splice(+t.dataset.lcdel,1);if(a.length)lvEd.custom[lvPl]=a;else delete lvEd.custom[lvPl];renderLevelsEd();return}
+  if(t.id==='lvSave'){
+    if(!lvEd.levels.length){note('لازم يكون فيه مستوى واحد على الأقل');return}
+    lvEd.levels.sort((a,b)=>a.min-b.min);
+    db.doc('config/levels').set(lvEd).then(()=>{S.config.levels=JSON.parse(JSON.stringify(lvEd));lvCache.t=0;renderAll();$('#dLevels').close();note('✅ انحفظت المستويات');setTimeout(()=>note(''),2000)}).catch(()=>note('ما انحفظ، جرب مرة ثانية'));
+  }
+});
+
+/* ---------- إحصائيات المشتركين (الأدمن) ---------- */
+let stSort={k:'no',d:1};
+function memberRows(){
+  const fin=S.matches.filter(m=>m.date&&isDone(m));
+  const mw=Object.values(S.motm);
+  return regList().map(uid=>{
+    const t=totalsP(uid,()=>true),ac=S.access[uid]||{},L=lvInfo(uid);
+    let inn=0,out=0,sub=0,watch=0,none=0,elig=0,voted=0;
+    for(const m of fin){
+      const r=((S.rsvps[uid]||{}).m||{})[m.id],eff=effOf(m.id,uid);
+      if(eff==='in')inn++;
+      else if(r&&r.s==='out')out++;
+      else if(r&&r.s==='watch')watch++;
+      else if(r&&(r.s==='sub'||eff==='wait'))sub++;
+      else if(!r){if(mRec(uid,m.id)||teamOf(S.teams[m.id],uid))inn++;else if((ac.ts||0)<=matchStartMs(m))none++}
+      if(isFB(m)&&motmEligible(m,uid)&&motmState(m).s==='closed'){elig++;if(((S.votes[uid]||{}).o||{})[m.id])voted++}
+    }
+    const aw=Object.values(S.awards).filter(a=>a.winner===uid),mo=aw.filter(a=>a.type==='month').length,yr=aw.length-mo,mm=mw.filter(x=>x&&x.winner===uid).length,fxn=fantasyList().filter(f=>f.winner&&fantasyUid(f)===uid).length;
+    const parts=[mm?`رجل المباراة ${mm}`:'',mo?`لاعب الشهر ${mo}`:'',yr?`لاعب السنة ${yr}`:'',fxn?`Fantasy ${fxn}`:''].filter(Boolean);
+    return {uid,name:nameOf(uid),no:+ac.no||1e9,lv:L.lv?L.lv.i+' '+L.lv.n+(L.honor||L.custom.length?' 🏅':''):'—',lvn:L.idx,n:t.n,g:t.g,a:t.a,sv:t.sv,ov:+statScore(t,hasGK(uid)).toFixed(1),inn,out,sub,watch,none,voted,novote:elig-voted,aw:mo+yr+mm+fxn,awt:parts.join(' · ')};
+  });
+}
+function renderStats(){
+  const rows=memberRows();ensureNames(rows.map(r=>r.uid));
+  const k=stSort.k;
+  rows.sort((x,y)=>{const a=k==='lv'?x.lvn:x[k],b=k==='lv'?y.lvn:y[k];const c=typeof a==='string'?a.localeCompare(b,'ar'):a-b;return (c||x.no-y.no)*stSort.d});
+  const cols=[['name','اللاعب'],['no','#'],['lv','المستوى'],['n','مباريات'],['g','⚽'],['a','🎯'],['sv','🧤'],['ov','نقاط'],['inn','شارك'],['out','Not Going'],['sub','احتياط'],['watch','مشاهد'],['none','بدون تسجيل'],['voted','صوّت'],['novote','ما صوّت'],['aw','جوائز']];
+  $('#stBody').innerHTML=`<h3>📊 إحصائيات المشتركين</h3><div class="hint">المباريات المنتهية فقط. «شارك» يشمل الاحتياط اللي تصعّد. «بدون تسجيل» = ما اختار أي خيار. «ما صوّت» = مرات كان يحق له التصويت لرجل المباراة وما صوّت. اضغط على العمود للترتيب، وعلى الاسم لفتح ملفه.</div>
+  <div class="stwrap"><table class="stt"><tr>${cols.map(([c,l])=>`<th data-sk="${c}">${l}${stSort.k===c?(stSort.d>0?' ▲':' ▼'):''}</th>`).join('')}</tr>
+  ${rows.map(r=>`<tr><td><a class="pl" data-uid="${esc(r.uid)}">${esc(r.name)}</a></td><td>${r.no>1e8?'—':r.no}</td><td>${esc(r.lv)}</td><td>${r.n}</td><td>${r.g}</td><td>${r.a}</td><td>${r.sv}</td><td>${r.ov}</td><td>${r.inn}</td><td>${r.out}</td><td>${r.sub}</td><td>${r.watch}</td><td>${r.none}</td><td>${r.voted}</td><td>${r.novote}</td><td title="${esc(r.awt)}">${r.aw}${r.awt?` <small>(${esc(r.awt)})</small>`:''}</td></tr>`).join('')}</table></div>`;
+}
+function openStats(){renderStats();$('#dStats').showModal()}
+$('#stBody').addEventListener('click',e=>{const th=e.target.closest('th[data-sk]');if(!th)return;const k=th.dataset.sk;if(stSort.k===k)stSort.d*=-1;else{stSort.k=k;stSort.d=(k==='name'||k==='no')?1:-1}renderStats()});
+
+/* ---------- اقتراحات القوانين ---------- */
+function renderSugBox(){
+  const el=$('#sugBox');if(!el)return;
+  if(!myId||!db||myStatus()!=='ok'){el.innerHTML='<div class="empty">سجّل دخولك واعتمد حسابك عشان ترسل اقتراح للمنظم.</div>';return}
+  if(el.querySelector('textarea')&&document.activeElement===el.querySelector('textarea'))return;
+  if(el.dataset.done==='1')return;
+  el.innerHTML=`<h4 style="margin:0 0 6px">💡 عندك اقتراح لتعديل القوانين؟</h4><div class="hint">اكتب اقتراحك وينرسل للمنظم فقط، ولا أحد غيره يشوفه. (حد 500 حرف، و5 اقتراحات باليوم)</div>
+    <textarea id="sugTx" maxlength="500" placeholder="اكتب اقتراحك هنا…"></textarea><div class="msg" id="sugMsg" hidden></div>
+    <div class="row"><button id="sugSend">📨 أرسل اقتراحي</button></div>`;
+}
+document.addEventListener('click',async e=>{
+  if(e.target.id!=='sugSend')return;
+  const tx=$('#sugTx'),text=tx.value.trim(),msg=$('#sugMsg');
+  const say=t=>{msg.textContent=t;msg.hidden=false};
+  if(!text)return say('اكتب اقتراحك أول');
+  e.target.disabled=true;
+  try{
+    await db.doc('suggestions/'+myId+'_'+Date.now().toString(36)).set({text});
+    $('#sugBox').dataset.done='1';
+    $('#sugBox').innerHTML='<div class="msg">✅ وصل اقتراحك للمنظم، مشكور على مشاركتك 💚</div><div class="row"><button class="ghost" id="sugAgain">أرسل اقتراح ثاني</button></div>';
+    playSnd('in');
+  }catch(err){e.target.disabled=false;say(String(err.message||'').includes('429')?'وصلت الحد اليومي (5 اقتراحات). جرب بكرة 🌙':'ما انرسل، جرب مرة ثانية')}
+});
+document.addEventListener('click',e=>{if(e.target.id==='sugAgain'){$('#sugBox').dataset.done='';renderSugBox()}});
+/* بريد المقترحات (الأدمن) */
+let sgTab='new';
+const SG_ST={new:'جديد',read:'مقروء',ok:'معتمد',no:'مرفوض'};
+const sgList=()=>Object.entries(S.suggestions).map(([id,v])=>({id,...v,st:v.st||'new'})).sort((a,b)=>(b.ts||0)-(a.ts||0));
+function renderSugg(){
+  const all=sgList();ensureNames(all.map(x=>x.uid));
+  const cnt=k=>all.filter(x=>x.st===k).length;
+  const list=sgTab==='all'?all:all.filter(x=>x.st===sgTab);
+  $('#sgBody').innerHTML=`<h3>📬 بريد المقترحات</h3>
+    <div class="tabs">${[['new','جديد'],['read','مقروء'],['ok','معتمد'],['no','مرفوض'],['all','الكل']].map(([k,l])=>`<button data-sgt="${k}" class="${sgTab===k?'on':''}">${l}${k!=='all'?' '+cnt(k):' '+all.length}</button>`).join('')}</div>
+    ${list.length?list.map(x=>`<div class="sgi"><small>${esc(nameOf(x.uid))}${(S.access[x.uid]||{}).no?` · عضو #${esc(S.access[x.uid].no)}`:''} · ${esc(fmtTs(x.ts||0))} · ${SG_ST[x.st]||''}</small><p>${esc(x.text||'')}</p>
+      <div class="b"><button class="ghost" data-sgs="${esc(x.id)}|read">👁 مقروء</button><button class="ghost" data-sgs="${esc(x.id)}|ok">✅ معتمد</button><button class="ghost" data-sgs="${esc(x.id)}|no">❌ مرفوض</button><button class="ghost" data-sgdel="${esc(x.id)}" style="color:#9a3b2e">🗑 حذف</button></div></div>`).join(''):'<div class="empty">ما فيه اقتراحات هني</div>'}`;
+}
+function openSugg(){renderSugg();$('#dSugg').showModal()}
+$('#sgBody').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||!isAdmin())return;
+  if(b.dataset.sgt){sgTab=b.dataset.sgt;renderSugg();return}
+  if(b.dataset.sgs){const [id,st]=b.dataset.sgs.split('|');db.doc('suggestions/'+id).update({st}).then(()=>{if(S.suggestions[id])S.suggestions[id].st=st;renderSugg();updateBadge()}).catch(()=>note('ما انحفظ'));return}
+  if(b.dataset.sgdel){
+    if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد الحذف؟';return}
+    const id=b.dataset.sgdel;db.doc('suggestions/'+id).delete().then(()=>{delete S.suggestions[id];renderSugg();updateBadge()}).catch(()=>note('ما انحذف'));
+  }
+});
+
+/* ---------- إشعارات الجهاز (Web Push) ---------- */
+const pushOK=()=>('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window);
+const IOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const b64u=t=>{const p='='.repeat((4-t.length%4)%4),r=atob((t+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
+async function subscribePush(){
+  const reg=await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub){const k=(await(await fetch('/api/pushkey',{credentials:'same-origin'})).json()).key;sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(k)})}
+  await db.doc('push/'+myId).set({subs:[sub.toJSON()]});
+}
+let pushDone=false;
+function ensurePushSub(){
+  if(pushDone||!pushOK()||!myId||!db||Notification.permission!=='granted')return;
+  if(!(isAdmin()||myStatus()==='ok'))return;
+  pushDone=true;subscribePush().catch(()=>{pushDone=false});
+}
+async function enablePush(){
+  if(!pushOK())return;
+  let p;try{p=await Notification.requestPermission()}catch(e){p='denied'}
+  if(p!=='granted'){note('ما تفعلت الإشعارات، لأنك رفضتها من المتصفح');setTimeout(()=>note(''),3000);renderStatus();return}
+  try{await subscribePush();pushDone=true;note('✅ تفعلت إشعارات الجهاز');playSnd('ach')}catch(e){note('ما انفعلت الإشعارات، جرب مرة ثانية')}
+  setTimeout(()=>note(''),2500);renderStatus();
+}
+function pushCard(){
+  if(!myId||!(isAdmin()||myStatus()==='ok'))return '';
+  if(pushOK()&&Notification.permission==='default')return `<div class="card cta"><div><b>🔔 فعّل إشعارات جهازك</b><br><small>عشان توصلك التذكيرات والإنجازات حتى لو الموقع مقفل.</small></div><button id="pushOn">فعّل</button></div>`;
+  if(!pushOK()&&IOS&&!STANDALONE)return `<div class="card"><div><b>🔔 إشعارات الآيفون</b><br><small>افتح الموقع من سفاري ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية» ← افتحه من الأيقونة الجديدة وفعّل الإشعارات.</small></div></div>`;
+  return '';
+}
+document.addEventListener('click',e=>{if(e.target.id==='pushOn')enablePush()});
+function pushTo(uid,t,b,u){
+  if(!isAdmin())return;
+  fetch('/api/push',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({to:[uid],t,b,u:u||'/'})}).catch(()=>{});
+}
+
+/* ---------- النسخ الاحتياطي الكامل ---------- */
+const CRC_T=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=d=>{let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=CRC_T[(c^d[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
+function makeZip(files){
+  const enc=new TextEncoder(),parts=[],cds=[];let off=0;
+  const dt=new Date(),dd=((dt.getFullYear()-1980)<<9)|((dt.getMonth()+1)<<5)|dt.getDate(),tt=(dt.getHours()<<11)|(dt.getMinutes()<<5)|(dt.getSeconds()>>1);
+  for(const f of files){
+    const nm=enc.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,tt,true);lh.setUint16(12,dd,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,sz,true);lh.setUint32(22,sz,true);lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer),nm,f.data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,tt,true);ch.setUint16(14,dd,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+    cds.push(new Uint8Array(ch.buffer),nm);
+    off+=30+nm.length+sz;
+  }
+  const cdSize=cds.reduce((n,x)=>n+x.length,0);
+  const end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,cdSize,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...cds,new Uint8Array(end.buffer)],{type:'application/zip'});
+}
+function saveBlob(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+}
+let bkInfo={list:null,busy:false,msg:''};
+async function loadBackups(){
+  try{const r=await fetch('/api/backups',{credentials:'same-origin'});if(r.ok){bkInfo.list=(await r.json()).list||[];if($('#dBackup').open)renderBackup();if($('#dAdmin').open)renderAdmin()}}catch(e){}
+}
+const bkDate=k=>{const m=/(\d{4}-\d{2}-\d{2})/.exec(k);return m?m[1]:''};
+const bkStale=()=>{if(!bkInfo.list)return false;const a=bkInfo.list.filter(k=>k.startsWith('auto-')||k.startsWith('manual-')).map(bkDate).sort().pop();return !a||(Date.now()-Date.parse(a))>8*864e5};
+function renderBackup(){
+  const l=bkInfo.list||[];
+  $('#bkBody').innerHTML=`<h3>💾 النسخ الاحتياطي</h3>
+    <div class="hint">النسخة الكاملة: كل بيانات الموقع (التسجيل والدفعات والإحصائيات والأرقام والتصويت والجوائز والعقوبات والاقتراحات والأسماء) مع كل الصور والفيديو في ملف مضغوط واحد. فيه كمان نسخة تلقائية كل أسبوع على السيرفر (تنحفظ آخر 8).</div>
+    ${bkInfo.msg?`<div class="msg">${esc(bkInfo.msg)}</div>`:''}
+    <div class="row wrap"><button id="bkFull" ${bkInfo.busy?'disabled':''}>⬇️ تنزيل نسخة كاملة (بيانات + صور)</button><button class="ghost" id="bkJson" ${bkInfo.busy?'disabled':''}>⬇️ بيانات فقط (JSON)</button></div>
+    <div class="row wrap"><button class="ghost" id="bkNow" ${bkInfo.busy?'disabled':''}>🗄 احفظ نسخة على السيرفر الآن</button></div>
+    <h4 style="margin:12px 0 4px">النسخ المحفوظة على السيرفر (${l.length})</h4>
+    ${l.length?l.map(k=>`<div class="ent"><div class="who"><div><b>${esc(bkDate(k))}</b><small>${k.startsWith('auto-')?'تلقائية':k.startsWith('manual-')?'يدوية':k.startsWith('prerestore-')?'قبل استرجاع':''}</small></div></div><button class="ghost" data-bkres="${esc(k)}">↩️ استرجاع</button></div>`).join(''):'<div class="empty">لا توجد نسخ بعد. أول نسخة تلقائية تنحفظ يوم الأحد.</div>'}
+    <h4 style="margin:12px 0 4px">استرجاع من ملف</h4>
+    <div class="hint">اختر ملف data.json من النسخة (استخرجه من الملف المضغوط). الاسترجاع يستبدل البيانات الحالية، ويحفظ السيرفر نسخة منها قبل الاستبدال.</div>
+    <input type="file" id="bkFile" accept=".json,application/json">`;
+}
+function openBackup(){renderBackup();$('#dBackup').showModal();loadBackups()}
+async function bkFetchData(){const r=await fetch('/api/backup',{credentials:'same-origin'});if(!r.ok)throw new Error('backup '+r.status);return r.text()}
+$('#bkBody').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b||!isAdmin())return;
+  const say=t=>{bkInfo.msg=t;renderBackup()};
+  try{
+    if(b.id==='bkJson'){bkInfo.busy=true;say('جاري التجهيز…');const t=await bkFetchData();saveBlob(new Blob([t],{type:'application/json'}),'bibi-data-'+new Date().toISOString().slice(0,10)+'.json');bkInfo.busy=false;say('✅ تم تنزيل البيانات');return}
+    if(b.id==='bkFull'){
+      bkInfo.busy=true;say('جاري تجهيز البيانات…');
+      const enc=new TextEncoder(),files=[{name:'data.json',data:enc.encode(await bkFetchData())}];
+      const items=S.gallery.filter(g=>g.assetId);let fail=0;
+      for(let i=0;i<items.length;i++){
+        say(`جاري تنزيل الصور والفيديو ${i+1}/${items.length}…`);
+        try{
+          const x=await fetch('/_blob/'+encodeURIComponent(items[i].assetId),{credentials:'same-origin'});if(!x.ok)throw 0;
+          const ct=(x.headers.get('content-type')||'').split('/')[1]||'bin';
+          files.push({name:'media/'+items[i].assetId+'.'+ct.replace('quicktime','mov').replace('jpeg','jpg'),data:new Uint8Array(await x.arrayBuffer())});
+        }catch(err){fail++}
+      }
+      files.push({name:'README.txt',data:enc.encode('نسخة احتياطية لموقع تقسيمة بوبيبي\nتاريخ النسخة: '+new Date().toISOString()+'\ndata.json = كل بيانات الموقع\nmedia/ = الصور والفيديو (اسم الملف = رقم الملف في الموقع)\n')});
+      saveBlob(makeZip(files),'bibi-backup-'+new Date().toISOString().slice(0,10)+'.zip');
+      bkInfo.busy=false;say(`✅ تم تنزيل النسخة الكاملة (${items.length-fail} ملف وسائط${fail?`، و${fail} ما انسحبت`:''})`);return;
+    }
+    if(b.id==='bkNow'){bkInfo.busy=true;say('جاري الحفظ على السيرفر…');const r=await fetch('/api/backups',{method:'POST',credentials:'same-origin'});bkInfo.busy=false;if(!r.ok)throw 0;say('✅ انحفظت نسخة على السيرفر');loadBackups();return}
+    if(b.dataset.bkres){
+      if(!b.dataset.sure){b.dataset.sure='1';b.textContent='⚠️ تأكيد الاسترجاع؟';return}
+      if(b.dataset.sure==='1'){b.dataset.sure='2';b.textContent='⚠️⚠️ متأكد؟ يستبدل كل البيانات';return}
+      say('جاري الاسترجاع…');
+      const r=await fetch('/api/restore',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({key:b.dataset.bkres,confirm:'RESTORE'})});
+      if(!r.ok)throw 0;say('✅ تم الاسترجاع، يعاد تحميل الصفحة…');setTimeout(()=>location.reload(),1500);
+    }
+  }catch(err){bkInfo.busy=false;say('ما تمت العملية، جرب مرة ثانية')}
+});
+$('#bkBody').addEventListener('change',async e=>{
+  if(e.target.id!=='bkFile'||!e.target.files[0]||!isAdmin())return;
+  try{
+    const d=JSON.parse(await e.target.files[0].text());
+    if(d.app!=='bibi-league'||!d.data)throw new Error('bad');
+    if(!confirm('سيتم استبدال كل بيانات الموقع الحالية بمحتوى الملف. متأكد؟'))return;
+    if(!confirm('تأكيد أخير: الاسترجاع يغيّر البيانات الحية مباشرة.'))return;
+    bkInfo.msg='جاري الاسترجاع…';renderBackup();
+    const r=await fetch('/api/restore',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({data:d.data,confirm:'RESTORE'})});
+    if(!r.ok)throw new Error('restore '+r.status);
+    bkInfo.msg='✅ تم الاسترجاع، يعاد تحميل الصفحة…';renderBackup();setTimeout(()=>location.reload(),1500);
+  }catch(err){bkInfo.msg='الملف غير صالح أو أكبر من المسموح';renderBackup()}
+});
 
 /* ---------- قوانين اللعب ---------- */
 const RULE_BANS=[['لعب خشن','1–2'],['عدم الالتزام بقوانين القروب','1–3'],['التسبب بإصابة لاعب آخر','3–10'],['عدم الحضور بعد التسجيل كحاضر','1–2'],['الانسحاب بالساعة الأخيرة','1'],['شتم لاعب آخر','2–4'],['تصرف غير لائق','1–3'],['التعدي على صلاحية المنظم','2–5'],['أخرى','حسب تقدير المنظم']];
@@ -1388,35 +1787,27 @@ function sancHtml(){
     ${bans.length?'<h3 style="margin:14px 0 4px">العقوبات المسجلة</h3>'+bans.map(u=>{const i=banInfo(u);return `<div class="bn"><div><b>${esc(nameOf(u))}</b><small>${i.active?`بقي ${i.left} من ${i.b.games} قيمز`:'منتهي'} · ${esc(i.b.reason||'')}</small></div><button class="ghost red" data-scdel="${esc(u)}">رفع</button></div>`}).join(''):''}
   </div>`;
 }
-function downloadBackup(){
-  const keys=['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','rsvps','stats','players','reacts','events','votes','inbox','views'];
-  const out={app:'bibi-league',exportedAt:new Date().toISOString(),data:{}};
-  keys.forEach(k=>{out.data[k]=S[k]});
-  const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bibi-backup-'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
-  note('تم تنزيل النسخة الاحتياطية');setTimeout(()=>note(''),2500);
-}
 function renderAdmin(){
   const ids=Object.keys(S.players);
   const g={pending:[],ok:[],no:[]};
   ids.forEach(u=>{const st=statusOf(u);g[st==='ok'?'ok':st==='no'?'no':'pending'].push(u)});
   const byName=(a,b)=>(((+(S.access[a]||{}).no)||1e9)-((+(S.access[b]||{}).no)||1e9))||nameOf(a).localeCompare(nameOf(b),'ar');
-  const row=(u,btns)=>`<div class="ent"><div class="who">${avatar(u)}<div><a class="pl" data-uid="${esc(u)}">${esc(nameOf(u))}</a><small>${S.access[u]&&S.access[u].no?'عضو #'+S.access[u].no+' · ':''}${esc(posLabel(S.players[u].pos)||'بدون مركز')}${S.players[u].ts?' · '+esc(fmtTs(S.players[u].ts)):''}</small></div></div><div class="b">${btns}</div></div>`;
+  const row=(u,btns)=>`<div class="ent"><div class="who">${avatar(u)}<div><a class="pl" data-uid="${esc(u)}">${esc(nameOf(u))}</a><small>${S.access[u]&&S.access[u].no?'عضو #'+S.access[u].no+' · ':''}${esc(posText(u)||'بدون مركز')}${S.players[u].ts?' · '+esc(fmtTs(S.players[u].ts)):''}</small></div></div><div class="b">${btns}</div></div>`;
   const btn=(k,u,l,c='')=>`<button class="${c}" data-${k}="${esc(u)}">${l}</button>`;
-  const me=myId?`<div class="ent"><div class="who">${avatar(myId)}<div><b>${esc(nameOf(myId))}</b><small>ملفي الشخصي${posLabel((S.players[myId]||{}).pos)?' · '+esc(posLabel(S.players[myId].pos)):''}</small></div></div><div class="b"><button class="ok" data-me="1">فتح ملفي</button></div></div>`:'';
+  const me=myId?`<div class="ent"><div class="who">${avatar(myId)}<div><b>${esc(nameOf(myId))}</b><small>ملفي الشخصي${posText(myId)?' · '+esc(posText(myId)):''}</small></div></div><div class="b"><button class="ok" data-me="1">فتح ملفي</button></div></div>`:'';
   const sec=(t,list,fn)=>`<h2>${t} (${list.length})</h2>${list.length?list.sort(byName).map(fn).join(''):'<div class="empty">ما أحد</div>'}`;
-  $('#adBody').innerHTML=me+`<div class="row"><button class="ghost" data-backup="1">💾 تنزيل نسخة احتياطية</button></div>`+awardsAdminHtml()+sancHtml()+
+  const nSg=sgList().filter(x=>x.st==='new').length;
+  $('#adBody').innerHTML=me+(bkStale()?`<div class="msg ban">⚠️ ما فيه نسخة احتياطية بآخر 8 أيام. افتح «النسخ الاحتياطي» واحفظ نسخة.</div>`:'')+`<div class="atools"><button class="ghost" data-stats="1">📊 إحصائيات المشتركين</button><button class="ghost" data-sugg="1">📬 المقترحات${nSg?' ('+nSg+')':''}</button><button class="ghost" data-lvl="1">🎖 المستويات والألقاب</button><button class="ghost" data-bk="1">💾 النسخ الاحتياطي</button></div>`+awardsAdminHtml()+sancHtml()+
     sec('بانتظار الموافقة',g.pending,u=>row(u,btn('ap',u,'قبول','ok')+btn('no',u,'رفض','red')))+
     sec('المعتمدين',g.ok,u=>row(u,u===myId?'':btn('rm',u,'حذف','red')))+
     sec('المرفوضين',g.no,u=>row(u,btn('ap',u,'قبول','ok')+btn('rm',u,'حذف','red')));
 }
 function updateBadge(){
   const b=$('#admCnt');if(!isAdmin())return;
-  const n=Object.keys(S.players).filter(u=>statusOf(u)==='pending').length+pendingAwards().length;
+  const n=Object.keys(S.players).filter(u=>statusOf(u)==='pending').length+pendingAwards().length+sgList().filter(x=>x.st==='new').length;
   b.hidden=!n;b.textContent=n;
 }
-$('#adminBtn').onclick=()=>{renderAdmin();$('#dAdmin').showModal()};
+$('#adminBtn').onclick=()=>{renderAdmin();$('#dAdmin').showModal();loadBackups()};
 $('#adBody').addEventListener('change',e=>{
   const k=e.target.dataset&&e.target.dataset.sc;if(!k)return;
   sanc[k]=k==='games'?+e.target.value:e.target.value;
@@ -1428,7 +1819,6 @@ $('#adBody').addEventListener('input',e=>{
 });
 $('#adBody').addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||!isAdmin())return;
-  if(b.dataset.backup){downloadBackup();return}
   try{
     if(b.dataset.scapply){
       if(!sanc.uid)return;
@@ -1451,6 +1841,10 @@ $('#adBody').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!isAdmin())return;
   const d=b.dataset;
   if(d.me){openPlayer(myId);return}
+  if(d.stats){openStats();return}
+  if(d.sugg){openSugg();return}
+  if(d.lvl){openLevels();return}
+  if(d.bk){openBackup();return}
   if(d.aw){openAward(d.aw);return}
   const setAccess=(u,status)=>{chain=chain.then(()=>db.doc('access/'+u).set({...(S.access[u]||{}),status,ts:Date.now()})).catch(()=>note('ما انحفظ القرار'))};
   if(d.ap)setAccess(d.ap,'ok');
@@ -1513,7 +1907,7 @@ let boardTab='ov',lbSig='',per={mode:'all',y:NOW.getFullYear(),m:NOW.getMonth()+
 const W={g:3,a:2,n:1,nGK:2,sv:0.5,win:1,csGK:2,csDef:1,motm:3}; /* هدف 3، أسيست 2، مباراة 1 (الحارس 2)، تصدية 0.5 (حد 15/مباراة)، فوز +1، شباك نظيف: حارس +2 ومدافع +1 */
 const SV_CAP=15;const DEF=new Set(['CB','LB','RB','LWB','RWB']);
 const VOTE={w:0.3,monthDays:3,yearDays:7}; /* وزن التصويت 30%، يفتح آخر 3 أيام من الشهر وآخر 7 أيام من ديسمبر */
-const statScore=(t,gk)=>t.g*W.g+t.a*W.a+t.n*(gk?W.nGK:W.n)+t.svc*W.sv+t.win*W.win+t.csp+(t.mv||0)*W.motm;
+const statScore=(t,gk)=>t.g*W.g+t.a*W.a+(t.np!==undefined?t.np:t.n*(gk?W.nGK:W.n))+t.svc*W.sv+t.win*W.win+t.csp+(t.mv||0)*W.motm;
 const BOARD=[['ov','🏅 Overall'],['g','⚽ Goals'],['a','🎯 Assists'],['ga','⭐ G+A'],['n','🔥 Appearances'],['sv','🧤 Saves'],['mv','🌟 MOTM'],['avg','📈 معدل الأهداف']];
 const MONTHS=Array.from({length:12},(_,i)=>new Date(2000,i,1).toLocaleDateString('ar-KW',{month:'long'}));
 function lbYears(){const ys=new Set([NOW.getFullYear(),per.y]);S.matches.forEach(m=>m.date&&ys.add(+m.date.slice(0,4)));return [...ys].sort((a,b)=>b-a)}
@@ -1526,25 +1920,25 @@ const perLabel=()=>per.mode==='all'?'كل الوقت':per.mode==='year'?String(p
 const teamOf=(T,uid)=>T&&((T.g||[]).includes(uid)?'g':(T.c||[]).includes(uid)?'c':null);
 function totalsP(uid,pred){
   const e=(S.stats[uid]&&S.stats[uid].m)||{};let g=0,a=0,sv=0,svc=0,n=0,win=0,csp=0;
-  const pos=(S.players[uid]||{}).pos,gk=isGK(pos),df=DEF.has(pos);
+  const gk=hasGK(uid),df=posList(uid).some(x=>DEF.has(x));let np=0;
   const ids=new Set(Object.keys(e));
   for(const k of Object.keys(S.teams))if(teamOf(S.teams[k],uid))ids.add(k);
   for(const k of Object.keys(S.events)){if(mRec(uid,k)||layout(k).going.some(p=>p.uid===uid))ids.add(k)}
   ids.forEach(k=>{
     const m=S.matches.find(x=>x.id===k);if(!m||!isFB(m)||!isDone(m)||!pred(m.date||''))return;
-    n++;
+    n++;const gkM=isGKIn(uid,k);np+=gkM?W.nGK:W.n;
     const r=mRec(uid,k);
     if(r){g+=r.goals;a+=r.assists;const x=r.saves;sv+=x;svc+=Math.min(x,SV_CAP)}
     const T=S.teams[k],side=teamOf(T,uid),sc=mScore(k);
     if(side&&sc){
       const mine=side==='g'?sc.gs:sc.cs,opp=side==='g'?sc.cs:sc.gs;
       if(mine>opp)win++;
-      if(opp===0)csp+=gk?W.csGK:df?W.csDef:0;
+      if(opp===0)csp+=gkM?W.csGK:df?W.csDef:0;
     }
   });
   let mv=0;
   for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))mv++}}
-  return {n,g,a,sv,svc,win,csp,mv};
+  return {n,g,a,sv,svc,win,csp,mv,np};
 }
 function renderBoardControls(){
   $('#lbMode').innerHTML=[['all','كل الوقت'],['year','السنة'],['month','الشهر']].map(([k,l])=>`<button data-m="${k}" class="${per.mode===k?'on':''}">${l}</button>`).join('');
@@ -1564,7 +1958,7 @@ function renderBoard(){
   const pred=perPred();
   const ids=regList();if(isAdmin()&&myId&&!ids.includes(myId))ids.unshift(myId);ensureNames(ids);
   const no=u=>(+(S.access[u]||{}).no)||1e9;
-  const rows=ids.map(uid=>{const t=totalsP(uid,pred);const gk=isGK((S.players[uid]||{}).pos);return {uid,...t,gk,ga:t.g+t.a,avg:t.n>=3?t.g/t.n:0,ov:statScore(t,gk),v:0}});
+  const rows=ids.map(uid=>{const t=totalsP(uid,pred);const gk=hasGK(uid);return {uid,...t,gk,ga:t.g+t.a,avg:t.n>=3?t.g/t.n:0,ov:statScore(t,gk),v:0}});
   const pk=periodKeys();const aw=pk&&S.awards[pk.id];
   const useVotes=boardTab==='ov'&&!!(aw&&aw.tally&&Object.keys(aw.tally).length);
   if(useVotes){
@@ -1590,7 +1984,7 @@ function renderBoard(){
     if(v!==prev){rank=i+1;prev=v}
     const top=v>0&&rank<=3;
     const medal=top?(rank===1?'🥇':rank===2?'🥈':'🥉'):rank;
-    return `<div class="lb ${top?'t'+rank:''} ${r.uid===myId?'mine':''}" data-uid="${esc(r.uid)}"><span class="rk">${medal}</span>${avatar(r.uid)}<div class="nm">${esc(nameOf(r.uid))}<small>${r.n} مباراة · ⚽ ${r.g} · 🎯 ${r.a}${r.gk||r.sv?` · 🧤 ${r.sv}`:''}${r.mv?` · 🌟 ${r.mv}`:''}${useVotes?` · 🗳 ${r.v}`:''}</small></div><span class="val ${v>0?'':'z'}">${fmt(v)}</span></div>`;
+    return `<div class="lb ${top?'t'+rank:''} ${r.uid===myId?'mine':''}" data-uid="${esc(r.uid)}"><span class="rk">${medal}</span>${avatar(r.uid)}<div class="nm">${esc(nameOf(r.uid))}${lvTag(r.uid)}<small>${r.n} مباراة · ⚽ ${r.g} · 🎯 ${r.a}${r.gk||r.sv?` · 🧤 ${r.sv}`:''}${r.mv?` · 🌟 ${r.mv}`:''}${useVotes?` · 🗳 ${r.v}`:''}</small></div><span class="val ${v>0?'':'z'}">${fmt(v)}</span></div>`;
   }).join(''):'<div class="card empty">ما فيه لاعبين مسجلين للحين</div>';
 }
 $('#lbMode').addEventListener('click',e=>{const b=e.target.closest('button');if(b){per.mode=b.dataset.m;renderBoardControls();renderBoard()}});
@@ -1619,7 +2013,10 @@ const periodName=(type,key)=>type==='month'?`${MONTHS[+key.slice(5,7)-1]} ${key.
 function achHtml(uid){
   const list=Object.values(S.awards).filter(a=>a.winner===uid).sort((x,y)=>(y.key>x.key?1:y.key<x.key?-1:0));
   const fx=fantasyList().filter(f=>f.winner&&fantasyUid(f)===uid);
-  const chips=list.map(a=>`<span>🏆 ${esc(awardLabel(a))}</span>`).concat(fx.map(f=>`<span>⚽ Premier League Fantasy · Bibi's League ${esc(f.label)}</span>`));
+  const grp=(arr,label)=>arr.length?`<span>🏆 ${label}${arr.length>1?' ×'+arr.length:''}<br><small>${arr.map(a=>esc(periodName(a.type,a.key))).join('، ')}</small></span>`:'';
+  const motmN=Object.values(S.motm).filter(x=>x&&x.winner===uid).length;
+  const chips=[grp(list.filter(a=>a.type!=='month'),'Player of the Year'),grp(list.filter(a=>a.type==='month'),'Player of the Month'),motmN?`<span>🌟 Man of the Match${motmN>1?' ×'+motmN:''}</span>`:'']
+    .filter(Boolean).concat(fx.map(f=>`<span>⚽ Premier League Fantasy · Bibi's League ${esc(f.label)}</span>`));
   return chips.length?`<div class="chips">${chips.join('')}</div>`:'<div class="empty">ما فيه إنجازات للحين</div>';
 }
 /* ---------- Premier League Fantasy ---------- */
@@ -1797,7 +2194,7 @@ function renderMembers(){
   const numOf=u=>S.access[u]&&S.access[u].no?S.access[u].no:'—';
   const noEl=u=>isAdmin()&&memTab==='reg'?`<button class="mno mnob" data-eno="${esc(u)}" title="تعديل رقم العضوية">#${numOf(u)} ✎</button>`:`<span class="mno">#${numOf(u)}</span>`;
   const edRow=u=>editNo===u?`<div class="noed"><div class="r"><input id="noIn" type="number" min="1" inputmode="numeric" placeholder="الرقم الجديد" value="${esc(S.access[u].no||'')}"><button id="noSave" data-nsave="${esc(u)}">حفظ</button><button class="ghost" data-ncancel="1">إلغاء</button></div><div id="noMsg" class="nomsg"></div></div>`:'';
-  const row=(u,extra)=>`<div class="ent"><div class="who">${noEl(u)}${avatar(u)}<div>${nameLink(u)}<small>${esc(posLabel((S.players[u]||{}).pos)||'')}${extra?(posLabel((S.players[u]||{}).pos)?' · ':'')+extra:''}</small></div></div></div>${edRow(u)}`;
+  const row=(u,extra)=>`<div class="ent"><div class="who">${noEl(u)}${avatar(u)}<div>${nameLink(u)}<small>${esc(posText(u)||'')}${extra?(posText(u)?' · ':'')+extra:''}</small></div></div></div>${edRow(u)}`;
   if(memTab==='reg'){
     $('#memBody').innerHTML=`<div class="sub">${reg.length} لاعب مسجل، مرتبين من الأقدم للأحدث</div>`+(reg.length?reg.map(u=>row(u,'')).join(''):'<div class="empty">ما أحد للحين</div>');
   }else{
@@ -1846,12 +2243,13 @@ function teamsHtml(mid){
   return `<div class="grp">${sc?`<div class="score">🟢 ${scx.gs} - ${scx.cs} 🎨</div>`:''}<div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
 }
 let tm=null;
-function openTeams(mid){
+function openTeams(mid,auto){
   const L=layout(mid);const pool=L.going.map(p=>p.uid);
   const src=S.teamsDraft[mid]||S.teams[mid]||{};
   tm={mid,pool,g:(src.g||[]).filter(u=>pool.includes(u)),c:(src.c||[]).filter(u=>pool.includes(u)),
       gs:Number.isFinite(src.gs)?String(src.gs):'',cs:Number.isFinite(src.cs)?String(src.cs):'',msg:'',guests:L.going.reduce((n,p)=>n+(p.gEff||0),0)};
   tm.c=tm.c.filter(u=>!tm.g.includes(u));
+  if(auto){tmBalance();tm.msg='⚖️ تم توزيع تلقائي (حارس لكل فريق إن وُجد، وتوازن حسب الإحصائيات). راجعه وعدّل، ثم اضغط «حفظ مسودة» أو «اعتماد ونشر».'}
   ensureNames(pool);renderTeams();$('#dTeams').showModal();
 }
 const tmSide=u=>tm.g.includes(u)?'g':tm.c.includes(u)?'c':'n';
@@ -1860,7 +2258,7 @@ function renderTeams(){
   const pub=!!S.teams[tm.mid];
   $('#tmBody').innerHTML=`<h3>⚔️ تقسيمة الفريقين</h3><div class="sub">${esc(matchTitle(m))}${tm.guests?` · Guests: ${tm.guests} (بدون أسماء)`:''}</div>
     <div class="sub">${pub?'✅ منشورة للاعبين':'📝 مسودة (ما تظهر للاعبين)'} · 🟢 ${tm.g.length} · 🎨 ${tm.c.length} · بدون فريق ${tm.pool.length-tm.g.length-tm.c.length}</div>
-    ${tm.pool.map(u=>{const sd=tmSide(u);const pos=(S.players[u]||{}).pos;return `<div class="tmr"><span class="who">${avatar(u,'sm')}${esc(nameOf(u))}${pos?` <small style="color:var(--mute)">${esc(pos)}</small>`:''}</span><span class="b"><button class="g ${sd==='g'?'on':''}" data-tm="${esc(u)}|g">🟢</button><button class="c ${sd==='c'?'on':''}" data-tm="${esc(u)}|c">🎨</button><button class="n ${sd==='n'?'on':''}" data-tm="${esc(u)}|n">✖</button></span></div>`}).join('')||'<div class="empty">ما فيه لاعبين Going</div>'}
+    ${tm.pool.map(u=>{const sd=tmSide(u);const pos=posText(u);return `<div class="tmr"><span class="who">${avatar(u,'sm')}${esc(nameOf(u))}${isGKIn(u,tm.mid)?' 🧤':''}${pos?` <small style="color:var(--mute)">${esc(pos)}</small>`:''}</span><span class="b"><button class="g ${sd==='g'?'on':''}" data-tm="${esc(u)}|g">🟢</button><button class="c ${sd==='c'?'on':''}" data-tm="${esc(u)}|c">🎨</button><button class="n ${sd==='n'?'on':''}" data-tm="${esc(u)}|n">✖</button></span></div>`}).join('')||'<div class="empty">ما فيه لاعبين Going</div>'}
     <div class="row"><button class="ghost" id="tmAuto">⚖️ توزيع متوازن تلقائي</button><button class="ghost" id="tmClear">مسح التوزيع</button></div>
     <div class="tmsc"><span>🟢</span><input id="tmGs" type="number" min="0" inputmode="numeric" placeholder="—" value="${esc(tm.gs)}"><span>-</span><input id="tmCs" type="number" min="0" inputmode="numeric" placeholder="—" value="${esc(tm.cs)}"><span>🎨</span></div>
     <div class="hint">النتيجة اختيارية، وبعد ما تدخلها يحسب الموقع الفوز والشباك النظيف بنقاط الليدربورد.</div>
@@ -1869,11 +2267,16 @@ function renderTeams(){
     ${pub?'<div class="row"><button id="tmUnpub" style="background:#9a3b2e">إلغاء النشر</button></div>':''}`;
 }
 function tmBalance(){
-  const ov=u=>{const t=totalsP(u,()=>true);return statScore(t,isGK((S.players[u]||{}).pos))};
-  const gks=tm.pool.filter(u=>isGK((S.players[u]||{}).pos)),rest=tm.pool.filter(u=>!gks.includes(u));
-  rest.sort((a,b)=>ov(b)-ov(a));
+  const ov=u=>statScore(totalsP(u,()=>true),hasGK(u));
+  const gks=tm.pool.filter(u=>isGKIn(u,tm.mid)),rest=tm.pool.filter(u=>!gks.includes(u));
+  gks.sort((a,b)=>ov(b)-ov(a));rest.sort((a,b)=>ov(b)-ov(a));
   tm.g=[];tm.c=[];let sg=0,sc=0;
-  const put=(u)=>{const v=ov(u);if(sg<sc||(sg===sc&&tm.g.length<=tm.c.length)){tm.g.push(u);sg+=v}else{tm.c.push(u);sc+=v}};
+  const cap=Math.ceil(tm.pool.length/2);
+  const put=u=>{
+    const v=ov(u);
+    const toG=tm.g.length>=cap?false:tm.c.length>=cap?true:(sg<sc||(sg===sc&&tm.g.length<=tm.c.length));
+    if(toG){tm.g.push(u);sg+=v}else{tm.c.push(u);sc+=v}
+  };
   gks.concat(rest).forEach(put);
 }
 const tmNum=v=>{const n=parseInt(v,10);return Number.isFinite(n)&&n>=0?n:null};
@@ -2140,7 +2543,7 @@ $('#ntBody').addEventListener('click',async e=>{
 });
 let lastMst='';
 setInterval(()=>{
-  try{renderStatus();renderAnn();renderLog();finalizeMotm();
+  try{renderStatus();renderAnn();renderLog();finalizeMotm();finalizeLevels();
     if($('#dSheet').open&&openId){const m=S.matches.find(x=>x.id===openId);const sg=m?motmState(m).s:'';if(sg!==lastMst){lastMst=sg;renderSheet()}}
   }catch(e){}
 },60000);
@@ -2164,7 +2567,7 @@ async function init(){
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);if(isAdmin())sub('teamsDraft','teamsDraft',true);
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);if(isAdmin()){sub('teamsDraft','teamsDraft',true);sub('suggestions','suggestions',true)}
   if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}

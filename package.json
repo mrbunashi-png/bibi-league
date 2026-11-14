@@ -12,6 +12,7 @@
   "dependencies": {
     "@netlify/blobs": "^11.1.9",
     "@netlify/identity": "^2.0.1",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "web-push": "^4.0.0"
   }
 }
