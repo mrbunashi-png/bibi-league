@@ -80,12 +80,12 @@ async function claim(k: string): Promise<boolean> {
 }
 
 /* ---- الإرسال: صندوق التنبيهات + إشعار الجهاز ---- */
-type Kind = 'pre' | 'vote' | 'gal' | 'full' | 'teams' | 'cancel';
+type Kind = 'pre' | 'vote' | 'gal' | 'full' | 'teams' | 'cancel' | 'tour' | 'welcome';
 export async function notifyUsers(o: { uids: string[]; key: string; kind: Kind; h: string; t: string; title: string; mid?: string }) {
   if (!o.uids.length) return 0;
   const [players, access] = await Promise.all([readColl('players'), readColl('access')]);
   const ids = [...new Set(o.uids)].filter((u) => access[u] && access[u].status === 'ok')
-    .filter((u) => o.kind === 'cancel' || !(players[u] && players[u].np && players[u].np['s_' + o.kind] === 0));
+    .filter((u) => o.kind === 'cancel' || o.kind === 'welcome' || !(players[u] && players[u].np && players[u].np['s_' + o.kind] === 0));
   if (!ids.length) return 0;
   const ts = Date.now();
   await mutate('inbox', (cur) => {
@@ -209,4 +209,44 @@ export async function sendTests(uid: string) {
   let reached = 0;
   for (const [t, b] of L) reached += await pushTo([uid], { t: '🧪 ' + t, b, u: '/' });
   return { sent: L.length, reached };
+}
+
+
+/* ---- البطولات ---- */
+const fmtDay = (d: string) => (d ? new Date(d + 'T00:00:00').toLocaleDateString('ar-KW', { weekday: 'long', day: 'numeric', month: 'long' }) : '');
+function tourCtx(t: any, m: any) {
+  const A = (t && (t.teams || []).find((x: any) => x.id === m.ta)) || { n: 'الفريق الأول', m: [] };
+  const B = (t && (t.teams || []).find((x: any) => x.id === m.tb)) || { n: 'الفريق الثاني', m: [] };
+  return { A, B, uids: [...(A.m || []), ...(B.m || [])] as string[] };
+}
+export async function onTourMatch(mid: string, m: any) {
+  const t: any = (await readColl('tournaments'))[m.tid]; if (!t) return;
+  const { A, B, uids } = tourCtx(t, m);
+  const body = `🏆 ${t.name}${m.rdn ? ' · ' + m.rdn : ''}\n${A.n} ⚔️ ${B.n}\n📅 ${fmtDay(m.date)}${m.time ? ' · ⏰ ' + time12(m.time) : ''}${m.place ? '\n📍 ' + m.place : ''}`;
+  await notifyUsers({ uids, key: 'tm' + mid, kind: 'tour', h: '🏆 مباراة بطولة', t: body, title: '🏆 تحدد موعد مباراتكم', mid });
+}
+export async function onTourResult(mid: string, m: any, done: boolean) {
+  const t: any = (await readColl('tournaments'))[m.tid]; if (!t) return;
+  const { A, B, uids } = tourCtx(t, m);
+  const k = (done ? 'tr' : 'tu') + mid + Date.now().toString(36);
+  if (!done) {
+    await notifyUsers({ uids, key: k, kind: 'tour', h: '↩️ تصحيح نتيجة', t: `↩️ تم التراجع عن نتيجة ${A.n} و${B.n} في ${t.name}. بانتظار اعتماد النتيجة الصحيحة.`, title: '↩️ تصحيح نتيجة بطولة', mid });
+    return;
+  }
+  const ev: any = (await readColl('events'))[mid] || {};
+  let gs = 0, cs = 0; for (const e of ev.g || []) { if (e.side === 'g') gs++; else cs++; }
+  let line: string, champ = '';
+  if (gs === cs) {
+    if (m.tw === 'a' || m.tw === 'b') { const w = m.tw === 'a' ? A : B, l = m.tw === 'a' ? B : A; line = `${w.n} فاز على ${l.n} بركلات الترجيح (${gs}-${cs} بعد الوقت الأصلي)`; if (m.fin) champ = w.n; }
+    else line = `تعادل ${A.n} و${B.n} ${gs}-${cs}`;
+  } else {
+    const aw = gs > cs; const w = aw ? A : B, l = aw ? B : A; line = `${w.n} فاز على ${l.n} ${Math.max(gs, cs)}-${Math.min(gs, cs)}`; if (m.fin) champ = w.n;
+  }
+  const body = `🏆 ${t.name}${m.rdn ? ' · ' + m.rdn : ''}\n${line}${champ ? '\n🥇 بطل البطولة: ' + champ + ' 👏' : ''}`;
+  await notifyUsers({ uids, key: k, kind: 'tour', h: champ ? '🥇 بطل البطولة' : '🏆 نتيجة مباراة', t: body, title: champ ? '🥇 انتهت البطولة' : '🏆 نتيجة جديدة', mid });
+}
+export async function onWelcome(uid: string) {
+  const pl: any = (await readColl('players'))[uid]; const nm = (pl && pl.name) || '';
+  const body = `🎉 مبروك${nm ? ' يا ' + nm : ''}! تم قبولك في تقسيمة بوبيبي للأنشطة الرياضية. حياك الله معنا ⚽ سجّل حضورك من إعلانات اللعب، ومن 🔔 تقدر تتحكم بالإشعارات اللي توصلك.`;
+  await notifyUsers({ uids: [uid], key: 'welcome', kind: 'welcome', h: '🎉 مبروك القبول', t: body, title: '🎉 مبروك، تم قبولك' });
 }

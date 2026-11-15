@@ -1,12 +1,12 @@
 import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
 import * as webpush from 'web-push';
-import { checkFull, onTeamsPublished, onCancel, queueGallery, sendTests } from '../lib/notify.mts';
+import { checkFull, onTeamsPublished, onCancel, queueGallery, sendTests, onTourMatch, onTourResult, onWelcome } from '../lib/notify.mts';
 import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/backup.mts';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
-const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks']);
+const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock','tournaments'];
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks','tournaments']);
 const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
@@ -258,11 +258,21 @@ export default async (req: Request) => {
         try {
           const prev: any = (await readColl('matches'))[id];
           if (prev) {
-            if (o.op === 'delete' && !prev.cancelled) { const st0 = startMs(prev); if (isFinite(st0) && st0 > Date.now() - 3 * 3600000) await onCancel(id, prev, '', true); }
+            if (o.op === 'delete' && !prev.cancelled && !prev.tid) { const st0 = startMs(prev); if (isFinite(st0) && st0 > Date.now() - 3 * 3600000) await onCancel(id, prev, '', true); }
             else if (o.op === 'update' && o.data && o.data.cancelled === true && !prev.cancelled) { const rs = String(o.data.cancelReason || '').slice(0, 120); o.data.cancelReason = rs; postHook = () => onCancel(id, { ...prev, ...o.data }, rs, true); }
             else if (o.op === 'update' && o.data && o.data.cancelled === false && prev.cancelled) postHook = () => onCancel(id, prev, '', false);
           }
         } catch {}
+      }
+      if (admin && c === 'matches') {
+        try {
+          const prev2: any = (await readColl('matches'))[id];
+          if (!postHook && (o.op === 'set' || o.op === 'add') && o.data && o.data.tid && !prev2) { const d0 = o.data; postHook = () => onTourMatch(id, d0); }
+          else if (!postHook && o.op === 'update' && o.data && prev2 && prev2.tid && typeof o.data.done === 'boolean' && o.data.done !== (prev2.done === true)) { const d1 = { ...prev2, ...o.data }; const dn = o.data.done === true; postHook = () => onTourResult(id, d1, dn); }
+        } catch {}
+      }
+      if (admin && c === 'access' && (o.op === 'set' || o.op === 'update') && o.data && o.data.status === 'ok') {
+        try { const pa: any = (await readColl('access'))[id]; if (!pa || pa.status !== 'ok') postHook = () => onWelcome(id); } catch {}
       }
       if (o.op === 'delete') await mutate(c, (cur) => { const n = { ...cur }; delete n[id]; return n; });
       else if (o.op === 'update') await mutate(c, (cur) => ({ ...cur, [id]: { ...(cur[id] || {}), ...(o.data || {}) } }));
