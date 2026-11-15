@@ -100,7 +100,7 @@ details.sec>ul,details.sec>.none{margin-bottom:10px}
 .payh{font-size:12px;font-weight:800;color:var(--mute);margin:8px 0 4px}
 .pr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .pr small{display:block;font-size:11px;color:var(--mute)}.pr .b{display:flex;gap:6px}
-.pr button{padding:5px 10px;font-size:13px}button.bellb{background:#f7ecc4;color:#6b4a0a;border:1px solid #d4b252}
+.pr button{padding:5px 10px;font-size:13px}button.rmi{position:relative;margin-inline-start:4px;padding:5px 9px}button.rmi i.ok{position:absolute;top:-6px;inset-inline-end:-4px;background:#3d8a3d;color:#fff;font-style:normal;font-size:10px;line-height:14px;width:14px;height:14px;border-radius:50%;text-align:center}.vdone{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#e9f3e3;border-radius:10px;padding:8px 10px;margin:6px 0}.vdone b{color:#2f6b2f}button.bellb{background:#f7ecc4;color:#6b4a0a;border:1px solid #d4b252}
 .row.wrap{flex-wrap:wrap}.row.wrap button{flex:1 1 40%}
 .grp.motm{background:#fff8e1;border:1.5px solid #e3c766;border-radius:16px;padding:10px 12px;margin-top:10px}
 .grp.motm h4.mh{font-size:15px}
@@ -1051,9 +1051,9 @@ function renderSheet(){
     const unpaid=L.going.filter(p=>!isPaid(openId,p.uid)),paid=L.going.filter(p=>isPaid(openId,p.uid));
     const sent=u=>{const r=S.inbox[u+'_p'+openId];return r&&r.ts?`<small>آخر تذكير: ${esc(fmtTs(r.ts))}</small>`:''};
     payHtml=sec('pay','💰 القطية (لك فقط)',`${paid.length}/${L.going.length}`,
-      (unpaid.length?`<div class="payh">ما دفعوا (${unpaid.length})</div>`+unpaid.map(p=>`<div class="pr"><div class="who">${avatar(p.uid,'sm')}<div>${nameLink(p.uid)}${sent(p.uid)}</div></div><div class="b"><button class="ghost" data-payu="${esc(p.uid)}">✅ دفع</button><button class="bellb" data-remind="${esc(p.uid)}" title="أرسل تذكير لطيف">🔔</button></div></div>`).join('')+`<div class="row"><button data-remind="all">🔔 ذكّر كل اللي ما دفعوا (${unpaid.length})</button></div>`:'<div class="none">الكل دفع 🎉</div>')+
+      (unpaid.length?`<div class="payh">ما دفعوا (${unpaid.length})</div>`+unpaid.map(p=>`<div class="pr"><div class="who">${avatar(p.uid,'sm')}<div>${nameLink(p.uid)}${sent(p.uid)}</div></div><div class="b"><button class="ghost" data-payu="${esc(p.uid)}">✅ دفع</button></div></div>`).join(''):'<div class="none">الكل دفع 🎉</div>')+
       (paid.length?`<div class="payh">دفعوا (${paid.length})</div><ul>`+paid.map(p=>`<li>${avatar(p.uid,'sm')}${nameLink(p.uid)} <button class="pay on" data-payu="${esc(p.uid)}">✅ دفع</button></li>`).join('')+'</ul>':''),
-      'التذكير يوصل اللاعب في أيقونة 🔔 فوق، بصيغة لطيفة.');
+      'لإرسال تذكير القطية استخدم قسم «🔔 تذكيرات».');
   }
   const teams=teamsHtml(openId);
   const agL=evAgg(openId);
@@ -1064,12 +1064,15 @@ function renderSheet(){
     ${!past?'<div class="hint">لو ما حوّلتها يدويًا، تتحول تلقائيًا بعد 3 ساعات من وقت البداية.</div>':''}`):'';
   const galL=S.gallery.filter(g=>g.mid===openId);
   let nrHtml='';
-  if(isAdmin()&&!past){
-    const nr=notRegistered(openId);ensureNames(nr);
-    const sentR=u=>{const r=S.inbox[u+'_r'+openId];return r&&r.ts?`<small>آخر تذكير: ${esc(fmtTs(r.ts))}</small>`:''};
-    nrHtml=sec('nr','📭 ما سجّلوا بعد (لك فقط)',`${nr.length}`,
-      nr.length?`<div class="row"><button class="ghost" data-remindreg="all">🔔 ذكّر الكل (${nr.length})</button></div>`+nr.map(u=>`<div class="pr"><div class="who">${avatar(u,'sm')}<div>${nameLink(u)}${sentR(u)}</div></div><div class="b"><button class="bellb" data-remindreg="${esc(u)}" title="أرسل تذكير">🔔</button></div></div>`).join(''):'<div class="none">الكل سجّل 👏</div>',
-      'اللاعبين المعتمدين اللي ما اختاروا أي خيار (Going، Not Going، احتياط، مشاهد). التذكير يوصل في أيقونة 🔔 بصيغة لطيفة.');
+  if(isAdmin()&&(!past||m.fee||isFB(m))){
+    const nr=past?[]:notRegistered(openId);
+    const ids=[...new Set(L.going.map(p=>p.uid).concat(nr))];ensureNames(ids);
+    const types=remTypes(m,past);
+    const rows=ids.map(u=>({u,t:types.filter(t=>remApplies(t.k,m,u,past))})).filter(r=>r.t.length);
+    const bulk=types.map(t=>{const n=rows.filter(r=>r.t.some(x=>x.k===t.k)).length;return n?`<button class="ghost" data-rem="${t.k}|all">${t.i} الكل (${n})</button>`:''}).join('');
+    nrHtml=sec('nr','🔔 تذكيرات (لك فقط)',`${rows.length}`,
+      rows.length?(bulk?`<div class="row wrap">${bulk}</div>`:'')+rows.map(r=>`<div class="pr"><div class="who">${avatar(r.u,'sm')}<div>${nameLink(r.u)}</div></div><div class="b">${r.t.map(t=>{const x=S.inbox[r.u+'_'+t.x+openId];return `<button class="bellb rmi" data-rem="${t.k}|${esc(r.u)}" title="${esc(t.l)}${x&&x.ts?' · انرسل '+esc(fmtTs(x.ts)):''}">${t.i}${x&&x.ts?'<i class="ok">✓</i>':''}</button>`}).join('')}</div></div>`).join(''):'<div class="none">ما فيه أحد يحتاج تذكير 👏</div>',
+      types.map(t=>t.i+' '+t.l).join(' · ')+'. اضغط الأيقونة ينرسل الإشعار فورًا ويظهر ✓ بعد الإرسال.');
   }
   const calc=(isAdmin()&&isFB(m))?sec('calc','🎮 آلة المباراة (لك فقط)',agL?`${agL.gs}-${agL.cs}`:'',calcHtml(openId),'الأهداف والأسيست والتصديات تنحسب للاعبين تلقائيًا بعد ما تصير المباراة «انلعبت».'):'';
   $('#shBody').innerHTML=head+liveCard+mine+
@@ -1180,6 +1183,15 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     if(!isPaid(mid,myId))playSnd('cash');
     saveOwn('rsvps',cur=>{const pp={...(cur.p||{})};if(pp[mid])delete pp[mid];else pp[mid]=Date.now();return {...cur,p:pp}}).then(()=>{renderSheet();renderAnn();renderLog()});return;
   }
+  if(b.dataset.rem){
+    if(!isAdmin())return;const [k,t]=b.dataset.rem.split('|'),mid=openId,m3=S.matches.find(x=>x.id===mid);if(!m3)return;
+    const past=isDone(m3);
+    const pool=[...new Set(layout(mid).going.map(p=>p.uid).concat(past?[]:notRegistered(mid)))].filter(u=>remApplies(k,m3,u,past));
+    const uids=t==='all'?pool:pool.filter(u=>u===t);if(!uids.length){note('ما فيه أحد يحتاج هالتذكير');setTimeout(()=>note(''),2000);return}
+    b.disabled=true;
+    const run=k==='pay'?sendPayReminder(mid,uids):k==='reg'?sendRegReminder(mid,uids):sendVoteRem(k,mid,uids);
+    run.then(n=>{renderSheet();if(n)playSnd('bell');note(n?`✅ انرسل التذكير (${n})`:'ما انرسل، جرب مرة ثانية');setTimeout(()=>note(''),2500)});return;
+  }
   if(b.dataset.remind){
     if(!isAdmin())return;const mid=openId,L2=layout(mid);
     const un=L2.going.filter(p=>!isPaid(mid,p.uid)).map(p=>p.uid);
@@ -1209,21 +1221,22 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
   if(b.dataset.cnxundo&&isAdmin()){
     db.doc('matches/'+openId).update({cancelled:false,cancelReason:''}).then(()=>{note('✅ رجعت المباراة وانرسل إشعار للمسجلين');setTimeout(()=>note(''),3500);renderAll()}).catch(()=>note('ما انحفظ'));return;
   }
-  if(b.dataset.rv){
+  if(b.dataset.rv||b.dataset.mv||b.dataset.vok||b.dataset.vundo){
     const m=S.matches.find(x=>x.id===openId);if(!m||!motmEligible(m,myId)||motmState(m).s!=='open')return;
-    const t=b.dataset.rv,mid=openId;if(myRock(mid)!==t)playSnd('vote');
-    saveOwn('votes',cur=>{const r={...(cur.r||{})};if(r[mid]===t)delete r[mid];else r[mid]=t;return {...cur,r,ts:Date.now()}}).then(()=>{renderSheet();renderStatus()});return;
+    const mid=openId,kind=b.dataset.rv?'r':b.dataset.mv?'o':(b.dataset.vok||b.dataset.vundo);
+    if(b.dataset.rv||b.dataset.mv){const t=b.dataset.rv||b.dataset.mv;vdraft[kind][mid]=vdraft[kind][mid]===t?'':t;renderSheet();return}
+    if(b.dataset.vok){
+      const t=vdraft[kind][mid];if(!t)return;
+      playSnd('vote');
+      saveOwn('votes',cur=>({...cur,[kind]:{...(cur[kind]||{}),[mid]:t},ts:Date.now()})).then(()=>{vdraft[kind][mid]='';renderSheet();renderStatus();note('✅ تم التصويت');setTimeout(()=>note(''),2000)}).catch(()=>note('ما انحفظ تصويتك، جرب مرة ثانية'));return;
+    }
+    saveOwn('votes',cur=>{const x={...(cur[kind]||{})};delete x[mid];return {...cur,[kind]:x,ts:Date.now()}}).then(()=>{renderSheet();renderStatus();note('↩️ تم التراجع عن تصويتك');setTimeout(()=>note(''),2000)}).catch(()=>note('ما انحفظ، جرب مرة ثانية'));return;
   }
   if(b.dataset.rkset){
     const mid=b.dataset.rkset,sel=document.querySelector(`[data-rkpick="${mid}"]`),u=sel&&sel.value;if(!u||!isAdmin())return;
     const m=S.matches.find(x=>x.id===mid);const had=rockWinners(mid).includes(u);
     const rec={ws:[u],winner:u,tally:(S.rock[mid]&&S.rock[mid].tally)||{},manual:true,ts:Date.now()};
     db.doc('rock/'+mid).set(rec).then(async()=>{S.rock[mid]=rec;if(!had&&m)await sendAch(u,'k'+mid,`🛡 مبروك ${nameOf(u)}! اختارك اللاعبين صخرة الدفاع في «${matchTitle(m)}» 👏`,mid);renderSheet();renderAll()}).catch(()=>note('ما انحفظ'));return;
-  }
-  if(b.dataset.mv){
-    const m=S.matches.find(x=>x.id===openId);if(!m||!motmEligible(m,myId)||motmState(m).s!=='open')return;
-    const t=b.dataset.mv,mid=openId;if(myMotm(mid)!==t)playSnd('vote');
-    saveOwn('votes',cur=>{const o={...(cur.o||{})};if(o[mid]===t)delete o[mid];else o[mid]=t;return {...cur,o,ts:Date.now()}}).then(()=>{renderSheet();renderStatus()});return;
   }
   if(b.dataset.role!==undefined&&b.dataset.role!==''){setRole(openId,+b.dataset.role);return}
   if(b.dataset.paylate){
@@ -1363,6 +1376,37 @@ async function sendAch(uid,suffix,text,mid){
   try{await db.doc('inbox/'+uid+'_'+suffix).set(rec);S.inbox[uid+'_'+suffix]=rec;pushTo(uid,'🏆 إنجاز جديد',text)}catch(e){}
 }
 const REG_MSG=(m,u)=>{const f=fmtDate(m.date);return `يا ${nameOf(u)} 👋 مباراة «${matchTitle(m)}» يوم ${f.wk} ${f.day} ${f.mon}${m.time?' الساعة '+time12(m.time):''} تنتظرك! ⚽ سجّل حضورك أو غيابك عشان نرتب المقاعد، ونتمنى نشوفك معنا 💚`};
+const VOTE_MSG={
+  o:(m,u)=>`يا ${nameOf(u)} 🌟 التصويت لرجل المباراة في «${matchTitle(m)}» مفتوح، ما صوّتت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`,
+  k:(m,u)=>`يا ${nameOf(u)} 🛡 التصويت لصخرة الدفاع في «${matchTitle(m)}» مفتوح، ما صوّتت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`
+};
+const REM_X={pay:'p',reg:'r',o:'o',k:'k'};
+function remTypes(m,past){
+  const a=[];
+  if(!past)a.push({k:'reg',x:'r',i:'📝',l:'تأكيد الحضور'});
+  if(m.fee)a.push({k:'pay',x:'p',i:'💰',l:'القطية'});
+  if(isFB(m)&&!m.cancelled){a.push({k:'o',x:'o',i:'🌟',l:'رجل المباراة'});a.push({k:'k',x:'k',i:'🛡',l:'صخرة الدفاع'})}
+  return a;
+}
+function remApplies(k,m,u,past){
+  const mid=m.id,g=layout(mid).going.some(p=>p.uid===u);
+  if(k==='reg')return !past&&notRegistered(mid).includes(u);
+  if(k==='pay')return !!m.fee&&g&&!isPaid(mid,u);
+  if(k==='o'||k==='k'){
+    if(!g||!isOk(u)||motmState(m).s!=='open')return false;
+    if(k==='o'&&S.motm[mid])return false;if(k==='k'&&S.rock[mid])return false;
+    const v=S.votes[u];return !(v&&v[k==='o'?'o':'r']&&v[k==='o'?'o':'r'][mid]);
+  }
+  return false;
+}
+async function sendVoteRem(k,mid,uids){
+  const m=S.matches.find(x=>x.id===mid);if(!m||!isAdmin()||!db)return 0;let n=0;
+  for(const u of uids){
+    const rec={to:u,k:'vote',mid,t:VOTE_MSG[k](m,u),ts:Date.now()};
+    try{await db.doc('inbox/'+u+'_'+k+mid).set(rec);S.inbox[u+'_'+k+mid]=rec;n++;pushTo(u,k==='o'?'🌟 صوّت لرجل المباراة':'🛡 صوّت لصخرة الدفاع',rec.t)}catch(e){}
+  }
+  return n;
+}
 const notRegistered=mid=>regList().filter(u=>u!==myId&&!((S.rsvps[u]||{}).m||{})[mid]);
 async function sendRegReminder(mid,uids){
   const m=S.matches.find(x=>x.id===mid);if(!m||!isAdmin()||!db)return 0;
@@ -2569,7 +2613,7 @@ $('#adBody').addEventListener('click',e=>{
   if(d.lvl){openLevels();return}
   if(d.bk){openBackup();return}
   if(d.aw){openAward(d.aw);return}
-  const setAccess=(u,status)=>{chain=chain.then(()=>db.doc('access/'+u).set({...(S.access[u]||{}),status,ts:Date.now()})).catch(()=>note('ما انحفظ القرار'))};
+  const setAccess=(u,status)=>{chain=chain.then(()=>db.doc('access/'+u).set({...(S.access[u]||{}),status,ts:Date.now()}).then(()=>{if(status==='ok'){note('✅ تم قبول '+nameOf(u));setTimeout(()=>note(''),2800)}})).catch(()=>note('ما انحفظ القرار'))};
   if(d.ap)askApprove(d.ap,setAccess);
   else if(d.no){const a={...(S.access[d.no]||{})};delete a.no;chain=chain.then(()=>db.doc('access/'+d.no).set({...a,status:'no',ts:Date.now()})).catch(()=>note('ما انحفظ القرار'))}
   else if(d.rm){
@@ -3102,6 +3146,13 @@ function motmState(m){
   return {s:n<w.open?'before':n<w.close?'open':'closed',...w};
 }
 const motmEligible=(m,uid)=>!!uid&&isFB(m)&&isOk(uid)&&layout(m.id).going.some(p=>p.uid===uid);
+const vdraft={o:{},r:{}};
+function voteBox(m,kind,hint){
+  const my=kind==='o'?myMotm(m.id):myRock(m.id),cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
+  const dr=vdraft[kind][m.id]||'',att=kind==='o'?'data-mv':'data-rv';
+  if(my)return `<div class="vdone"><span><b>✅ تم التصويت</b> · ${esc(nameOf(my))}</span><button class="ghost" data-vundo="${kind}">↩️ تراجع عن التصويت</button></div><div class="hint">تقدر تتراجع وتصوّت من جديد لين يقفل التصويت.</div>`;
+  return `<div class="hint">${hint}</div><div class="mvg">${cands.map(p=>`<button class="mv ${dr===p.uid?'on':''}" ${att}="${esc(p.uid)}">${dr===p.uid?'☑️ ':''}${esc(nameOf(p.uid))}</button>`).join('')}</div>${cands.length?`<div class="row"><button data-vok="${kind}" ${dr?'':'disabled'}>اعتماد التصويت</button></div><div class="hint">صوتك ما ينحسب إلا بعد ما تضغط «اعتماد التصويت».</div>`:'<div class="none">ما فيه مرشحين</div>'}`;
+}
 const myMotm=mid=>(S.votes[myId]&&S.votes[myId].o&&S.votes[myId].o[mid])||null;
 const hrs=ms=>{const h=Math.ceil(ms/3600000);return h>=1?h+' ساعة':'أقل من ساعة'};
 function motmHtml(m){
@@ -3112,9 +3163,7 @@ function motmHtml(m){
   const head=(r='')=>`<h4 class="mh"><span>🌟 Man of the Match</span><span>${r}</span></h4>`;
   if(st.s==='open'){
     if(!motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">التصويت مفتوح لين يصوّت كل المسجلين Going أو لين منتصف الليل، وللمسجلين Going في هذي المباراة فقط.</div></div>`;
-    const my=myMotm(m.id);
-    const cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
-    return `<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}<div class="hint">اختر أحسن لاعب في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div>${'<div class="mvg">'+cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-mv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')+'</div>'||''}${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
+    return `<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}${voteBox(m,'o','اختر أحسن لاعب في المباراة. صوتك سرّي.')}</div>`;
   }
   if(st.s==='before'&&motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">يفتح التصويت بعد انتهاء المباراة وينتهي منتصف الليل.</div></div>`;
   if(st.s==='closed'&&isAdmin()&&!d)return `<div class="grp">${head()}<div class="hint">انتهى التصويت. تنحسب النتيجة تلقائيًا لما تفتح الصفحة لو كان فيه أصوات.</div></div>`;
@@ -3161,8 +3210,7 @@ function rockHtml(m){
   else if(st.s==='open'){
     if(!motmEligible(m,myId))h=`<div class="grp">${head()}<div class="hint">التصويت مفتوح لين يصوّت كل المسجلين Going أو لين منتصف الليل، وللمسجلين Going في هذي المباراة فقط.</div></div>`;
     else{
-      const my=myRock(m.id),cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
-      h=`<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}<div class="hint">اختر أفضل مدافع في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div><div class="mvg">${cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-rv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')}</div>${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
+      h=`<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}${voteBox(m,'r','اختر أفضل مدافع في المباراة. صوتك سرّي.')}</div>`;
     }
   }else if(st.s==='before'&&motmEligible(m,myId))h=`<div class="grp">${head()}<div class="hint">يفتح التصويت بعد انتهاء المباراة وينتهي منتصف الليل.</div></div>`;
   if(isAdmin()&&st.s==='closed'){

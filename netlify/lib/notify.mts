@@ -116,6 +116,7 @@ const T = {
     : `«${titleOf(m)}» تبدأ بعد ساعتين. شرّفنا بحضورك 👀`,
   vote1: (m: any) => `انتهت «${titleOf(m)}»! صوّت لرجل المباراة 🌟 ولصخرة الدفاع 🛡 قبل منتصف الليل`,
   vote2: (m: any, miss: string) => `باقي ساعات على قفل التصويت في «${titleOf(m)}». ما صوّتت لـ ${miss}`,
+  galM: (m: any, n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} (صور أو فيديو أو رابط) مربوط بـ «${titleOf(m)}»`,
   gal: (n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} في الصور والفيديو`,
   full: (m: any, role: string) => role === 'in' ? `✅ اكتمل العدد في «${titleOf(m)}» 🔥` : `✅ اكتمل العدد في «${titleOf(m)}». أنت في الاحتياط وننبهك إذا انفتح مقعد`,
   team: (m: any, side: string) => `📋 انعتمت تشكيلة «${titleOf(m)}»: أنت في الفريق ${side === 'g' ? '🟢' : '🎨'}`,
@@ -155,8 +156,9 @@ export async function onCancel(mid: string, m: any, reason: string, cancelled: b
   const k = (cancelled ? 'x' : 'y') + Date.now().toString(36);
   await notifyUsers({ uids, key: k, kind: 'cancel', h: cancelled ? '🚫 إلغاء مباراة' : '✅ رجوع مباراة', t: cancelled ? T.cancel(m, reason) : T.back(m), title: cancelled ? '🚫 تم إلغاء المباراة' : '✅ رجعت المباراة', mid });
 }
-export async function queueGallery() {
-  await mutate('nlog', (cur) => ({ ...cur, 'g:q': { ts: Date.now(), n: ((cur['g:q'] && cur['g:q'].n) || 0) + 1 } }));
+export async function queueGallery(mid?: string, by?: string) {
+  const k = mid ? 'g:m:' + mid : 'g:q';
+  await mutate('nlog', (cur) => ({ ...cur, [k]: { ts: Date.now(), n: ((cur[k] && cur[k].n) || 0) + 1, by: by || '' } }));
 }
 
 /* ---- الوظيفة المجدولة كل 15 دقيقة ---- */
@@ -194,6 +196,15 @@ export async function runJobs() {
   }
   /* المعرض: إشعار مجمّع بعد 10 دقائق من آخر رفع */
   const log = await readColl('nlog'); const gq = log['g:q'];
+  /* ملفات مربوطة بمباراة: إشعار مجمّع لمسجلي تلك المباراة (Going أو احتياط أو مشاهد) */
+  for (const [k, q] of Object.entries<any>(log)) {
+    if (!k.startsWith('g:m:') || now - q.ts < 5 * 60000) continue;
+    const gmid = k.slice(4); let n = 0;
+    await mutate('nlog', (cur) => { const x = { ...cur }; n = x[k] ? x[k].n : 0; delete x[k]; return x; });
+    const gm = matches[gmid]; if (!gm || n <= 0) continue;
+    const to = regs(rsvps, gmid, ['in', 'sub', 'watch']).map(([u]) => u).filter((u) => ok(u) && u !== q.by);
+    if (to.length) await notifyUsers({ uids: to, key: 'gm' + gmid + now.toString(36), kind: 'gal', h: '📸 جديد في مباراتك', t: T.galM(gm, n), title: '📸 جديد في «' + titleOf(gm) + '»', mid: gmid });
+  }
   if (gq && now - gq.ts >= 10 * 60000) {
     let n = 0; await mutate('nlog', (cur) => { const q = cur['g:q']; n = q ? q.n : 0; const x = { ...cur }; delete x['g:q']; return x; });
     if (n > 0) await notifyUsers({ uids: Object.keys(access).filter(ok), key: 'g' + now.toString(36), kind: 'gal', h: '📸 المعرض', t: T.gal(n), title: '📸 جديد في المعرض' });

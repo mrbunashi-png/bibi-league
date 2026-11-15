@@ -284,7 +284,7 @@ export default async (req: Request) => {
       try {
         if (postHook) await postHook();
         if (admin && c === 'teams' && o.op === 'set') await onTeamsPublished(id, o.data);
-        if (admin && c === 'gallery' && o.op === 'add') await queueGallery();
+        if (admin && c === 'gallery' && o.op === 'add') await queueGallery(o.data && o.data.mid ? String(o.data.mid) : undefined, uid);
       } catch {}
     }
     await bump();
