@@ -621,10 +621,18 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   }
   function fire(coll){(subs[coll]||[]).forEach(s=>{try{s.cb(snap(coll))}catch(e){console.error(e)}})}
   function snap(c){const m=cache[c]||{};return{metadata:{fromCache:false},docs:Object.keys(m).map(id=>({id,data:()=>m[id]}))}}
+  /* تجديد الجلسة بصمت: الجوال يوقف المؤقت وهو بالخلفية فينتهي الرمز، فنجدده قبل أي طلب */
+  async function keepAlive(){try{await BibiAuth.refreshSession()}catch(e){}}
   async function refresh(force){
     if(polling)return;polling=true;
     try{
-      const r=await fetch('/api/snapshot?rev='+(force?'0':rev),{credentials:'same-origin',cache:'no-store'});
+      await keepAlive();
+      let r=await fetch('/api/snapshot?rev='+(force?'0':rev),{credentials:'same-origin',cache:'no-store'});
+      if(r.status===401){
+        let ok=false;
+        try{let u=null;try{u=await BibiAuth.getUser()}catch(e){}if(!u)await BibiAuth.hydrateSession();await BibiAuth.refreshSession();ok=true}catch(e){}
+        if(ok)r=await fetch('/api/snapshot?rev=0',{credentials:'same-origin',cache:'no-store'});
+      }
       if(r.status===401){loginScreen('انتهت الجلسة، سجّل دخولك من جديد');return}
       const j=await r.json();me=j.me||me;
       if(force||!j.same)quiet=0;else quiet++;
@@ -665,6 +673,8 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   (async()=>{
     try{await BibiAuth.handleAuthCallback()}catch(e){console.warn(e)}
     let u=null;try{u=await BibiAuth.getUser()}catch(e){}
+    if(!u){try{await BibiAuth.hydrateSession();u=await BibiAuth.getUser()}catch(e){}}
+    try{await BibiAuth.refreshSession()}catch(e){}
     if(!u){loginScreen();return}
     await refresh(true);gateRes();
     const tick=()=>{if(!document.hidden)refresh(false);timer=setTimeout(tick,quiet>=6?120000:quiet>=3?90000:60000)};timer=setTimeout(tick,60000);
@@ -940,6 +950,7 @@ function calcHtml(mid){
     <div class="payh" style="margin-top:12px">🧤 الحراس بالمباراة</div>
     <div>${parts.map(u=>`<button class="pc ${gkSet.has(u)?'on':''}" data-gkt="${esc(u)}">${esc(nameOf(u))}</button>`).join('')}</div>
     <div class="hint">اضغط اللاعب عشان تحدده حارس بهذي المباراة (تقدر تحدد أكثر من واحد للتناوب). بونص الحارس والشباك النظيف يروحون لهم.</div>
+    ${parts.some(u=>gkSet.has(u))?`<div class="payh" style="margin-top:12px">🧤 هل لعب المباراة كاملة كحارس؟</div>${parts.filter(u=>gkSet.has(u)).map(u=>`<div class="svr"><span>${avatar(u,'sm')}${esc(nameOf(u))}</span><span><button class="opt ${gkFull(u,mid)?'on':''}" data-gkf="${esc(u)}" style="width:auto">${gkFull(u,mid)?'أي ✓':'لا'}</button></span></div>`).join('')}<div class="hint">إذا «أي»، أهدافه وتمريراته بهذي المباراة تنحسب بزيادة ${W.gkb} نقطة لكل واحد عن اللاعب العادي.</div>`:''}
     <div class="payh" style="margin-top:12px">🧤 تصديات الحراس (حد ${SV_CAP} للمباراة بالنقاط)</div>
     ${gks.length?gks.map(svRow).join(''):'<div class="none">ما فيه حارس بين المشاركين</div>'}
     ${others.length?`<select id="svAdd" style="margin-top:8px;width:100%"><option value="">＋ تصدية للاعب آخر…</option>${others.map(u=>`<option value="${esc(u)}">${esc(nameOf(u))}</option>`).join('')}</select>`:''}`;
@@ -1235,6 +1246,10 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     else saveEv(mid,cur=>{let i=-1;for(let k=cur.g.length-1;k>=0;k--)if(cur.g[k].side===side){i=k;break}if(i<0)return null;evUndo={mid,idx:i,ev:cur.g[i]};cur.g.splice(i,1);return cur});
     return;
   }
+  if(b.dataset.gkf){
+    if(!isAdmin())return;const u=b.dataset.gkf,mid=openId;
+    saveEv(mid,cur=>{const a=Array.isArray(cur.gkf)?cur.gkf.slice():[];const i=a.indexOf(u);if(i>=0)a.splice(i,1);else a.push(u);cur.gkf=a;return cur},false);return;
+  }
   if(b.dataset.gkt){
     if(!isAdmin())return;const u=b.dataset.gkt,mid=openId;
     const base=partUids(mid).filter(x=>isGKIn(x,mid));const i=base.indexOf(u);if(i>=0)base.splice(i,1);else base.push(u);
@@ -1443,6 +1458,7 @@ const hasGK=uid=>posList(uid).includes('GK');
 const posText=uid=>posList(uid).join(' · ');
 const roleChoiceNeeded=uid=>hasGK(uid)&&posList(uid).length>1;
 /* هل اللاعب حارس في هذي المباراة؟ تحديد الأدمن ثم اختيار اللاعب ثم مركزه القديم */
+const gkFull=(uid,mid)=>{const d=S.events[mid];return !!(d&&Array.isArray(d.gkf)&&d.gkf.includes(uid))};
 function isGKIn(uid,mid){
   const d=S.events[mid];if(d&&Array.isArray(d.gk))return d.gk.includes(uid);
   const r=((S.rsvps[uid]||{}).m||{})[mid];
@@ -2611,10 +2627,10 @@ for(const id of ['#gal','#mediaGrid'])$(id).addEventListener('click',e=>{const g
 /* ---------- Leaderboard ---------- */
 const NOW=new Date();
 let boardTab='ov',lbSig='',per={mode:'all',y:NOW.getFullYear(),m:NOW.getMonth()+1};
-const W={g:3,a:2,n:1,nGK:2,sv:0.5,win:1,csGK:2,csDef:1,motm:3,rock:2}; /* هدف 3، أسيست 2، مباراة 1 (الحارس 2)، تصدية 0.5 (حد 15/مباراة)، فوز +1، شباك نظيف: حارس +2 ومدافع +1 */
+const W={gkb:0.5,g:3,a:2,n:1,nGK:2,sv:0.5,win:1,csGK:2,csDef:1,motm:3,rock:2}; /* هدف 3، أسيست 2، مباراة 1 (الحارس 2)، تصدية 0.5 (حد 15/مباراة)، فوز +1، شباك نظيف: حارس +2 ومدافع +1 */
 const SV_CAP=15;const DEF=new Set(['CB','LB','RB','LWB','RWB']);
 const VOTE={w:0.3,monthDays:3,yearDays:7}; /* وزن التصويت 30%، يفتح آخر 3 أيام من الشهر وآخر 7 أيام من ديسمبر */
-const statScore=(t,gk)=>t.g*W.g+t.a*W.a+(t.np!==undefined?t.np:t.n*(gk?W.nGK:W.n))+t.svc*W.sv+t.win*W.win+t.csp+(t.mv||0)*W.motm+(t.rk||0)*W.rock;
+const statScore=(t,gk)=>t.g*W.g+t.a*W.a+(t.np!==undefined?t.np:t.n*(gk?W.nGK:W.n))+t.svc*W.sv+t.win*W.win+t.csp+(t.mv||0)*W.motm+(t.rk||0)*W.rock+(t.gkb||0);
 const BOARD=[['ov','🏅 Overall'],['g','⚽ Goals'],['a','🎯 Assists'],['ga','⭐ G+A'],['n','🔥 Appearances'],['sv','🧤 Saves'],['mv','🌟 MOTM'],['rk','🛡 صخرة الدفاع'],['avg','📈 معدل الأهداف']];
 const MONTHS=Array.from({length:12},(_,i)=>new Date(2000,i,1).toLocaleDateString('ar-KW',{month:'long'}));
 function lbYears(){const ys=new Set([NOW.getFullYear(),per.y]);S.matches.forEach(m=>m.date&&ys.add(+m.date.slice(0,4)));return [...ys].sort((a,b)=>b-a)}
@@ -2626,7 +2642,7 @@ function perPred(){
 const perLabel=()=>per.mode==='all'?'كل الوقت':per.mode==='year'?String(per.y):MONTHS[per.m-1]+' '+per.y;
 const teamOf=(T,uid)=>T&&((T.g||[]).includes(uid)?'g':(T.c||[]).includes(uid)?'c':null);
 function totalsP(uid,pred){
-  const e=(S.stats[uid]&&S.stats[uid].m)||{};let g=0,a=0,sv=0,svc=0,n=0,win=0,csp=0;
+  const e=(S.stats[uid]&&S.stats[uid].m)||{};let g=0,a=0,sv=0,svc=0,n=0,win=0,csp=0,gkb=0;
   const gk=hasGK(uid),df=posList(uid).some(x=>DEF.has(x));let np=0;
   const ids=new Set(Object.keys(e));
   for(const k of Object.keys(S.teams))if(teamOf(S.teams[k],uid))ids.add(k);
@@ -2635,7 +2651,7 @@ function totalsP(uid,pred){
     const m=S.matches.find(x=>x.id===k);if(!m||!isFB(m)||!isDone(m)||!pred(m.date||''))return;
     n++;const gkM=isGKIn(uid,k);np+=gkM?W.nGK:W.n;
     const r=mRec(uid,k);
-    if(r){g+=r.goals;a+=r.assists;const x=r.saves;sv+=x;svc+=Math.min(x,SV_CAP)}
+    if(r){g+=r.goals;a+=r.assists;const x=r.saves;sv+=x;svc+=Math.min(x,SV_CAP);if(gkM&&gkFull(uid,k))gkb+=W.gkb*(r.goals+r.assists)}
     const T=S.teams[k],side=teamOf(T,uid),sc=mScore(k);
     if(side&&sc){
       const mine=side==='g'?sc.gs:sc.cs,opp=side==='g'?sc.cs:sc.gs;
@@ -2647,7 +2663,7 @@ function totalsP(uid,pred){
   for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))mv++}}
   let rk=0;
   for(const k of Object.keys(S.rock)){if(rockWinners(k).includes(uid)){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))rk++}}
-  return {n,g,a,sv,svc,win,csp,mv,rk,np};
+  return {n,g,a,sv,svc,win,csp,mv,rk,np,gkb};
 }
 function renderBoardControls(){
   $('#lbMode').innerHTML=[['all','كل الوقت'],['year','السنة'],['month','الشهر']].map(([k,l])=>`<button data-m="${k}" class="${per.mode===k?'on':''}">${l}</button>`).join('');
@@ -3095,21 +3111,28 @@ function motmHtml(m){
   const st=motmState(m);
   const head=(r='')=>`<h4 class="mh"><span>🌟 Man of the Match</span><span>${r}</span></h4>`;
   if(st.s==='open'){
-    if(!motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">التصويت مفتوح لين منتصف الليل للمسجلين Going في هذي المباراة فقط.</div></div>`;
+    if(!motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">التصويت مفتوح لين يصوّت كل المسجلين Going أو لين منتصف الليل، وللمسجلين Going في هذي المباراة فقط.</div></div>`;
     const my=myMotm(m.id);
     const cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
-    return `<div class="grp motm">${head('يقفل منتصف الليل')}<div class="hint">اختر أحسن لاعب في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div>${'<div class="mvg">'+cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-mv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')+'</div>'||''}${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
+    return `<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}<div class="hint">اختر أحسن لاعب في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div>${'<div class="mvg">'+cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-mv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')+'</div>'||''}${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
   }
   if(st.s==='before'&&motmEligible(m,myId))return `<div class="grp">${head()}<div class="hint">يفتح التصويت بعد انتهاء المباراة وينتهي منتصف الليل.</div></div>`;
   if(st.s==='closed'&&isAdmin()&&!d)return `<div class="grp">${head()}<div class="hint">انتهى التصويت. تنحسب النتيجة تلقائيًا لما تفتح الصفحة لو كان فيه أصوات.</div></div>`;
   return '';
 }
+/* لو كل المشاركين (Going) صوّتوا لرجل المباراة وصخرة الدفاع، ما ننتظر منتصف الليل */
+function allVoted(m){
+  const going=layout(m.id).going.map(p=>p.uid).filter(isOk);
+  if(going.length<2)return false;
+  return going.every(v=>{const d=S.votes[v];return !!(d&&d.o&&d.o[m.id]&&d.r&&d.r[m.id])});
+}
+const voteDone=m=>{const s=motmState(m).s;return s==='closed'||(s==='open'&&allVoted(m))};
 let finSet=new Set();
 async function finalizeMotm(){
   if(!isAdmin()||!db||!(S.ready.matches&&S.ready.rsvps&&S.ready.votes&&S.ready.motm))return;
   for(const m of S.matches){
     if(!isFB(m)||S.motm[m.id]||finSet.has(m.id))continue;
-    if(motmState(m).s!=='closed')continue;
+    if(!voteDone(m))continue;
     const going=layout(m.id).going.map(p=>p.uid).filter(isOk);
     const tally={};
     for(const [v,d] of Object.entries(S.votes)){
@@ -3136,10 +3159,10 @@ function rockHtml(m){
   let h='';
   if(ws.length)h=`<div class="crown"><b>🛡 صخرة الدفاع</b><div class="nm2">${ws.map(u=>esc(nameOf(u))).join(' · ')}</div></div>`;
   else if(st.s==='open'){
-    if(!motmEligible(m,myId))h=`<div class="grp">${head()}<div class="hint">التصويت مفتوح لين منتصف الليل للمسجلين Going في هذي المباراة فقط.</div></div>`;
+    if(!motmEligible(m,myId))h=`<div class="grp">${head()}<div class="hint">التصويت مفتوح لين يصوّت كل المسجلين Going أو لين منتصف الليل، وللمسجلين Going في هذي المباراة فقط.</div></div>`;
     else{
       const my=myRock(m.id),cands=layout(m.id).going.filter(p=>p.uid!==myId&&isOk(p.uid));
-      h=`<div class="grp motm">${head('يقفل منتصف الليل')}<div class="hint">اختر أفضل مدافع في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div><div class="mvg">${cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-rv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')}</div>${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
+      h=`<div class="grp motm">${head('يقفل لما يصوّت الكل أو منتصف الليل')}<div class="hint">اختر أفضل مدافع في المباراة. صوتك سرّي وتقدر تغيّره قبل الإقفال.</div><div class="mvg">${cands.map(p=>`<button class="mv ${my===p.uid?'on':''}" data-rv="${esc(p.uid)}">${my===p.uid?'✅ ':''}${esc(nameOf(p.uid))}</button>`).join('')}</div>${cands.length?'':'<div class="none">ما فيه مرشحين</div>'}</div>`;
     }
   }else if(st.s==='before'&&motmEligible(m,myId))h=`<div class="grp">${head()}<div class="hint">يفتح التصويت بعد انتهاء المباراة وينتهي منتصف الليل.</div></div>`;
   if(isAdmin()&&st.s==='closed'){
@@ -3153,7 +3176,7 @@ async function finalizeRock(){
   if(!isAdmin()||!db||!(S.ready.matches&&S.ready.rsvps&&S.ready.votes&&S.ready.rock))return;
   for(const m of S.matches){
     if(!isFB(m)||S.rock[m.id]||finRk.has(m.id))continue;
-    if(motmState(m).s!=='closed')continue;
+    if(!voteDone(m))continue;
     const going=layout(m.id).going.map(p=>p.uid).filter(isOk);
     const tally={};
     for(const [v,d] of Object.entries(S.votes)){
