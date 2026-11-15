@@ -6,7 +6,7 @@ import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/back
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
 const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts']);
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks']);
 const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
@@ -89,6 +89,27 @@ async function notifyAdmins(origin: string, t: string, b: string) {
   } catch {}
 }
 
+/* الجمهور: null = الكل، وإلا مجموعة uid المسموح لهم */
+function audSet(m: any, groups: Record<string, any>): Set<string> | null {
+  const a = m && m.aud;
+  if (!a || !Array.isArray(a.ids) || !a.ids.length) return null;
+  if (a.t === 'players') return new Set(a.ids.map(String));
+  if (a.t === 'groups') { const s = new Set<string>(); for (const g of a.ids) { const gr = groups[g]; if (gr && Array.isArray(gr.members)) gr.members.forEach((u: any) => s.add(String(u))); } return s; }
+  return null;
+}
+function audLabel(m: any, groups: Record<string, any>): string {
+  const a = m && m.aud;
+  if (!a) return '';
+  if (a.t === 'groups') { const n = a.ids.map((g: string) => (groups[g] && groups[g].name) || '').filter(Boolean); return n.length ? n.join(' + ') : 'مجموعة'; }
+  return 'لاعبين مختارين';
+}
+function cleanAud(a: any) {
+  if (!a || typeof a !== 'object' || !Array.isArray(a.ids)) return null;
+  const ids = a.ids.map((x: any) => String(x)).filter((x: string) => /^[A-Za-z0-9_-]{1,64}$/.test(x)).slice(0, 200);
+  if (!ids.length || (a.t !== 'groups' && a.t !== 'players')) return null;
+  return { t: a.t, ids };
+}
+
 export default async (req: Request) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, '');
@@ -119,10 +140,22 @@ export default async (req: Request) => {
     }
     if (url.searchParams.get('rev') === rev && rev !== '0') return json({ same: true, rev, me });
     const colls: Record<string, any> = { profiles };
-    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions', 'alerts'] : []);
+    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions', 'alerts', 'groups', 'thanks'] : []);
     const got = await Promise.all(names.map((c) => readColl(c)));
     names.forEach((c, i) => (colls[c] = got[i]));
     if (!admin) {
+      const mAll: Record<string, any> = colls.matches || {};
+      if (Object.values(mAll).some((m: any) => m && m.aud)) {
+        const grp = await readColl('groups');
+        const out2: Record<string, any> = {};
+        for (const [k, m] of Object.entries(mAll) as any) {
+          const set = audSet(m, grp);
+          if (!set) { out2[k] = m; continue; }
+          if (set.has(uid)) { const { aud, ...rest } = m; out2[k] = { ...rest, audName: audLabel(m, grp) }; }
+          else out2[k] = { date: m.date, time: m.time, sport: m.sport, sportOther: m.sportOther, format: m.format, createdAt: m.createdAt, cancelled: m.cancelled, done: m.done, priv: true };
+        }
+        colls.matches = out2;
+      }
       const v = await readColl('votes');
       colls.votes = v[uid] ? { [uid]: v[uid] } : {};
       const bn = await readColl('bans');
@@ -203,6 +236,15 @@ export default async (req: Request) => {
         const mm0 = (o.data && o.data.m) || {};
         const mAll = await readColl('matches');
         for (const k of Object.keys(mm0)) if (mAll[k] && mAll[k].guests === false && +(mm0[k] && mm0[k].g) > 0) return bad('guests closed', 403);
+        const mAud: Record<string, any> = mAll;
+        if (Object.values(mAud).some((m: any) => m && m.aud)) {
+          const grp = await readColl('groups');
+          const cur0: any = ((await readColl('rsvps'))[uid] || {}).m || {};
+          for (const k of Object.keys(mm0)) {
+            const mt = mAud[k]; const set = mt ? audSet(mt, grp) : null;
+            if (set && !set.has(uid) && JSON.stringify(mm0[k]) !== JSON.stringify(cur0[k])) return bad('not invited', 403);
+          }
+        }
         const ban = (await readColl('bans'))[uid];
         if (ban) {
           const ids = bannedMatchIds(ban, await readColl('matches'));
@@ -210,6 +252,7 @@ export default async (req: Request) => {
           for (const k of Object.keys(mm)) if (ids.has(k) && (mm[k].s === 'in' || mm[k].s === 'sub')) return bad('banned', 403);
         }
       }
+      if (admin && c === 'matches' && o.data && typeof o.data === 'object' && 'aud' in o.data) o.data.aud = cleanAud(o.data.aud);
       let postHook: null | (() => Promise<void>) = null;
       if (admin && c === 'matches') {
         try {
