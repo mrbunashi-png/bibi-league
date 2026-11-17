@@ -146,7 +146,7 @@ export async function onTeamsPublished(mid: string, data: any) {
   const m: any = (await readColl('matches'))[mid]; if (!m || m.cancelled) return;
   if (!(await claim('teams_' + mid))) return;
   for (const side of ['g', 'c']) {
-    const uids = (Array.isArray(data && data[side]) ? data[side] : []).filter((x: any) => typeof x === 'string');
+    const uids = (Array.isArray(data && data[side]) ? data[side] : []).filter((x: any) => typeof x === 'string' && !x.startsWith('g:'));
     await notifyUsers({ uids, key: 't' + mid + side, kind: 'teams', h: '📋 التشكيلة', t: T.team(m, side), title: '📋 انعتمت التشكيلة', mid });
   }
 }

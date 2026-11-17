@@ -100,7 +100,7 @@ details.sec>ul,details.sec>.none{margin-bottom:10px}
 .payh{font-size:12px;font-weight:800;color:var(--mute);margin:8px 0 4px}
 .pr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .pr small{display:block;font-size:11px;color:var(--mute)}.pr .b{display:flex;gap:6px}
-.pr button{padding:5px 10px;font-size:13px}button.rmi{position:relative;margin-inline-start:4px;padding:5px 9px}button.rmi i.ok{position:absolute;top:-6px;inset-inline-end:-4px;background:#3d8a3d;color:#fff;font-style:normal;font-size:10px;line-height:14px;width:14px;height:14px;border-radius:50%;text-align:center}.vdone{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#e9f3e3;border-radius:10px;padding:8px 10px;margin:6px 0}.vdone b{color:#2f6b2f}button.bellb{background:#f7ecc4;color:#6b4a0a;border:1px solid #d4b252}
+.pr button{padding:5px 10px;font-size:13px}span.rmi.off{display:inline-flex;align-items:center;gap:3px;margin-inline-start:4px;opacity:.5;font-size:12px;background:#eee;border-radius:8px;padding:3px 7px}span.rmi.off small{font-size:10px;color:#555}button.rmi{position:relative;margin-inline-start:4px;padding:5px 9px}button.rmi i.ok{position:absolute;top:-6px;inset-inline-end:-4px;background:#3d8a3d;color:#fff;font-style:normal;font-size:10px;line-height:14px;width:14px;height:14px;border-radius:50%;text-align:center}.gav{display:inline-flex;width:26px;height:26px;border-radius:50%;background:#e4e0d4;align-items:center;justify-content:center;font-size:14px;margin-inline-end:6px}.pem{background:#eef3fb;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px}.pem div{margin-top:4px;word-break:break-all}.pem button{padding:3px 9px;font-size:12px}.vdone{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#e9f3e3;border-radius:10px;padding:8px 10px;margin:6px 0}.vdone b{color:#2f6b2f}button.bellb{background:#f7ecc4;color:#6b4a0a;border:1px solid #d4b252}
 .row.wrap{flex-wrap:wrap}.row.wrap button{flex:1 1 40%}
 .grp.motm{background:#fff8e1;border:1.5px solid #e3c766;border-radius:16px;padding:10px 12px;margin-top:10px}
 .grp.motm h4.mh{font-size:15px}
@@ -687,7 +687,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},suggestions:{},alerts:{},rock:{},groups:{},thanks:{},tournaments:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},suggestions:{},alerts:{},rock:{},groups:{},thanks:{},tournaments:{},emails:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -1068,10 +1068,10 @@ function renderSheet(){
     const nr=past?[]:notRegistered(openId);
     const ids=[...new Set(L.going.map(p=>p.uid).concat(nr))];ensureNames(ids);
     const types=remTypes(m,past);
-    const rows=ids.map(u=>({u,t:types.filter(t=>remApplies(t.k,m,u,past))})).filter(r=>r.t.length);
-    const bulk=types.map(t=>{const n=rows.filter(r=>r.t.some(x=>x.k===t.k)).length;return n?`<button class="ghost" data-rem="${t.k}|all">${t.i} الكل (${n})</button>`:''}).join('');
+    const rows=ids.map(u=>({u,t:types.filter(t=>{const z=remState(t.k,m,u,past);return z.on||(t.k==='o'||t.k==='k')&&!z.hide})})).filter(r=>r.t.length);
+    const bulk=types.map(t=>{const n=rows.filter(r=>remApplies(t.k,m,r.u,past)).length;return n?`<button class="ghost" data-rem="${t.k}|all">${t.i} الكل (${n})</button>`:''}).join('');
     nrHtml=sec('nr','🔔 تذكيرات (لك فقط)',`${rows.length}`,
-      rows.length?(bulk?`<div class="row wrap">${bulk}</div>`:'')+rows.map(r=>`<div class="pr"><div class="who">${avatar(r.u,'sm')}<div>${nameLink(r.u)}</div></div><div class="b">${r.t.map(t=>{const x=S.inbox[r.u+'_'+t.x+openId];return `<button class="bellb rmi" data-rem="${t.k}|${esc(r.u)}" title="${esc(t.l)}${x&&x.ts?' · انرسل '+esc(fmtTs(x.ts)):''}">${t.i}${x&&x.ts?'<i class="ok">✓</i>':''}</button>`}).join('')}</div></div>`).join(''):'<div class="none">ما فيه أحد يحتاج تذكير 👏</div>',
+      rows.length?(bulk?`<div class="row wrap">${bulk}</div>`:'')+rows.map(r=>`<div class="pr"><div class="who">${avatar(r.u,'sm')}<div>${nameLink(r.u)}</div></div><div class="b">${r.t.map(t=>{const x=S.inbox[r.u+'_'+t.x+openId],z=remState(t.k,m,r.u,past);return z.on?`<button class="bellb rmi" data-rem="${t.k}|${esc(r.u)}" title="${esc(t.l)}${x&&x.ts?' · انرسل '+esc(fmtTs(x.ts)):''}">${t.i}${x&&x.ts?'<i class="ok">✓</i>':''}</button>`:`<span class="rmi off" title="${esc(z.why||'')}">${t.i}<small>${esc(z.why||'')}</small></span>`}).join('')}</div></div>`).join(''):'<div class="none">ما فيه أحد يحتاج تذكير 👏</div>',
       types.map(t=>t.i+' '+t.l).join(' · ')+'. اضغط الأيقونة ينرسل الإشعار فورًا ويظهر ✓ بعد الإرسال.');
   }
   const calc=(isAdmin()&&isFB(m))?sec('calc','🎮 آلة المباراة (لك فقط)',agL?`${agL.gs}-${agL.cs}`:'',calcHtml(openId),'الأهداف والأسيست والتصديات تنحسب للاعبين تلقائيًا بعد ما تصير المباراة «انلعبت».'):'';
@@ -1388,16 +1388,21 @@ function remTypes(m,past){
   if(isFB(m)&&!m.cancelled){a.push({k:'o',x:'o',i:'🌟',l:'رجل المباراة'});a.push({k:'k',x:'k',i:'🛡',l:'صخرة الدفاع'})}
   return a;
 }
-function remApplies(k,m,u,past){
+function remApplies(k,m,u,past){return remState(k,m,u,past).on}
+function remState(k,m,u,past){
   const mid=m.id,g=layout(mid).going.some(p=>p.uid===u);
-  if(k==='reg')return !past&&notRegistered(mid).includes(u);
-  if(k==='pay')return !!m.fee&&g&&!isPaid(mid,u);
+  if(k==='reg')return {on:!past&&notRegistered(mid).includes(u)};
+  if(k==='pay')return {on:!!m.fee&&g&&!isPaid(mid,u)};
   if(k==='o'||k==='k'){
-    if(!g||!isOk(u)||motmState(m).s!=='open')return false;
-    if(k==='o'&&S.motm[mid])return false;if(k==='k'&&S.rock[mid])return false;
-    const v=S.votes[u];return !(v&&v[k==='o'?'o':'r']&&v[k==='o'?'o':'r'][mid]);
+    if(!g||!isOk(u))return {on:false,hide:true};
+    if(k==='o'?S.motm[mid]:S.rock[mid])return {on:false,why:'انعلنت النتيجة'};
+    const v=S.votes[u],vk=k==='o'?'o':'r';if(v&&v[vk]&&v[vk][mid])return {on:false,why:'صوّت'};
+    const st=motmState(m).s;
+    if(st==='before')return {on:false,why:'يفتح التصويت بعد ساعة من بداية المباراة'};
+    if(st==='closed')return {on:false,why:'انتهى التصويت'};
+    return {on:st==='open'};
   }
-  return false;
+  return {on:false,hide:true};
 }
 async function sendVoteRem(k,mid,uids){
   const m=S.matches.find(x=>x.id===mid);if(!m||!isAdmin()||!db)return 0;let n=0;
@@ -1567,14 +1572,17 @@ function renderPlayerHead(){
   const rk=Object.keys(S.rock).filter(k=>rockWinners(k).includes(uid)).length;
   const cell=(v,l)=>`<div><b>${v}</b><span>${l}</span></div>`;
   const bi=(uid===myId||isAdmin())?banInfo(uid):null;
+  const eml=isAdmin()&&uid!==myId?((S.emails[uid]||{}).l||[]):[];
+  const emH=isAdmin()&&uid!==myId?(eml.length?`<div class="pem"><b>📧 إيميل الدخول</b>${eml.map((x,i)=>`<div><span dir="ltr">${esc(x.e)}</span> <button class="ghost" data-cpem="${esc(x.e)}">نسخ</button>${i===0&&eml.length>1?' <small>(الأحدث)</small>':''}</div>`).join('')}${eml.length>1?'<div class="hint">دخل بأكثر من إيميل، فقد تكون له حسابات مكررة.</div>':''}</div>`:`<div class="pem"><b>📧 إيميل الدخول</b><div class="hint">لسه ما انسجل، يظهر بعد أول زيارة له للموقع.</div></div>`):'';
   const ban=bi&&bi.active?`<div class="pban">⛔ عقوبة حرمان من اللعب<br>النوع: ${esc(bi.b.reason||'—')}<br>الحرمان: ${bi.b.games} ${bi.b.games>10?'':'مباراة'} · المتبقي: ${bi.left}</div>`:'';
   $('#plHead').innerHTML=`<div class="pcover"></div><div class="pbody">${gear}<div class="pav">${avatar(uid,'big')}</div>
     <h3 class="pn">${esc(nameOf(uid))}</h3>
     <div class="pmeta">${pl.map(x=>`<span class="pbadge">${esc(x)}</span>`).join('')}${no}${lvB}${hon}</div>
     ${uid===myId?'<div class="sub">هذا ملفك</div>':''}</div>
     <div class="pst">${cell(t.n,'مباراة')}${cell(t.g,'⚽ أهداف')}${cell(t.a,'🎯 تمريرات')}${gk?cell(t.sv,'🧤 تصديات'):cell(t.g+t.a,'مساهمات')}${cell(t.mv||0,'🌟 رجل المباراة')}${cell(rk,'🛡 صخرة')}${cell(+statScore(t,gk).toFixed(1),'نقاط')}${cell(L.lv?esc(L.lv.i):'—',L.lv?esc(L.lv.n):'بدون مستوى')}</div>
-    ${ban}${msg?`<div class="msg">${msg}</div>`:''}`;
+    ${ban}${emH}${msg?`<div class="msg">${msg}</div>`:''}`;
 }
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cpem]');if(!b)return;const v=b.dataset.cpem;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{b.textContent='✓ اننسخ'}).catch(()=>{b.textContent='انسخه يدويًا'})});
 let pfSel=[];
 function renderPlayerForm(){
   const uid=curP;const el=$('#plForm');
@@ -3009,27 +3017,29 @@ $('#memBody').addEventListener('click',async e=>{
 /* ---------- تقسيمة الفريقين ---------- */
 function teamsHtml(mid){
   const T=S.teams[mid];if(!T||!((T.g||[]).length||(T.c||[]).length))return '';
-  const col=a=>a.length?'<ul>'+a.map(u=>`<li>${avatar(u,'sm')}${nameLink(u)}</li>`).join('')+'</ul>':'<div class="none">—</div>';
+  const col=a=>a.length?'<ul>'+a.map(u=>isGuestId(u)?`<li><span class="gav">👤</span>${esc((T.gn||{})[u]||'ضيف')}</li>`:`<li>${avatar(u,'sm')}${nameLink(u)}</li>`).join('')+'</ul>':'<div class="none">—</div>';
   const scx=mScore(mid),sc=!!scx;
   return `<div class="grp">${sc?`<div class="score">🟢 ${scx.gs} - ${scx.cs} 🎨</div>`:''}<div class="tcols"><div class="tc g"><h5>🟢 الفريق الأخضر (${(T.g||[]).length})</h5>${col(T.g||[])}</div><div class="tc c"><h5>🎨 الفريق الملون (${(T.c||[]).length})</h5>${col(T.c||[])}</div></div></div>`;
 }
 let tm=null;
+const isGuestId=u=>typeof u==='string'&&u.startsWith('g:');
+function guestIds(L){const a=[];L.going.forEach(p=>{const n=p.gEff||0;for(let i=1;i<=n;i++)a.push({id:'g:'+p.uid+':'+i,l:'ضيف '+nameOf(p.uid)+(n>1?' '+i:'')})});return a}
 function openTeams(mid,auto){
-  const L=layout(mid);const pool=L.going.map(p=>p.uid);
+  const L=layout(mid);const pool0=L.going.map(p=>p.uid);ensureNames(pool0);const gl0=guestIds(L);const pool=pool0.concat(gl0.map(x=>x.id));
   const src=S.teamsDraft[mid]||S.teams[mid]||{};
   tm={mid,pool,g:(src.g||[]).filter(u=>pool.includes(u)),c:(src.c||[]).filter(u=>pool.includes(u)),
-      gs:Number.isFinite(src.gs)?String(src.gs):'',cs:Number.isFinite(src.cs)?String(src.cs):'',msg:'',guests:L.going.reduce((n,p)=>n+(p.gEff||0),0)};
+      gs:Number.isFinite(src.gs)?String(src.gs):'',cs:Number.isFinite(src.cs)?String(src.cs):'',msg:'',gn:Object.fromEntries(gl0.map(x=>[x.id,x.l])),guests:0};
   tm.c=tm.c.filter(u=>!tm.g.includes(u));
   if(auto){tmBalance();tm.msg='⚖️ تم توزيع تلقائي (حارس لكل فريق إن وُجد، وتوازن حسب الإحصائيات). راجعه وعدّل، ثم اضغط «حفظ مسودة» أو «اعتماد ونشر».'}
-  ensureNames(pool);renderTeams();$('#dTeams').showModal();
+  renderTeams();$('#dTeams').showModal();
 }
 const tmSide=u=>tm.g.includes(u)?'g':tm.c.includes(u)?'c':'n';
 function renderTeams(){
   const m=S.matches.find(x=>x.id===tm.mid);if(!m)return;
   const pub=!!S.teams[tm.mid];
-  $('#tmBody').innerHTML=`<h3>⚔️ تقسيمة الفريقين</h3><div class="sub">${esc(matchTitle(m))}${tm.guests?` · Guests: ${tm.guests} (بدون أسماء)`:''}</div>
+  $('#tmBody').innerHTML=`<h3>⚔️ تقسيمة الفريقين</h3><div class="sub">${esc(matchTitle(m))}</div>
     <div class="sub">${pub?'✅ منشورة للاعبين':'📝 مسودة (ما تظهر للاعبين)'} · 🟢 ${tm.g.length} · 🎨 ${tm.c.length} · بدون فريق ${tm.pool.length-tm.g.length-tm.c.length}</div>
-    ${tm.pool.map(u=>{const sd=tmSide(u);const pos=posText(u);return `<div class="tmr"><span class="who">${avatar(u,'sm')}${esc(nameOf(u))}${isGKIn(u,tm.mid)?' 🧤':''}${pos?` <small style="color:var(--mute)">${esc(pos)}</small>`:''}</span><span class="b"><button class="g ${sd==='g'?'on':''}" data-tm="${esc(u)}|g">🟢</button><button class="c ${sd==='c'?'on':''}" data-tm="${esc(u)}|c">🎨</button><button class="n ${sd==='n'?'on':''}" data-tm="${esc(u)}|n">✖</button></span></div>`}).join('')||'<div class="empty">ما فيه لاعبين Going</div>'}
+    ${tm.pool.map(u=>{const sd=tmSide(u);const gst=isGuestId(u);const pos=gst?'':posText(u);return `<div class="tmr"><span class="who">${gst?'<span class="gav">👤</span>':avatar(u,'sm')}${esc(gst?(tm.gn[u]||'ضيف'):nameOf(u))}${gst?'':isGKIn(u,tm.mid)?' 🧤':''}${pos?` <small style="color:var(--mute)">${esc(pos)}</small>`:''}</span><span class="b"><button class="g ${sd==='g'?'on':''}" data-tm="${esc(u)}|g">🟢</button><button class="c ${sd==='c'?'on':''}" data-tm="${esc(u)}|c">🎨</button><button class="n ${sd==='n'?'on':''}" data-tm="${esc(u)}|n">✖</button></span></div>`}).join('')||'<div class="empty">ما فيه لاعبين Going</div>'}
     <div class="row"><button class="ghost" id="tmAuto">⚖️ توزيع متوازن تلقائي</button><button class="ghost" id="tmClear">مسح التوزيع</button></div>
     <div class="tmsc"><span>🟢</span><input id="tmGs" type="number" min="0" inputmode="numeric" placeholder="—" value="${esc(tm.gs)}"><span>-</span><input id="tmCs" type="number" min="0" inputmode="numeric" placeholder="—" value="${esc(tm.cs)}"><span>🎨</span></div>
     <div class="hint">النتيجة اختيارية، وبعد ما تدخلها يحسب الموقع الفوز والشباك النظيف بنقاط الليدربورد.</div>
@@ -3038,7 +3048,7 @@ function renderTeams(){
     ${pub?'<div class="row"><button id="tmUnpub" style="background:#9a3b2e">إلغاء النشر</button></div>':''}`;
 }
 function tmBalance(){
-  const ov=u=>statScore(totalsP(u,()=>true),hasGK(u));
+  const ov=u=>isGuestId(u)?0:statScore(totalsP(u,()=>true),hasGK(u));
   const gks=tm.pool.filter(u=>isGKIn(u,tm.mid)),rest=tm.pool.filter(u=>!gks.includes(u));
   gks.sort((a,b)=>ov(b)-ov(a));rest.sort((a,b)=>ov(b)-ov(a));
   tm.g=[];tm.c=[];let sg=0,sc=0;
@@ -3051,7 +3061,7 @@ function tmBalance(){
   gks.concat(rest).forEach(put);
 }
 const tmNum=v=>{const n=parseInt(v,10);return Number.isFinite(n)&&n>=0?n:null};
-function tmData(){return {g:tm.g,c:tm.c,gs:tmNum(tm.gs),cs:tmNum(tm.cs),ts:Date.now()}}
+function tmData(){const gn={};tm.g.concat(tm.c).forEach(u=>{if(isGuestId(u))gn[u]=tm.gn[u]||'ضيف'});return {g:tm.g,c:tm.c,gn,gs:tmNum(tm.gs),cs:tmNum(tm.cs),ts:Date.now()}}
 $('#tmBody').addEventListener('input',e=>{if(e.target.id==='tmGs')tm.gs=e.target.value;if(e.target.id==='tmCs')tm.cs=e.target.value});
 $('#tmBody').addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||!tm||!isAdmin())return;
@@ -3393,7 +3403,7 @@ async function init(){
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('rock','rock',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);sub('tournaments','tournaments',true);if(isAdmin()){sub('teamsDraft','teamsDraft',true);sub('suggestions','suggestions',true);sub('alerts','alerts',true);sub('groups','groups',true);sub('thanks','thanks',true)}
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('rock','rock',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);sub('tournaments','tournaments',true);if(isAdmin()){sub('teamsDraft','teamsDraft',true);sub('suggestions','suggestions',true);sub('alerts','alerts',true);sub('groups','groups',true);sub('thanks','thanks',true);sub('emails','emails',true)}
   if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}

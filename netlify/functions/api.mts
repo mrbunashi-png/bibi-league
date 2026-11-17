@@ -6,7 +6,7 @@ import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/back
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
 const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock','tournaments'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks','tournaments']);
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks','tournaments','emails']);
 const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
@@ -133,14 +133,18 @@ export default async (req: Request) => {
     // سجّل الاسم/الصورة العامة مرة وحدة
     let profiles: Record<string, any> = await readColl('profiles');
     const p = profiles[uid];
-    if (!p || p.name !== (user.name || '') || p.pic !== (user.pictureUrl || '')) {
-      await mutate('profiles', (cur) => ({ ...cur, [uid]: { name: user.name || '', pic: user.pictureUrl || '' } }));
+    let eh = 0; for (const ch of email) eh = (Math.imul(eh, 31) + ch.charCodeAt(0)) | 0;
+    const ehs = email ? eh.toString(36) : '';
+    if (!p || p.name !== (user.name || '') || p.pic !== (user.pictureUrl || '') || (email && p.em !== ehs)) {
+      /* الإيميل يُحفظ بمخزن خاص بالأدمن فقط، والملف العام يحمل بصمة تغيّر فقط */
+      if (email) await mutate('emails', (cur) => { const l: any[] = ((cur[uid] && cur[uid].l) || []).slice(); const i = l.findIndex((x: any) => x.e === email); if (i >= 0) l[i] = { ...l[i], ts: Date.now() }; else l.unshift({ e: email, ts: Date.now() }); return { ...cur, [uid]: { l: l.slice(0, 5) } }; });
+      await mutate('profiles', (cur) => ({ ...cur, [uid]: { name: user.name || '', pic: user.pictureUrl || '', ...(ehs ? { em: ehs } : {}) } }));
       profiles = await readColl('profiles');
       await bump();
     }
     if (url.searchParams.get('rev') === rev && rev !== '0') return json({ same: true, rev, me });
     const colls: Record<string, any> = { profiles };
-    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions', 'alerts', 'groups', 'thanks'] : []);
+    const names = READ_ALL.filter((c) => c !== 'profiles').concat(admin ? ['teamsDraft', 'votes', 'bans', 'inbox', 'views', 'suggestions', 'alerts', 'groups', 'thanks', 'emails'] : []);
     const got = await Promise.all(names.map((c) => readColl(c)));
     names.forEach((c, i) => (colls[c] = got[i]));
     if (!admin) {
