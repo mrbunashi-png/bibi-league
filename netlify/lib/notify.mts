@@ -115,7 +115,7 @@ const T = {
     : role === 'sub' ? `«${titleOf(m)}» تبدأ بعد ساعتين. أنت في الاحتياط، خلك جاهز إذا انفتح لك مقعد 🪑`
     : `«${titleOf(m)}» تبدأ بعد ساعتين. شرّفنا بحضورك 👀`,
   vote1: (m: any) => `انتهت «${titleOf(m)}»! صوّت لرجل المباراة 🌟 ولصخرة الدفاع 🛡 قبل منتصف الليل`,
-  vote2: (m: any, miss: string) => `باقي ساعات على قفل التصويت في «${titleOf(m)}». ما صوّتت لـ ${miss}`,
+  vote2: (m: any, miss: string) => `باقي ساعات على قفل التصويت في «${titleOf(m)}». لم تصوّت لـ ${miss}`,
   galM: (m: any, n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} (صور أو فيديو أو رابط) مربوط بـ «${titleOf(m)}»`,
   gal: (n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} في الصور والفيديو`,
   full: (m: any, role: string) => role === 'in' ? `✅ اكتمل العدد في «${titleOf(m)}» 🔥` : `✅ اكتمل العدد في «${titleOf(m)}». أنت في الاحتياط وننبهك إذا انفتح مقعد`,
@@ -241,7 +241,7 @@ export async function onTourResult(mid: string, m: any, done: boolean) {
   const { A, B, uids } = tourCtx(t, m);
   const k = (done ? 'tr' : 'tu') + mid + Date.now().toString(36);
   if (!done) {
-    await notifyUsers({ uids, key: k, kind: 'tour', h: '↩️ تصحيح نتيجة', t: `↩️ تم التراجع عن نتيجة ${A.n} و${B.n} في ${t.name}. بانتظار اعتماد النتيجة الصحيحة.`, title: '↩️ تصحيح نتيجة بطولة', mid });
+    await notifyUsers({ uids, key: k, kind: 'tour', h: '↩️ تصحيح نتيجة', t: `↩️ تم التراجع عن نتيجة مباراة ${A.n} و${B.n} في ${t.name}. بانتظار اعتماد النتيجة الصحيحة.`, title: '↩️ تصحيح نتيجة بطولة', mid });
     return;
   }
   const ev: any = (await readColl('events'))[mid] || {};
@@ -249,7 +249,7 @@ export async function onTourResult(mid: string, m: any, done: boolean) {
   let line: string, champ = '';
   if (gs === cs) {
     if (m.tw === 'a' || m.tw === 'b') { const w = m.tw === 'a' ? A : B, l = m.tw === 'a' ? B : A; line = `${w.n} فاز على ${l.n} بركلات الترجيح (${gs}-${cs} بعد الوقت الأصلي)`; if (m.fin) champ = w.n; }
-    else line = `تعادل ${A.n} و${B.n} ${gs}-${cs}`;
+    else line = `تعادل ${A.n} مع ${B.n} ${gs}-${cs}`;
   } else {
     const aw = gs > cs; const w = aw ? A : B, l = aw ? B : A; line = `${w.n} فاز على ${l.n} ${Math.max(gs, cs)}-${Math.min(gs, cs)}`; if (m.fin) champ = w.n;
   }

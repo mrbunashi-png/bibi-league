@@ -937,7 +937,7 @@ function calcHtml(mid){
   const gkSet=new Set(parts.filter(u=>isGKIn(u,mid)));
   const gks=parts.filter(u=>gkSet.has(u)||+sv[u]>0);
   const others=parts.filter(u=>!gks.includes(u));
-  const evRow=e=>`<div class="evr"><span><i class="dot" style="background:${e.side==='g'?'#2e7d4f':'#c0562b'}"></i>${e.og?`🙈 هدف عكسي${e.s?' ('+evNm(e.s)+')':''}`:`⚽ ${evNm(e.s)}${e.a?` · 🎯 ${evNm(e.a)}`:''}`}</span><button class="ghost" data-evdel="${esc(e.id)}">حذف</button></div>`;
+  const evRow=e=>`<div class="evr"><span><i class="dot" style="background:${e.side==='g'?'#2e7d4f':'#c0562b'}"></i>${e.og?`🙈 هدف عكسي${e.s?' ('+evNm(e.s)+')':''}`:`⚽ ${evNm(e.s)}${e.a?` · 🎯 ${evNm(e.a)}`:''}`}</span><span class="b"><button class="ghost" data-evedit="${esc(e.id)}">✏️ تعديل</button><button class="ghost" data-evdel="${esc(e.id)}">حذف</button></span></div>`;
   const svRow=u=>`<div class="svr"><span>${avatar(u,'sm')}${esc(nameOf(u))}</span><span class="st"><button data-svb="${esc(u)}|-1">−</button><b>${+sv[u]||0}</b><button data-svb="${esc(u)}|1">+</button></span></div>`;
   const undoB=(evUndo&&evUndo.mid===mid)?`<div class="row"><button class="ghost" data-evundo="1">↩️ تراجع عن آخر حذف</button></div>`:'';
   const pubWarn=S.teams[mid]?'':`<div class="msg ban">⚠️ التشكيلة غير منشورة. الفوز والشباك النظيف ما ينحسبون للاعبين إلا بعد ما تنشر التشكيلة (زر «تقسيمة الفريقين»).</div>`;
@@ -977,25 +977,44 @@ function glOpts(side,placeholder,excl){
   const o=u=>`<option value="${esc(u)}">${esc(nameOf(u))}</option>`;
   return `<option value="">${placeholder}</option>`+(A.length?`<optgroup label="${side==='g'?'🟢 الأخضر':'🎨 الملون'}">${A.map(o).join('')}</optgroup>`:'')+(B.length?`<optgroup label="${A.length?'باقي المشاركين':'المشاركين'}">${B.map(o).join('')}</optgroup>`:'')+'<option value="guest">ضيف / لاعب غير مسجل</option>';
 }
-function openGoal(side){
+function goalSel(side,ev){
+  const set=(id,val)=>{const el=$('#'+id);if(!el)return;if(val&&![...el.options].some(o=>o.value===val)){const o=document.createElement('option');o.value=val;o.textContent=nameOf(val);el.appendChild(o)}el.value=val||''};
+  $('#glS').innerHTML=glOpts(side,'اختر اللاعب');$('#glA').innerHTML=glOpts(side,'بدون أسيست');
+  if(ev){set('glS',ev.s||'');set('glA',ev.a||'')}
+}
+function openGoal(side,editId){
   if(!isAdmin()||!openId)return;
-  gl={mid:openId,side};
-  $('#goalBody').innerHTML=`<h3>⚽ هدف للفريق ${side==='g'?'🟢 الأخضر':'🎨 الملون'}</h3>
-    <label>من سجّل؟</label><select id="glS">${glOpts(side,'اختر اللاعب')}</select>
-    <label>صانع الهدف (اختياري)</label><select id="glA">${glOpts(side,'بدون أسيست')}</select>
-    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="glOg" style="width:auto"> هدف عكسي (يُحسب لهذا الفريق ولا يُحسب هدف لأحد)</label>
+  const mid=openId,old=editId?((S.events[mid]||{}).g||[]).find(e=>e.id===editId):null;
+  if(editId&&!old)return;
+  gl={mid,side:old?old.side:side,edit:editId||''};
+  const mt=S.matches.find(x=>x.id===mid);
+  $('#goalBody').innerHTML=`<h3>${old?'✏️ تعديل الهدف':'⚽ هدف للفريق '+(side==='g'?'🟢 الأخضر':'🎨 الملون')}</h3>
+    ${old?`<label>الفريق</label><select id="glSide"><option value="g" ${old.side==='g'?'selected':''}>🟢 الأخضر</option><option value="c" ${old.side==='c'?'selected':''}>🎨 الملون</option></select>`:''}
+    <label>من سجّل؟</label><select id="glS"></select>
+    <label>صانع الهدف (اختياري)</label><select id="glA"></select>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="glOg" style="width:auto" ${old&&old.og?'checked':''}> هدف عكسي (يُحسب لهذا الفريق ولا يُحسب هدف لأحد)</label>
+    ${old&&mt&&mt.tid&&mt.done===true?'<div class="msg ban">⚠️ نتيجة هذي المباراة معتمدة بالبطولة. بعد التعديل تراجع عن الاعتماد واعتمدها من جديد حتى تتحدث النتيجة بالبراكيت.</div>':''}
     <div class="msg" id="glMsg" hidden></div>
-    <div class="row"><button id="glSave">✅ سجّل الهدف</button></div>`;
+    <div class="row"><button id="glSave">${old?'💾 احفظ التعديل':'✅ سجّل الهدف'}</button></div>`;
+  goalSel(gl.side,old);
+  if(old&&old.og)$('#glA').disabled=true;
   $('#dGoal').showModal();
 }
-$('#goalBody').addEventListener('change',e=>{if(e.target.id==='glOg'){$('#glA').disabled=e.target.checked;if(e.target.checked)$('#glA').value=''}});
+$('#goalBody').addEventListener('change',e=>{
+  if(e.target.id==='glOg'){$('#glA').disabled=e.target.checked;if(e.target.checked)$('#glA').value=''}
+  if(e.target.id==='glSide'&&gl){const s0=$('#glS').value,a0=$('#glA').value;gl.side=e.target.value;goalSel(gl.side,{s:s0,a:a0})}
+});
 $('#goalBody').addEventListener('click',e=>{
   if(e.target.id!=='glSave'||!gl)return;
   const og=$('#glOg').checked,sc=$('#glS').value,as=og?'':$('#glA').value;
   const msg=t=>{const m=$('#glMsg');m.textContent=t;m.hidden=false};
   if(!og&&!sc)return msg('اختر من سجّل الهدف');
   if(!og&&as&&as===sc&&sc!=='guest')return msg('اللاعب ما يصنع هدف لنفسه');
-  const {mid,side}=gl;
+  const {mid,side,edit}=gl;
+  if(edit){
+    $('#dGoal').close();playSnd('in');
+    saveEv(mid,cur=>{const i=cur.g.findIndex(x=>x.id===edit);if(i<0)return null;const n={...cur.g[i],side,s:sc||'',a:as||''};if(og)n.og=true;else delete n.og;cur.g[i]=n;return cur},false);return;
+  }
   const ev={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),side,s:sc||'',a:as||'',ts:Date.now()};
   if(og)ev.og=true;
   $('#dGoal').close();playSnd('in');
@@ -1070,7 +1089,15 @@ function renderSheet(){
     const types=remTypes(m,past);
     const rows=ids.map(u=>({u,t:types.filter(t=>{const z=remState(t.k,m,u,past);return z.on||(t.k==='o'||t.k==='k')&&!z.hide})})).filter(r=>r.t.length);
     const bulk=types.map(t=>{const n=rows.filter(r=>remApplies(t.k,m,r.u,past)).length;return n?`<button class="ghost" data-rem="${t.k}|all">${t.i} الكل (${n})</button>`:''}).join('');
-    nrHtml=sec('nr','🔔 تذكيرات (لك فقط)',`${rows.length}`,
+    if(isFB(m)){
+      const gu=L.going.map(p=>p.uid);ensureNames(gu);
+      const vv=(u,k)=>{const d=S.votes[u];return d&&d[k]&&d[k][openId]||''};
+      const tal=k=>{const t={};gu.forEach(u=>{const x=vv(u,k);if(x)t[x]=(t[x]||0)+1});return Object.entries(t).sort((a,b)=>b[1]-a[1])};
+      const blk=(k,ttl)=>{const T=tal(k);return `<div class="payh">${ttl}</div>`+(T.length?`<div class="hint">${T.map(([u,n])=>esc(nameOf(u))+' ('+n+')').join(' · ')}</div>`:'')+gu.map(u=>{const x=vv(u,k);return `<div class="svr"><span>${avatar(u,'sm')}${esc(nameOf(u))}</span><span>${x?'← '+esc(nameOf(x)):'<small style="color:var(--mute)">ما صوّت</small>'}</span></div>`}).join('')};
+      const nv=gu.filter(u=>vv(u,'o')||vv(u,'r')).length;
+      nrHtml+=sec('vt','🗳 من صوّت لمن (لك فقط)',`${nv}/${gu.length}`,blk('o','🌟 رجل المباراة')+blk('r','🛡 صخرة الدفاع'),'تصويت اللاعبين سرّي عنهم. هذا العرض لك كأدمن فقط، ويحسب أصوات المسجلين Going.');
+    }
+    nrHtml=(nrHtml||'')+sec('nr','🔔 تذكيرات (لك فقط)',`${rows.length}`,
       rows.length?(bulk?`<div class="row wrap">${bulk}</div>`:'')+rows.map(r=>`<div class="pr"><div class="who">${avatar(r.u,'sm')}<div>${nameLink(r.u)}</div></div><div class="b">${r.t.map(t=>{const x=S.inbox[r.u+'_'+t.x+openId],z=remState(t.k,m,r.u,past);return z.on?`<button class="bellb rmi" data-rem="${t.k}|${esc(r.u)}" title="${esc(t.l)}${x&&x.ts?' · انرسل '+esc(fmtTs(x.ts)):''}">${t.i}${x&&x.ts?'<i class="ok">✓</i>':''}</button>`:`<span class="rmi off" title="${esc(z.why||'')}">${t.i}<small>${esc(z.why||'')}</small></span>`}).join('')}</div></div>`).join(''):'<div class="none">ما فيه أحد يحتاج تذكير 👏</div>',
       types.map(t=>t.i+' '+t.l).join(' · ')+'. اضغط الأيقونة ينرسل الإشعار فورًا ويظهر ✓ بعد الإرسال.');
   }
@@ -1268,6 +1295,7 @@ $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if
     const base=partUids(mid).filter(x=>isGKIn(x,mid));const i=base.indexOf(u);if(i>=0)base.splice(i,1);else base.push(u);
     saveEv(mid,cur=>{cur.gk=base;return cur},false);return;
   }
+  if(b.dataset.evedit){if(isAdmin())openGoal('',b.dataset.evedit);return}
   if(b.dataset.evdel){
     if(!isAdmin())return;const id=b.dataset.evdel,mid=openId;
     if(!b.dataset.sure){b.dataset.sure='1';b.textContent='تأكيد؟';return}
@@ -1377,8 +1405,8 @@ async function sendAch(uid,suffix,text,mid){
 }
 const REG_MSG=(m,u)=>{const f=fmtDate(m.date);return `يا ${nameOf(u)} 👋 مباراة «${matchTitle(m)}» يوم ${f.wk} ${f.day} ${f.mon}${m.time?' الساعة '+time12(m.time):''} تنتظرك! ⚽ سجّل حضورك أو غيابك عشان نرتب المقاعد، ونتمنى نشوفك معنا 💚`};
 const VOTE_MSG={
-  o:(m,u)=>`يا ${nameOf(u)} 🌟 التصويت لرجل المباراة في «${matchTitle(m)}» مفتوح، ما صوّتت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`,
-  k:(m,u)=>`يا ${nameOf(u)} 🛡 التصويت لصخرة الدفاع في «${matchTitle(m)}» مفتوح، ما صوّتت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`
+  o:(m,u)=>`يا ${nameOf(u)} 🌟 التصويت لرجل المباراة في «${matchTitle(m)}» مفتوح، ولم تصوّت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`,
+  k:(m,u)=>`يا ${nameOf(u)} 🛡 التصويت لصخرة الدفاع في «${matchTitle(m)}» مفتوح، ولم تصوّت للحين. اختر مرشحك واضغط «اعتماد التصويت» قبل منتصف الليل.`
 };
 const REM_X={pay:'p',reg:'r',o:'o',k:'k'};
 function remTypes(m,past){
