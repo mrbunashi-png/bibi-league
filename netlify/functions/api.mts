@@ -2,11 +2,12 @@ import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
 import * as webpush from 'web-push';
 import { checkFull, onTeamsPublished, onCancel, queueGallery, sendTests, onTourMatch, onTourResult, onWelcome } from '../lib/notify.mts';
+import { saveFantasy, ridOf } from '../lib/fantasy.mts';
 import { BK_COLLS, backups, dumpAll, saveBackup, restoreFrom } from '../lib/backup.mts';
 
 /* ---- الصلاحيات (نفس قواعد النسخة القديمة، لكن تُفرض على السيرفر) ---- */
-const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock','tournaments'];
-const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks','tournaments','emails']);
+const READ_ALL = ['matches','gallery','access','config','awards','motm','feed','teams','rsvps','stats','players','reacts','events','profiles','rock','tournaments','fround','fantasy'];
+const ADMIN_ONLY = new Set(['matches','gallery','access','config','awards','motm','feed','teams','teamsDraft','bans','events','stats','rock','alerts','groups','thanks','tournaments','emails','fround']);
 const SELF_WRITE = new Set(['rsvps','players','reacts','votes','inbox','views','push']); // اللاعب يكتب وثيقته فقط، والأدمن يكتب أي وحدة
 const MAX_DOC = 400_000;
 const MAX_ASSET = 5_800_000;
@@ -160,6 +161,16 @@ export default async (req: Request) => {
         }
         colls.matches = out2;
       }
+      /* مسودات الجولات القادمة سرّية عن غير صاحبها */
+      const cr = ridOf(Date.now()); const fa: Record<string, any> = {};
+      for (const [k, d] of Object.entries<any>(colls.fantasy || {})) {
+        if (k === uid) { fa[k] = d; continue; }
+        const r: Record<string, any> = {}; for (const [rk, rv] of Object.entries<any>((d && d.r) || {})) if (rk <= cr) r[rk] = rv;
+        fa[k] = { col: d.col, r };
+      }
+      colls.fantasy = fa;
+      const gAll = await readColl('groups');
+      colls.groups = Object.fromEntries(Object.entries<any>(gAll).filter(([, g]) => g && Array.isArray(g.members) && g.members.includes(uid)));
       const v = await readColl('votes');
       colls.votes = v[uid] ? { [uid]: v[uid] } : {};
       const bn = await readColl('bans');
@@ -184,6 +195,13 @@ export default async (req: Request) => {
       const [c, idIn] = String(o.path || '').split('/');
       if (!okName(c || '') || (idIn && !okName(idIn))) return bad('bad path');
       if (c === 'profiles') return bad('forbidden', 403);
+      if (c === 'fantasy') {
+        if (o.op !== 'set' || idIn !== uid) return bad('forbidden', 403);
+        const fr = await saveFantasy(uid, o.data);
+        if (fr.error) return bad(fr.error, 400);
+        out.push({ path: 'fantasy/' + uid });
+        continue;
+      }
       if (c === 'suggestions' && !admin) {
         /* اللاعب يرسل فقط، ما يقرا ولا يعدل. الحد 500 حرف و5 باليوم */
         if (o.op !== 'set' || !idIn || !idIn.startsWith(uid + '_')) return bad('forbidden', 403);

@@ -54,6 +54,22 @@ button,.btn{font-family:inherit;font-size:14px;font-weight:700;border:0;border-r
 button.ghost{background:transparent;color:var(--olive-d);border:1px dashed var(--olive)}
 .admin{display:none;margin-top:8px}
 .admin.show{display:block}
+.pitch{background:linear-gradient(#3a8f4f,#2f7a42);border-radius:16px;padding:14px 6px;margin:10px 0;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:inset 0 0 0 2px #ffffff55}
+.prow{display:flex;justify-content:space-around;align-items:flex-start;gap:6px;position:relative}
+.bench{background:#e9e4d3;border-radius:14px;padding:8px;margin:8px 0;text-align:center}.bench .prow{justify-content:center;gap:28px}
+button.fs{background:transparent;border:0;padding:2px;width:86px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
+.bench button.fs{color:var(--ink)}
+button.fs .fsh{width:58px;height:54px}.fnm{font-size:12px;font-weight:700;background:#0000004d;border-radius:8px;padding:1px 6px;max-width:84px;overflow:hidden;white-space:nowrap}
+.bench .fnm{background:#0000001a}
+.fp{font-size:11px;font-weight:800;background:#fff;color:#222;border-radius:8px;padding:0 6px;margin-top:1px}.fp.z{opacity:.6}
+button.fs.dim{opacity:.45}button.fs:disabled{opacity:1}
+.fcb{position:absolute;top:0;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:#f2c200;color:#222;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;border:1px solid #0006}.fcb.v{background:#cfd4da}
+.fstat{display:flex;gap:8px;margin:8px 0}.fstat>div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}.fstat small{display:block;color:var(--mute);font-size:11px}.fstat b{font-size:19px}.fstat b.neg{color:#b03a2e}
+.fcols{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fcol{width:32px;height:32px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #0004;padding:0}.fcol.on{box-shadow:0 0 0 3px var(--wood)}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:700}.chip.on{background:var(--wood);color:var(--paper)}.chip:disabled{opacity:.5}
+.fseg{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.fseg button{flex:1;min-width:70px;padding:8px 6px;font-size:13px}.fseg button.on{background:var(--wood);color:var(--paper)}
+.fh{margin-bottom:6px}.rules ul{padding-inline-start:18px;margin-top:6px;line-height:1.8}
+.row.wrap{flex-wrap:wrap}
 dialog{border:0;border-radius:18px;padding:18px;width:min(92vw,420px);background:var(--card);color:var(--ink);font-family:inherit}
 dialog::backdrop{background:rgba(43,31,23,.5)}
 dialog h3{margin-bottom:10px;color:var(--wood)}
@@ -361,6 +377,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <a data-v="home" class="on"><span class="i">🏠</span>الرئيسية</a>
     <a data-v="log"><span class="i">📅</span>Log</a>
     <a data-v="board"><span class="i">🏆</span>Leaderboard</a>
+    <a data-v="fantasy"><span class="i">⚽</span>فانتازي</a>
     <a data-v="awards"><span class="i">🏅</span>Bibi Awards</a>
     <a data-v="tour" id="navTour" hidden><span class="i">🏟</span>البطولات</a>
     <a data-v="media"><span class="i">📸</span>صور وفيديو</a>
@@ -403,6 +420,10 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <main id="v-awards" hidden>
     <h2>🏅 Bibi Awards</h2>
     <div id="awPage"></div>
+  </main>
+  <main id="v-fantasy" hidden>
+    <h2>⚽ Bibi's Fantasy</h2>
+    <div id="fanPage"></div>
   </main>
   <main id="v-tour" hidden>
     <h2>🏆 البطولات</h2>
@@ -572,6 +593,11 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <div id="twBody" style="clear:both"></div>
 </dialog>
 
+<dialog id="dFan">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="fanBody"></div>
+</dialog>
+
 <dialog id="dTourM">
   <h3 id="tmTitle">إنشاء المباراة</h3>
   <label>التاريخ</label><input type="date" id="tmDate">
@@ -623,6 +649,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   function snap(c){const m=cache[c]||{};return{metadata:{fromCache:false},docs:Object.keys(m).map(id=>({id,data:()=>m[id]}))}}
   /* تجديد الجلسة بصمت: الجوال يوقف المؤقت وهو بالخلفية فينتهي الرمز، فنجدده قبل أي طلب */
   async function keepAlive(){try{await BibiAuth.refreshSession()}catch(e){}}
+  window.__refreshNow=()=>refresh(true);
   async function refresh(force){
     if(polling)return;polling=true;
     try{
@@ -642,7 +669,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   }
   async function write(ops){
     const r=await fetch('/api/write',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({ops})});
-    if(!r.ok)throw new Error('write '+r.status);
+    if(!r.ok){let m='';try{m=(await r.json()).error}catch(e){}throw new Error(m||'write '+r.status)}
     return r.json();
   }
   function localApply(path,fn){const[c,id]=path.split('/');cache[c]=cache[c]||{};fn(cache[c],id);fire(c)}
@@ -687,7 +714,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const APP_URL=location.origin+'/';
-const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},suggestions:{},alerts:{},rock:{},groups:{},thanks:{},tournaments:{},emails:{},ready:{}};
+const S={matches:[],stats:{},players:{},gallery:[],rsvps:{},names:{},access:{},config:{},votes:{},awards:{},teams:{},teamsDraft:{},feed:[],reacts:{},motm:{},bans:{},inbox:{},views:{},events:{},suggestions:{},alerts:{},rock:{},groups:{},thanks:{},tournaments:{},emails:{},fantasy:{},fround:{},ready:{}};
 let db=null,user=null,assets=null,timer=null,myId=null,openId=null,syncing=false,adminSeeded=false,numbering=false,chain=Promise.resolve();
 
 /* ---------- الوقت والعنوان ---------- */
@@ -756,6 +783,7 @@ function note(t){const n=$('#note');n.textContent=t;n.style.display=t?'block':'n
 function go(v){
   for(const a of document.querySelectorAll('#nav a'))a.classList.toggle('on',a.dataset.v===v);
   for(const m of document.querySelectorAll('main'))m.hidden=(m.id!=='v-'+v);
+  if(v==='fantasy'){try{renderFantasy()}catch(e){}}
 }
 $('#nav').addEventListener('click',e=>{const a=e.target.closest('a');if(a){location.hash=a.dataset.v;}});
 function route(){go((location.hash||'#home').slice(1).replace(/^$/,'home'));try{markSeen(feedItems())}catch(e){}}
@@ -903,7 +931,7 @@ function ensureAdminOk(){
   const rec={status:'ok',ts:Date.now()};if(!used)rec.no=1;
   db.doc('access/'+myId).set(rec).then(()=>{S.access[myId]=rec;renderAll();assignNumbers()}).catch(()=>{}).finally(()=>{setTimeout(()=>{adminSeeded=false},20000)});
 }
-function renderAll(){renderTour();ensureAdminOk();ensureLevelCfg();ensurePushSub();renderSugBox();renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
+function renderAll(){try{if(!$('#v-fantasy').hidden||isAdmin())renderFantasy()}catch(e){}renderTour();ensureAdminOk();ensureLevelCfg();ensurePushSub();renderSugBox();renderAnn();renderTops();renderGal();renderToast();checkSync();if(openId&&$("#dSheet").open)renderSheet();if($("#dPlayer").open){renderPlayerHead();renderPlayerDyn();if(formSig()!==lastSig)renderPlayerForm()}if($("#dAdmin").open)renderAdmin();renderStatus();updateBell();renderMedia();renderLog();renderBoard();renderAwardsPage();renderFeed();renderNotifCard();finalizeMotm();updateBadge();updateChip();if($('#dVote').open)renderVote()}
 
 /* ---------- تذييل تفاصيل الإعلان ---------- */
 async function ensureNames(ids){
@@ -2721,13 +2749,14 @@ function perPred(){
 }
 const perLabel=()=>per.mode==='all'?'كل الوقت':per.mode==='year'?String(per.y):MONTHS[per.m-1]+' '+per.y;
 const teamOf=(T,uid)=>T&&((T.g||[]).includes(uid)?'g':(T.c||[]).includes(uid)?'c':null);
-function totalsP(uid,pred){
+function totalsP(uid,pred,only){
   const e=(S.stats[uid]&&S.stats[uid].m)||{};let g=0,a=0,sv=0,svc=0,n=0,win=0,csp=0,gkb=0;
   const gk=hasGK(uid),df=posList(uid).some(x=>DEF.has(x));let np=0;
   const ids=new Set(Object.keys(e));
   for(const k of Object.keys(S.teams))if(teamOf(S.teams[k],uid))ids.add(k);
   for(const k of Object.keys(S.events)){if(mRec(uid,k)||layout(k).going.some(p=>p.uid===uid))ids.add(k)}
   ids.forEach(k=>{
+    if(only&&k!==only)return;
     const m=S.matches.find(x=>x.id===k);if(!m||!isFB(m)||!isDone(m)||!pred(m.date||''))return;
     n++;const gkM=isGKIn(uid,k);np+=gkM?W.nGK:W.n;
     const r=mRec(uid,k);
@@ -2740,11 +2769,223 @@ function totalsP(uid,pred){
     }
   });
   let mv=0;
-  for(const k of Object.keys(S.motm)){if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))mv++}}
+  for(const k of Object.keys(S.motm)){if(only&&k!==only)continue;if(S.motm[k]&&S.motm[k].winner===uid){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))mv++}}
   let rk=0;
-  for(const k of Object.keys(S.rock)){if(rockWinners(k).includes(uid)){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))rk++}}
+  for(const k of Object.keys(S.rock)){if(only&&k!==only)continue;if(rockWinners(k).includes(uid)){const mm=S.matches.find(x=>x.id===k);if(mm&&isFB(mm)&&isDone(mm)&&pred(mm.date||''))rk++}}
   return {n,g,a,sv,svc,win,csp,mv,rk,np,gkb};
 }
+/* ================= Bibi's Fantasy ================= */
+const FAN_BUDGET=60,FAN_COLS=['#2e7d4f','#c0562b','#1f5fbf','#d4a017','#7a4fb0','#222222','#e9e9e9','#c0392b','#16a5a5','#e0679d'];
+const FKW=3*3600000;
+const fAdd=(d,n)=>new Date(new Date(d+'T00:00:00Z').getTime()+n*864e5).toISOString().slice(0,10);
+const fDays=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);
+const fRid=ms=>{const d=new Date(ms+FKW);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()-5+7)%7));return d.toISOString().slice(0,10)};
+const fCur=()=>fRid(Date.now()),fNext=()=>fAdd(fCur(),7);
+const FCAT={gk:'حارس',def:'مدافع',mid:'وسط',fwd:'مهاجم'};
+function fCats(u){
+  const r=new Set();
+  for(const c of posList(u)){for(const [nm,codes] of POS)if(codes.includes(c))r.add(nm==='حراسة'?'gk':nm==='دفاع'?'def':nm==='وسط'?'mid':'fwd')}
+  return r.size?[...r]:['mid'];
+}
+const fEligibleIds=()=>Object.keys(S.access).filter(u=>S.access[u]&&S.access[u].status==='ok'&&+S.access[u].no>0);
+const fCfg=()=>{const k=Object.keys(S.fround||{}).sort().pop();return k?S.fround[k]:null};
+const fNo=u=>+((S.access[u]||{}).no)||0;
+const fLum=h=>{const n=parseInt(h.slice(1),16);return (0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255};
+function fShirt(col,no,empty){
+  const f=empty?'none':col,tc=fLum(col)>0.6?'#222':'#fff';
+  return `<svg viewBox="0 0 64 60" class="fsh"><path d="M20 4 L8 10 L2 24 L12 28 L16 22 L16 56 L48 56 L48 22 L52 28 L62 24 L56 10 L44 4 C42 9 38 12 32 12 C26 12 22 9 20 4Z" fill="${f}" stroke="${empty?'#ffffffaa':'#00000066'}" stroke-width="${empty?2:1.5}" ${empty?'stroke-dasharray="4 3"':''}/><text x="32" y="${empty?38:40}" text-anchor="middle" font-size="${empty?22:no>9?17:19}" font-weight="800" fill="${empty?'#ffffffcc':tc}">${empty?'+':no||''}</text></svg>`;
+}
+/* ----- النقاط ----- */
+let fMemo=new Map();
+function fPlPts(u,rid){
+  const k=u+'|'+rid;if(fMemo.has(k))return fMemo.get(k);
+  const hi=fAdd(rid,7);let best=null;
+  for(const m of S.matches){
+    if(m.priv||!isFB(m)||!isDone(m))continue;const d=m.date||'';if(d<rid||d>=hi)continue;
+    const t=totalsP(u,()=>true,m.id);if(t.n>0){const p=statScore(t,hasGK(u));best=best==null?p:Math.max(best,p)}
+  }
+  fMemo.set(k,best);return best;
+}
+const fEff=(doc,R)=>{if(!doc||!doc.r)return null;const k=Object.keys(doc.r).filter(x=>x<=R).sort().pop();return k?doc.r[k]:null};
+function fRound(doc,R){
+  const e=fEff(doc,R);if(!e)return null;
+  const P=u=>fPlPts(u,R),stp=e.st.map(P),bnp=e.bn.map(P);
+  let sum=0;const subIn=[],out=[];
+  stp.forEach(p=>{sum+=p||0});
+  if(e.bb){bnp.forEach((p,i)=>{if(p!=null){sum+=p;subIn.push(e.bn[i])}})}
+  else{
+    if(stp[0]==null&&bnp[0]!=null){sum+=bnp[0];subIn.push(e.bn[0]);out.push(e.st[0])}
+    const miss=[1,2,3,4,5].filter(i=>stp[i]==null);
+    if(miss.length&&bnp[1]!=null){sum+=bnp[1];subIn.push(e.bn[1]);out.push(e.st[miss[0]])}
+  }
+  let capU='',capB=0;const cp=P(e.cap);
+  if(cp!=null){capU=e.cap;capB=cp}else{const vp=P(e.vc);if(vp!=null){capU=e.vc;capB=vp}}
+  sum+=capB;
+  return {total:sum,stp,bnp,subIn,out,capU,capB,e};
+}
+function fRounds(doc){
+  if(!doc||!doc.r)return [];const ks=Object.keys(doc.r).sort();if(!ks.length)return [];
+  const a=[];for(let k=ks[0];k<=fCur();k=fAdd(k,7))a.push(k);return a;
+}
+const fTotal=doc=>fRounds(doc).reduce((s,R)=>{const r=fRound(doc,R);return s+(r?r.total:0)},0);
+function fAvail(doc,T){
+  const ks=Object.keys((doc&&doc.r)||{}).filter(k=>k<T).sort();if(!ks.length)return 99;
+  let a=2;for(let k=ks[0];fAdd(k,7)<=T;k=fAdd(k,7))a=2+Math.min(1,Math.max(0,a-((doc.r[k]&&doc.r[k].tu)||0)));return a;
+}
+function fChip(doc,T,which){
+  const l=Object.keys((doc&&doc.r)||{}).filter(k=>k!==T&&doc.r[k][which]).sort().pop();
+  const need=which==='wc'?91:28;if(!l)return {ok:true};
+  const d=fDays(l,T);return d>=need?{ok:true,last:l}:{ok:false,left:need-d,last:l};
+}
+/* ----- الأسعار: يحسبها الأدمن مرة بأول فتح لكل جولة ----- */
+let fPriceBusy=false;
+function fMaybePrices(){
+  if(!isAdmin()||fPriceBusy||!S.ready.fround||!S.ready.stats||!S.ready.access||!S.ready.players||!S.matches.length)return;
+  const cur=fCur();if(S.fround&&S.fround[cur])return;
+  const ids=fEligibleIds();if(!ids.length)return;
+  fPriceBusy=true;
+  const rows=ids.map(u=>{const t=totalsP(u,()=>true);return {u,n:t.n,avg:t.n?statScore(t,hasGK(u))/t.n:0}});
+  const ranked=rows.filter(r=>r.n>0).sort((a,b)=>a.avg-b.avg),prices={},pos={};
+  ranked.forEach((r,i)=>{prices[r.u]=ranked.length>1?Math.round((4+8*i/(ranked.length-1))*2)/2:8});
+  rows.filter(r=>!r.n).forEach(r=>{prices[r.u]=5});
+  ids.forEach(u=>{pos[u]=fCats(u)});
+  db.doc('fround/'+cur).set({prices,pos,ts:Date.now()}).then(()=>{S.fround[cur]={prices,pos,ts:Date.now()};if(!$('#v-fantasy').hidden)renderFantasy()}).catch(()=>{}).finally(()=>{fPriceBusy=false});
+}
+/* ----- الواجهة ----- */
+let fTab='team',fd=null,fdKey='',fRd='',fScope='all',fSlot='',fMsg='';
+const FSL=[['gk'],['def'],['def'],['mid'],['mid'],['fwd']];
+function fDraftInit(){
+  const doc=S.fantasy[myId]||{r:{}},T=fNext(),own=doc.r&&doc.r[T],e=own||fEff(doc,T);
+  const key=T+'|'+(own?own.ts:0)+'|'+Object.keys(doc.r||{}).length;
+  if(fd&&fdKey===key||fd&&fd.dirty&&fd.T===T)return;
+  fd={T,st:e?e.st.slice():Array(6).fill(''),bn:e?e.bn.slice():['',''],cap:e?e.cap:'',vc:e?e.vc:'',col:doc.col||'#2e7d4f',wc:!!(own&&own.wc),bb:!!(own&&own.bb),dirty:false};fdKey=key;
+}
+function fBase(T){const doc=S.fantasy[myId];if(!doc||!doc.r)return null;const k=Object.keys(doc.r).filter(x=>x<T).sort().pop();return k?doc.r[k]:null}
+function fPrice(u){const c=fCfg();return c&&c.prices&&typeof c.prices[u]==='number'?c.prices[u]:null}
+function fPaid(u,base){return !fd.wc&&base&&base.pp&&[...base.st,...base.bn].includes(u)&&typeof base.pp[u]==='number'?base.pp[u]:fPrice(u)}
+function fCost(base,skip){return [...fd.st,...fd.bn].reduce((s,u,i)=>s+(u&&u!==skip?(fPaid(u,base)||0):0),0)}
+function fSlotUid(k){return k[0]==='s'?fd.st[+k[1]]:fd.bn[+k[1]]}
+function fSlotCats(k){return k[0]==='s'?FSL[+k[1]]:k[1]==='0'?['gk']:['def','mid','fwd']}
+function fSlotBtn(k,u,o){
+  const cap=o.cap===u&&u?'<i class="fcb">C</i>':o.vc===u&&u?'<i class="fcb v">V</i>':'';
+  const empty=!u,nm=u?nameOf(u):'';
+  const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
+  return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm.length>11?nm.slice(0,10)+'…':nm)}</span>${sub}</button>`;
+}
+function fPitch(sq,o){
+  const g=(k)=>fSlotBtn(k,k[0]==='s'?sq.st[+k[1]]:sq.bn[+k[1]],o);
+  return `<div class="pitch"><div class="prow">${g('s5')}</div><div class="prow">${g('s3')}${g('s4')}</div><div class="prow">${g('s1')}${g('s2')}</div><div class="prow">${g('s0')}</div></div>
+  <div class="bench"><b>الاحتياط</b><div class="prow">${g('b0')}${g('b1')}</div></div>`;
+}
+function renderFantasy(){
+  const el=$('#fanPage');if(!el)return;
+  if(!myId){el.innerHTML='<div class="none">سجّل دخولك</div>';return}
+  fMemo=new Map();fMaybePrices();
+  const cfg=fCfg(),T=fNext(),cur=fCur();
+  const warn=isAdmin()?(()=>{const ok=Object.keys(S.access).filter(u=>S.access[u]&&S.access[u].status==='ok');const nn=ok.filter(u=>!(+S.access[u].no>0)),np=ok.filter(u=>!posList(u).length);ensureNames(nn.concat(np));return (nn.length?`<div class="msg ban">⚠️ ${nn.length} لاعب بدون رقم عضوية ما يظهرون باللعبة: ${nn.map(u=>esc(nameOf(u))).join('، ')}</div>`:'')+(np.length?`<div class="msg">ℹ️ ${np.length} لاعب بدون مركز يعتبرون «وسط» باللعبة.</div>`:'')})():'';
+  const left=(()=>{const ms=new Date(T+'T00:00:00Z').getTime()-FKW-Date.now(),h=Math.max(0,Math.floor(ms/36e5));return h>=24?Math.floor(h/24)+' يوم و'+(h%24)+' ساعة':h+' ساعة'})();
+  const head=`<div class="card fh"><div><b>الجولة الحالية</b> من الجمعة ${esc(cur)}</div><div class="hint">تعديل تشكيلة الجولة القادمة يقفل بعد ${left} (الجمعة 00:00 بتوقيت الكويت)</div></div>`;
+  const tabs=[['team','🧢 تشكيلتي'],['pts','📊 النقاط'],['lb','🏆 الترتيب'],['rules','📜 القواعد']].map(([k,l])=>`<button data-ftab="${k}" class="${fTab===k?'on':''}">${l}</button>`).join('');
+  let body='';
+  if(!cfg){body=`<div class="none">الأسعار ما تحدثت للحين. ${isAdmin()?'جاري تحديثها...':'تظهر اللعبة بعد ما يفتح الأدمن الموقع.'}</div>`}
+  else if(fTab==='team')body=fTeamTab(cfg,T);
+  else if(fTab==='pts')body=fPtsTab();
+  else if(fTab==='lb')body=fLbTab();
+  else body=fRulesTab();
+  el.innerHTML=warn+head+`<div class="seg fseg">${tabs}</div>`+body;
+}
+function fTeamTab(cfg,T){
+  fDraftInit();const doc=S.fantasy[myId]||{r:{}},base=fBase(T);
+  if(!(S.access[myId]&&S.access[myId].status==='ok'))return '<div class="none">اللعبة للأعضاء المعتمدين فقط</div>';
+  const cost=fCost(base),rem=FAN_BUDGET-cost;
+  const baseSet=base?[...base.st,...base.bn]:null,mine=[...fd.st,...fd.bn].filter(Boolean);
+  const used=baseSet&&!fd.wc?mine.filter(u=>!baseSet.includes(u)).length:0,avail=fAvail(doc,T);
+  const wc=fChip(doc,T,'wc'),bb=fChip(doc,T,'bb');
+  const chip=(k,lab,ic,st)=>`<button class="chip ${fd[k]?'on':''}" data-fchip="${k}" ${!st.ok&&!fd[k]?'disabled':''}>${ic} ${lab}${fd[k]?' ✓':''}${!st.ok&&!fd[k]?` <small>(بعد ${st.left} يوم)</small>`:''}</button>`;
+  const cols=FAN_COLS.map(c=>`<button class="fcol ${fd.col===c?'on':''}" data-fcol="${c}" style="background:${c}" aria-label="لون"></button>`).join('');
+  const full=fd.st.every(Boolean)&&fd.bn.every(Boolean);
+  return `<div class="fstat"><div><small>الميزانية المتبقية</small><b class="${rem<0?'neg':''}">${rem.toFixed(1)}</b></div><div><small>التبديلات</small><b class="${!fd.wc&&baseSet&&used>avail?'neg':''}">${fd.wc?'∞':baseSet?used+' / '+avail:'مفتوحة'}</b></div><div><small>قيمة التشكيلة</small><b>${cost.toFixed(1)}</b></div></div>
+  ${fPitch(fd,{edit:true,col:fd.col,cap:fd.cap,vc:fd.vc,base})}
+  <div class="card"><b>🧥 لون التيشيرت</b><div class="fcols">${cols}</div></div>
+  <div class="card"><b>⚡ القدرات الخاصة</b><div class="row wrap">${chip('wc','وايلد كارد','🃏',wc)}${chip('bb','بنش بوست','🚀',bb)}</div><div class="hint">وايلد كارد: تغيير كامل بدون حد للتبديلات (مرة كل 90 يوم). بنش بوست: نقاط البدلاء تنحسب لهذي الجولة (مرة بالشهر). ما يستخدمان معًا.</div></div>
+  ${fMsg?`<div class="msg ${fMsg[0]==='✅'?'':'ban'}">${esc(fMsg)}</div>`:''}
+  <div class="row"><button id="fSave" ${full&&fd.cap&&fd.vc?'':'disabled'}>💾 احفظ التشكيلة للجولة القادمة</button></div>
+  <div class="hint">${full?(fd.cap&&fd.vc?'جاهزة للحفظ.':'اختر كابتن ونائب كابتن (اضغط لاعب أساسي).'):'عبّي كل الخانات (6 أساسيين و2 احتياط).'} · الجولة القادمة تبدأ الجمعة ${esc(T)}.</div>`;
+}
+function fPtsTab(){
+  const doc=S.fantasy[myId],rs=fRounds(doc);
+  if(!rs.length)return '<div class="none">لسه ما عندك جولات. احفظ تشكيلتك، وتبدأ نقاطك من أول جولة بعد الإغلاق.</div>';
+  if(!fRd||!rs.includes(fRd))fRd=rs[rs.length-1];
+  const r=fRound(doc,fRd);
+  const e=r.e,pts={};e.st.forEach((u,i)=>pts['s'+i]=r.stp[i]);e.bn.forEach((u,i)=>pts['b'+i]=r.bnp[i]);
+  const dim=new Set(e.bn.filter(u=>!r.subIn.includes(u)));
+  return `<div class="card"><select id="fRd">${rs.slice().reverse().map(k=>`<option value="${k}" ${k===fRd?'selected':''}>جولة ${k}${k===fCur()?' (الحالية)':''}</option>`).join('')}</select><div class="fstat"><div><small>مجموع الجولة</small><b>${r.total}</b></div><div><small>مجموعك الكلي</small><b>${fTotal(doc)}</b></div></div></div>
+  ${fPitch(e,{view:true,col:(doc&&doc.col)||'#2e7d4f',cap:r.capU,vc:'',pts,dim})}
+  <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه.'} نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —.</div>`;
+}
+function fLbRows(ids){
+  return ids.map(u=>{const d=S.fantasy[u];const rs=fRounds(d);const last=rs.length?fRound(d,rs[rs.length-1]):null;return {u,tot:fTotal(d),last:last?last.total:0,has:!!rs.length}}).sort((a,b)=>b.tot-a.tot||b.last-a.last);
+}
+function fLbTab(){
+  const gs=Object.entries(S.groups||{}).filter(([id,g])=>g&&(isAdmin()||(g.members||[]).includes(myId)));
+  if(fScope!=='all'&&!gs.some(([id])=>id===fScope))fScope='all';
+  const scopes=[['all','🌍 العام'],...gs.map(([id,g])=>[id,'👥 '+g.name])];
+  const ids=fScope==='all'?Object.keys(S.fantasy).filter(u=>fRounds(S.fantasy[u]).length):(S.groups[fScope].members||[]);
+  ensureNames(ids);const rows=fLbRows(ids);
+  return `<div class="seg fseg">${scopes.map(([k,l])=>`<button data-fscope="${esc(k)}" class="${fScope===k?'on':''}">${esc(l)}</button>`).join('')}</div>`+
+  (rows.length?rows.map((r,i)=>`<div class="lb ${r.u===myId?'mine':''}" data-uid="${esc(r.u)}"><span class="rk">${i<3?['🥇','🥈','🥉'][i]:i+1}</span>${avatar(r.u)}<div class="nm">${esc(nameOf(r.u))}<small>${r.has?'آخر جولة: '+r.last:'ما سجّل تشكيلة'}</small></div><span class="val">${r.tot}</span></div>`).join(''):'<div class="none">ما فيه مشاركين بعد</div>');
+}
+function fRulesTab(){
+  return `<div class="card rules"><b>طريقة اللعب</b><ul>
+  <li>تختار 8 لاعبين: 6 أساسيين (حارس، مدافعين، وسطين، مهاجم) و2 احتياط (حارس + لاعب ميدان).</li>
+  <li>الميزانية ${FAN_BUDGET}. السعر من 4 إلى 12 حسب متوسط نقاط اللاعب، واللاعب الجديد 5. الأسعار تتحدث كل جولة، وسعرك للاعب يثبت عند شرائه.</li>
+  <li>الجولة أسبوع كامل يبدأ الجمعة. تعديل الجولة القادمة يقفل الجمعة 00:00 بتوقيت الكويت.</li>
+  <li>نقاط اللاعب بالجولة = أعلى نقاط حصلها بمباراة واحدة. من ما لعب ياخذ صفر ويدخل بدله الاحتياط حسب المركز.</li>
+  <li>الكابتن نقاطه ×2. إذا ما لعب، ينتقل الضعف لنائب الكابتن.</li>
+  <li>تبديلان بكل جولة، ويتراكم تبديل واحد فقط من غير المستعمل (الأقصى 3).</li>
+  <li>🃏 وايلد كارد مرة كل 90 يوم: تغيّر التشكيلة كلها بدون حد، وتتسعّر بأسعار اليوم ضمن الميزانية.</li>
+  <li>🚀 بنش بوست مرة بالشهر: نقاط الاحتياط تنحسب لجولة واحدة.</li>
+  <li>النقاط نفس نقاط الموقع (أهداف، تمريرات، تصديات، شباك نظيف، صخرة الدفاع، رجل المباراة...).</li></ul></div>`;
+}
+function fOpenPicker(k){
+  fSlot=k;const cfg=fCfg(),base=fBase(fd.T),cats=fSlotCats(k),cur=fSlotUid(k);
+  const rem=FAN_BUDGET-fCost(base,cur);
+  const ids=Object.keys(cfg.prices).filter(u=>(cfg.pos[u]||[]).some(c=>cats.includes(c)));
+  ensureNames(ids);
+  const taken=new Set([...fd.st,...fd.bn].filter(x=>x&&x!==cur));
+  ids.sort((a,b)=>cfg.prices[b]-cfg.prices[a]||nameOf(a).localeCompare(nameOf(b),'ar'));
+  const isSt=k[0]==='s';
+  $('#fanBody').innerHTML=`<h3>${cats.length>1?'اختر لاعب ميدان':'اختر '+FCAT[cats[0]]}</h3><div class="hint">المتبقي من الميزانية: <b>${rem.toFixed(1)}</b></div>
+  ${cur?`<div class="row wrap">${isSt?`<button class="ghost" data-fcap="${esc(cur)}">👑 كابتن</button><button class="ghost" data-fvc="${esc(cur)}">🅥 نائب</button>`:''}<button class="ghost" data-fclear="1">إزالة اللاعب</button></div>`:''}
+  <div class="pklist">${ids.map(u=>{const p=cfg.prices[u],pay=fd.wc||!fBase(fd.T)||![...(base?base.st:[]),...(base?base.bn:[])].includes(u)?p:fPaid(u,base),dis=taken.has(u)||pay>rem+1e-9;return `<button class="pk ${dis?'dis':''}" data-fpick="${esc(u)}" ${dis?'disabled':''}>${avatar(u,'sm')}<span class="pkn">${esc(nameOf(u))}<small>#${fNo(u)} · ${(cfg.pos[u]||[]).map(c=>FCAT[c]).join('/')}${taken.has(u)?' · مختار':''}</small></span><b>${pay.toFixed(1)}</b></button>`}).join('')||'<div class="none">لا يوجد لاعبين بهذا المركز</div>'}</div>`;
+  $('#dFan').showModal();
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.ftab){fTab=b.dataset.ftab;fMsg='';renderFantasy();return}
+  if(b.dataset.fscope){fScope=b.dataset.fscope;renderFantasy();return}
+  if(b.dataset.fs&&fd){fOpenPicker(b.dataset.fs);return}
+  if(b.dataset.fpick&&fd){
+    const u=b.dataset.fpick,k=fSlot;
+    if(k[0]==='s'){const old=fd.st[+k[1]];fd.st[+k[1]]=u;if(fd.cap===old)fd.cap='';if(fd.vc===old)fd.vc=''}else fd.bn[+k[1]]=u;
+    fd.dirty=true;fMsg='';$('#dFan').close();renderFantasy();return;
+  }
+  if(b.dataset.fclear&&fd){const k=fSlot,old=fSlotUid(k);if(k[0]==='s')fd.st[+k[1]]='';else fd.bn[+k[1]]='';if(fd.cap===old)fd.cap='';if(fd.vc===old)fd.vc='';fd.dirty=true;$('#dFan').close();renderFantasy();return}
+  if(b.dataset.fcap&&fd){const u=b.dataset.fcap;if(fd.vc===u)fd.vc='';fd.cap=u;fd.dirty=true;$('#dFan').close();renderFantasy();return}
+  if(b.dataset.fvc&&fd){const u=b.dataset.fvc;if(fd.cap===u)fd.cap='';fd.vc=u;fd.dirty=true;$('#dFan').close();renderFantasy();return}
+  if(b.dataset.fcol&&fd){fd.col=b.dataset.fcol;fd.dirty=true;renderFantasy();return}
+  if(b.dataset.fchip&&fd){const k=b.dataset.fchip;fd[k]=!fd[k];if(fd[k]){fd[k==='wc'?'bb':'wc']=false}fd.dirty=true;renderFantasy();return}
+  if(b.id==='fSave'&&fd){
+    b.disabled=true;fMsg='';
+    const data={t:fd.T,st:fd.st,bn:fd.bn,cap:fd.cap,vc:fd.vc,col:fd.col,wc:fd.wc,bb:fd.bb};
+    fetch('/api/write',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({ops:[{op:'set',path:'fantasy/'+myId,data}]})})
+      .then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok){fMsg=j.error||'ما انحفظ، حاول مرة ثانية'}else{fMsg='✅ انحفظت تشكيلة الجولة القادمة';fd.dirty=false;fdKey='';playSnd('in')}})
+      .catch(()=>{fMsg='تعذر الاتصال، حاول مرة ثانية'})
+      .finally(async()=>{try{await window.__refreshNow()}catch(e){}renderFantasy()});return;
+  }
+});
+document.addEventListener('change',e=>{if(e.target.id==='fRd'){fRd=e.target.value;renderFantasy()}});
+
 function renderBoardControls(){
   $('#lbMode').innerHTML=[['all','كل الوقت'],['year','السنة'],['month','الشهر']].map(([k,l])=>`<button data-m="${k}" class="${per.mode===k?'on':''}">${l}</button>`).join('');
   const ys=lbYears();
@@ -2789,7 +3030,7 @@ function renderBoard(){
     if(v!==prev){rank=i+1;prev=v}
     const top=v>0&&rank<=3;
     const medal=top?(rank===1?'🥇':rank===2?'🥈':'🥉'):rank;
-    return `<div class="lb ${top?'t'+rank:''} ${r.uid===myId?'mine':''}" data-uid="${esc(r.uid)}"><span class="rk">${medal}</span>${avatar(r.uid)}<div class="nm">${esc(nameOf(r.uid))}${lvTag(r.uid)}<small>${r.n} مباراة · ⚽ ${r.g} · 🎯 ${r.a}${r.gk||r.sv?` · 🧤 ${r.sv}`:''}${r.mv?` · 🌟 ${r.mv}`:''}${useVotes?` · 🗳 ${r.v}`:''}</small></div><span class="val ${v>0?'':'z'}">${fmt(v)}</span></div>`;
+    return `<div class="lb ${top?'t'+rank:''} ${r.uid===myId?'mine':''}" data-uid="${esc(r.uid)}"><span class="rk">${medal}</span>${avatar(r.uid)}<div class="nm">${esc(nameOf(r.uid))}${lvTag(r.uid)}<small>${r.n} مباراة · ⚽ ${r.g} · 🎯 ${r.a}${r.gk||r.sv?` · 🧤 ${r.sv}`:''}${r.mv?` · 🌟 ${r.mv}`:''}${r.rk?` · 🛡 ${r.rk}`:''}${useVotes?` · 🗳 ${r.v}`:''}</small></div><span class="val ${v>0?'':'z'}">${fmt(v)}</span></div>`;
   }).join(''):'<div class="card empty">ما فيه لاعبين مسجلين للحين</div>';
 }
 $('#lbMode').addEventListener('click',e=>{const b=e.target.closest('button');if(b){per.mode=b.dataset.m;renderBoardControls();renderBoard()}});
@@ -3431,7 +3672,7 @@ async function init(){
   try{if(user&&user.id)myId=await user.id()}catch(e){}
   if(!db){note('سجّل دخولك عشان تشوف البيانات');return}
   timer=setTimeout(()=>note('البيانات ما وصلت للحين، ممكن تكون قديمة'),10000);
-  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('rock','rock',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);sub('tournaments','tournaments',true);if(isAdmin()){sub('teamsDraft','teamsDraft',true);sub('suggestions','suggestions',true);sub('alerts','alerts',true);sub('groups','groups',true);sub('thanks','thanks',true);sub('emails','emails',true)}
+  sub('matches','matches');sub('stats','stats',true);sub('players','players',true);sub('gallery','gallery');sub('rsvps','rsvps',true);sub('access','access',true);sub('config','config',true);sub('votes','votes',true);sub('fantasy','fantasy',true);sub('fround','fround',true);sub('awards','awards',true);sub('teams','teams',true);sub('feed','feed');sub('reacts','reacts',true);sub('motm','motm',true);sub('rock','rock',true);sub('bans','bans',true);sub('inbox','inbox',true);sub('views','views',true);sub('events','events',true);sub('tournaments','tournaments',true);if(isAdmin()){sub('teamsDraft','teamsDraft',true);sub('suggestions','suggestions',true);sub('alerts','alerts',true);sub('groups','groups',true);sub('thanks','thanks',true);sub('emails','emails',true)}
   if(myId&&!isAdmin()){$('#meBtn').hidden=false;$('#bellBtn').hidden=false}
   if(isAdmin()){$('#adminBtn').hidden=false;$('#memBtn').hidden=false;document.querySelector('header.hero').classList.add('isadm')}
   if(user&&user.canEdit&&user.canEdit()){document.querySelectorAll('[data-admin]').forEach(e=>e.classList.add('show'))}
