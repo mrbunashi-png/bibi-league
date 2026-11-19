@@ -54,13 +54,26 @@ button,.btn{font-family:inherit;font-size:14px;font-weight:700;border:0;border-r
 button.ghost{background:transparent;color:var(--olive-d);border:1px dashed var(--olive)}
 .admin{display:none;margin-top:8px}
 .admin.show{display:block}
-.pitch{background:linear-gradient(#3a8f4f,#2f7a42);border-radius:16px;padding:14px 6px;margin:10px 0;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:inset 0 0 0 2px #ffffff55}
+body.fan{--paper:#06103b;--card:#0e1853;--line:#2a3790;--ink:#fff1f6;--mute:#a9b4ec;--wood:#ff7dbb;--wood-d:#040a2c;--olive:#e83d8c;--olive-d:#ff8cc0}
+body.fan header.hero{background:radial-gradient(circle at 50% 0%,#222f94,#06103b 72%)}
+body.fan #note{background:#1b2780;color:#ffd1e6}
+body.fan .pklist{background:#0a1244}body.fan .pk{border-bottom-color:#27338a}
+body.fan .msg{background:#1b2780;color:#ffd1e6}
+body.fan dialog{border:1px solid #2a3790}
+body.fan nav.bar a.on{background:#e83d8c}
+.nvl{width:26px;height:26px;border-radius:8px;vertical-align:middle}
+.flogo{display:flex;justify-content:center;margin:-6px 0 4px}.flogo img{width:210px;height:210px;object-fit:contain;-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 52%,transparent 71%);mask-image:radial-gradient(circle at 50% 50%,#000 52%,transparent 71%)}
+body.fan select{background:#0a1244;color:#fff1f6;border:1px solid #2a3790}body.fan select option{background:#0a1244;color:#fff1f6}
+.fvh{display:flex;align-items:center;gap:10px;margin-bottom:8px}.fvh h3{margin:0}
+.pitch{position:relative;aspect-ratio:300/430;margin:10px 0;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#2a3596 0%,#141c6c 48%,#080f3e 100%);box-shadow:0 0 0 2px #ff4f9a99,0 10px 30px #0007,inset 0 0 40px #000a}
+.pitch:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,#ffffff0a 0 10.4%,#00000018 10.4% 20.8%);pointer-events:none}
+.pitch:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 0 0,#ff4f9a40,transparent 40%),radial-gradient(circle at 100% 0,#ff4f9a40,transparent 40%);pointer-events:none}
+.pls{position:absolute;inset:0;width:100%;height:100%}.plg{filter:blur(4px);opacity:.55}
+.pitrows{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 4px 34px;z-index:1}
 .prow{display:flex;justify-content:space-around;align-items:flex-start;gap:6px;position:relative}
-.bench{background:#e9e4d3;border-radius:14px;padding:8px;margin:8px 0;text-align:center}.bench .prow{justify-content:center;gap:28px}
+.bench{background:linear-gradient(#141c6c,#0a1244);border:1px solid #2a3790;border-top:4px solid #ff4f9a;border-radius:14px;padding:8px;margin:8px 0;text-align:center;color:#ffd1e6}.bench .prow{justify-content:center;gap:28px}
 button.fs{background:transparent;border:0;padding:2px;width:86px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
-.bench button.fs{color:var(--ink)}
-button.fs .fsh{width:58px;height:54px}.fnm{font-size:12px;font-weight:700;background:#0000004d;border-radius:8px;padding:1px 6px;max-width:84px;overflow:hidden;white-space:nowrap}
-.bench .fnm{background:#0000001a}
+button.fs .fsh{width:58px;height:54px;filter:drop-shadow(0 4px 4px #0009)}.fnm{font-size:12px;font-weight:700;background:#060c3acc;border:1px solid #ffffff22;border-radius:8px;padding:1px 6px;max-width:84px;overflow:hidden;white-space:nowrap}
 .fp{font-size:11px;font-weight:800;background:#fff;color:#222;border-radius:8px;padding:0 6px;margin-top:1px}.fp.z{opacity:.6}
 button.fs.dim{opacity:.45}button.fs:disabled{opacity:1}
 .fcb{position:absolute;top:0;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:#f2c200;color:#222;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;border:1px solid #0006}.fcb.v{background:#cfd4da}
@@ -377,7 +390,7 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
     <a data-v="home" class="on"><span class="i">🏠</span>الرئيسية</a>
     <a data-v="log"><span class="i">📅</span>Log</a>
     <a data-v="board"><span class="i">🏆</span>Leaderboard</a>
-    <a data-v="fantasy"><span class="i">⚽</span>فانتازي</a>
+    <a data-v="fantasy"><span class="i"><img class="nvl" src="/fantasy-logo-sm.png" alt="" width="26" height="26"></span>Bibi's<br>Fantasy</a>
     <a data-v="awards"><span class="i">🏅</span>Bibi Awards</a>
     <a data-v="tour" id="navTour" hidden><span class="i">🏟</span>البطولات</a>
     <a data-v="media"><span class="i">📸</span>صور وفيديو</a>
@@ -598,6 +611,11 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <div id="fanBody"></div>
 </dialog>
 
+<dialog id="dFanV">
+  <button class="x" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="fanVBody"></div>
+</dialog>
+
 <dialog id="dTourM">
   <h3 id="tmTitle">إنشاء المباراة</h3>
   <label>التاريخ</label><input type="date" id="tmDate">
@@ -783,6 +801,7 @@ function note(t){const n=$('#note');n.textContent=t;n.style.display=t?'block':'n
 function go(v){
   for(const a of document.querySelectorAll('#nav a'))a.classList.toggle('on',a.dataset.v===v);
   for(const m of document.querySelectorAll('main'))m.hidden=(m.id!=='v-'+v);
+  document.body.classList.toggle('fan',v==='fantasy');
   if(v==='fantasy'){try{renderFantasy()}catch(e){}}
 }
 $('#nav').addEventListener('click',e=>{const a=e.target.closest('a');if(a){location.hash=a.dataset.v;}});
@@ -2872,9 +2891,13 @@ function fSlotBtn(k,u,o){
   const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
   return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm.length>11?nm.slice(0,10)+'…':nm)}</span>${sub}</button>`;
 }
+function fPitchSvg(){
+  const L='<rect x="10" y="10" width="280" height="410" rx="10"/><line x1="10" y1="215" x2="290" y2="215"/><circle cx="150" cy="215" r="40"/><rect x="78" y="10" width="144" height="64"/><rect x="114" y="10" width="72" height="26"/><path d="M112 74 A38 38 0 0 0 188 74"/><rect x="78" y="356" width="144" height="64"/><rect x="114" y="394" width="72" height="26"/><path d="M112 356 A38 38 0 0 1 188 356"/><path d="M10 22 A12 12 0 0 0 22 10M278 10 A12 12 0 0 0 290 22M10 408 A12 12 0 0 1 22 420M278 420 A12 12 0 0 1 290 408"/><rect x="126" y="3" width="48" height="7" rx="2"/><rect x="126" y="420" width="48" height="7" rx="2"/>';
+  return `<svg class="pls" viewBox="0 0 300 430" preserveAspectRatio="none" aria-hidden="true"><g class="plg" fill="none" stroke="#ff4f9a" stroke-width="5">${L}</g><g fill="none" stroke="#ffd1e6" stroke-width="1.8" opacity=".9">${L}</g><circle cx="150" cy="215" r="2.6" fill="#ffd1e6"/></svg>`;
+}
 function fPitch(sq,o){
   const g=(k)=>fSlotBtn(k,k[0]==='s'?sq.st[+k[1]]:sq.bn[+k[1]],o);
-  return `<div class="pitch"><div class="prow">${g('s5')}</div><div class="prow">${g('s3')}${g('s4')}</div><div class="prow">${g('s1')}${g('s2')}</div><div class="prow">${g('s0')}</div></div>
+  return `<div class="pitch">${fPitchSvg()}<div class="pitrows"><div class="prow">${g('s5')}</div><div class="prow">${g('s3')}${g('s4')}</div><div class="prow">${g('s1')}${g('s2')}</div><div class="prow">${g('s0')}</div></div></div>
   <div class="bench"><b>الاحتياط</b><div class="prow">${g('b0')}${g('b1')}</div></div>`;
 }
 function renderFantasy(){
@@ -2884,7 +2907,7 @@ function renderFantasy(){
   const cfg=fCfg(),T=fNext(),cur=fCur();
   const warn=isAdmin()?(()=>{const ok=Object.keys(S.access).filter(u=>S.access[u]&&S.access[u].status==='ok');const nn=ok.filter(u=>!(+S.access[u].no>0)),np=ok.filter(u=>!posList(u).length);ensureNames(nn.concat(np));return (nn.length?`<div class="msg ban">⚠️ ${nn.length} لاعب بدون رقم عضوية ما يظهرون باللعبة: ${nn.map(u=>esc(nameOf(u))).join('، ')}</div>`:'')+(np.length?`<div class="msg">ℹ️ ${np.length} لاعب بدون مركز يعتبرون «وسط» باللعبة.</div>`:'')})():'';
   const left=(()=>{const ms=new Date(T+'T00:00:00Z').getTime()-FKW-Date.now(),h=Math.max(0,Math.floor(ms/36e5));return h>=24?Math.floor(h/24)+' يوم و'+(h%24)+' ساعة':h+' ساعة'})();
-  const head=`<div class="card fh"><div><b>الجولة الحالية</b> من الجمعة ${esc(cur)}</div><div class="hint">تعديل تشكيلة الجولة القادمة يقفل بعد ${left} (الجمعة 00:00 بتوقيت الكويت)</div></div>`;
+  const head=`<div class="flogo"><img src="/fantasy-logo.png" alt="Bibi's Fantasy" width="190" height="190"></div><div class="card fh"><div><b>الجولة الحالية</b> من الجمعة ${esc(cur)}</div><div class="hint">تعديل تشكيلة الجولة القادمة يقفل بعد ${left} (الجمعة 00:00 بتوقيت الكويت)</div></div>`;
   const tabs=[['team','🧢 تشكيلتي'],['pts','📊 النقاط'],['lb','🏆 الترتيب'],['rules','📜 القواعد']].map(([k,l])=>`<button data-ftab="${k}" class="${fTab===k?'on':''}">${l}</button>`).join('');
   let body='';
   if(!cfg){body=`<div class="none">الأسعار ما تحدثت للحين. ${isAdmin()?'جاري تحديثها...':'تظهر اللعبة بعد ما يفتح الأدمن الموقع.'}</div>`}
@@ -2912,16 +2935,29 @@ function fTeamTab(cfg,T){
   <div class="row"><button id="fSave" ${full&&fd.cap&&fd.vc?'':'disabled'}>💾 احفظ التشكيلة للجولة القادمة</button></div>
   <div class="hint">${full?(fd.cap&&fd.vc?'جاهزة للحفظ.':'اختر كابتن ونائب كابتن (اضغط لاعب أساسي).'):'عبّي كل الخانات (6 أساسيين و2 احتياط).'} · الجولة القادمة تبدأ الجمعة ${esc(T)}.</div>`;
 }
+function fRoundView(doc,rd){
+  const r=fRound(doc,rd),e=r.e,pts={};e.st.forEach((u,i)=>pts['s'+i]=r.stp[i]);e.bn.forEach((u,i)=>pts['b'+i]=r.bnp[i]);
+  const dim=new Set(e.bn.filter(u=>!r.subIn.includes(u)));
+  return `<div class="fstat"><div><small>مجموع الجولة</small><b>${r.total}</b></div><div><small>المجموع الكلي</small><b>${fTotal(doc)}</b></div></div>
+  ${fPitch(e,{view:true,col:(doc&&doc.col)||'#2e7d4f',cap:r.capU,vc:'',pts,dim})}
+  <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه. '}نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —.</div>`;
+}
+const fRdSel=(rs,cur,id)=>`<select id="${id}">${rs.slice().reverse().map(k=>`<option value="${k}" ${k===cur?'selected':''}>جولة ${k}${k===fCur()?' (الحالية)':''}</option>`).join('')}</select>`;
 function fPtsTab(){
   const doc=S.fantasy[myId],rs=fRounds(doc);
   if(!rs.length)return '<div class="none">لسه ما عندك جولات. احفظ تشكيلتك، وتبدأ نقاطك من أول جولة بعد الإغلاق.</div>';
   if(!fRd||!rs.includes(fRd))fRd=rs[rs.length-1];
-  const r=fRound(doc,fRd);
-  const e=r.e,pts={};e.st.forEach((u,i)=>pts['s'+i]=r.stp[i]);e.bn.forEach((u,i)=>pts['b'+i]=r.bnp[i]);
-  const dim=new Set(e.bn.filter(u=>!r.subIn.includes(u)));
-  return `<div class="card"><select id="fRd">${rs.slice().reverse().map(k=>`<option value="${k}" ${k===fRd?'selected':''}>جولة ${k}${k===fCur()?' (الحالية)':''}</option>`).join('')}</select><div class="fstat"><div><small>مجموع الجولة</small><b>${r.total}</b></div><div><small>مجموعك الكلي</small><b>${fTotal(doc)}</b></div></div></div>
-  ${fPitch(e,{view:true,col:(doc&&doc.col)||'#2e7d4f',cap:r.capU,vc:'',pts,dim})}
-  <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه.'} نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —.</div>`;
+  return `<div class="card">${fRdSel(rs,fRd,'fRd')}</div>`+fRoundView(doc,fRd);
+}
+let fvUid='',fvRd='';
+function fOpenView(u){
+  fvUid=u;fvRd='';ensureNames([u]);fRenderView();$('#dFanV').showModal();
+}
+function fRenderView(){
+  fMemo=new Map();const doc=S.fantasy[fvUid],rs=fRounds(doc);
+  if(!rs.length){$('#fanVBody').innerHTML=`<h3>${esc(nameOf(fvUid))}</h3><div class="none">ما سجّل تشكيلة بعد</div>`;return}
+  if(!fvRd||!rs.includes(fvRd))fvRd=rs[rs.length-1];
+  $('#fanVBody').innerHTML=`<div class="fvh">${avatar(fvUid)}<h3>${esc(nameOf(fvUid))}</h3></div>${fRdSel(rs,fvRd,'fvRd')}`+fRoundView(doc,fvRd);
 }
 function fLbRows(ids){
   return ids.map(u=>{const d=S.fantasy[u];const rs=fRounds(d);const last=rs.length?fRound(d,rs[rs.length-1]):null;return {u,tot:fTotal(d),last:last?last.total:0,has:!!rs.length}}).sort((a,b)=>b.tot-a.tot||b.last-a.last);
@@ -2933,7 +2969,7 @@ function fLbTab(){
   const ids=fScope==='all'?Object.keys(S.fantasy).filter(u=>fRounds(S.fantasy[u]).length):(S.groups[fScope].members||[]);
   ensureNames(ids);const rows=fLbRows(ids);
   return `<div class="seg fseg">${scopes.map(([k,l])=>`<button data-fscope="${esc(k)}" class="${fScope===k?'on':''}">${esc(l)}</button>`).join('')}</div>`+
-  (rows.length?rows.map((r,i)=>`<div class="lb ${r.u===myId?'mine':''}" data-uid="${esc(r.u)}"><span class="rk">${i<3?['🥇','🥈','🥉'][i]:i+1}</span>${avatar(r.u)}<div class="nm">${esc(nameOf(r.u))}<small>${r.has?'آخر جولة: '+r.last:'ما سجّل تشكيلة'}</small></div><span class="val">${r.tot}</span></div>`).join(''):'<div class="none">ما فيه مشاركين بعد</div>');
+  (rows.length?'<div class="hint">اضغط على اسم المشترك لتشوف تشكيلته ونتائجه</div>'+rows.map((r,i)=>`<div class="lb ${r.u===myId?'mine':''}" data-fv="${esc(r.u)}" style="cursor:pointer"><span class="rk">${i<3?['🥇','🥈','🥉'][i]:i+1}</span>${avatar(r.u)}<div class="nm">${esc(nameOf(r.u))}<small>${r.has?'آخر جولة: '+r.last:'ما سجّل تشكيلة'}</small></div><span class="val">${r.tot}</span></div>`).join(''):'<div class="none">ما فيه مشاركين بعد</div>');
 }
 function fRulesTab(){
   return `<div class="card rules"><b>طريقة اللعب</b><ul>
@@ -2955,12 +2991,13 @@ function fOpenPicker(k){
   const taken=new Set([...fd.st,...fd.bn].filter(x=>x&&x!==cur));
   ids.sort((a,b)=>cfg.prices[b]-cfg.prices[a]||nameOf(a).localeCompare(nameOf(b),'ar'));
   const isSt=k[0]==='s';
-  $('#fanBody').innerHTML=`<h3>${cats.length>1?'اختر لاعب ميدان':'اختر '+FCAT[cats[0]]}</h3><div class="hint">المتبقي من الميزانية: <b>${rem.toFixed(1)}</b></div>
+  $('#fanBody').innerHTML=`<h3>${cur?'🔄 بدّل '+esc(nameOf(cur)):(cats.length>1?'اختر لاعب ميدان':'اختر '+FCAT[cats[0]])}</h3><div class="hint">${cur?'اختر لاعبًا بديلًا من القائمة. ':''}المتبقي من الميزانية: <b>${rem.toFixed(1)}</b></div>
   ${cur?`<div class="row wrap">${isSt?`<button class="ghost" data-fcap="${esc(cur)}">👑 كابتن</button><button class="ghost" data-fvc="${esc(cur)}">🅥 نائب</button>`:''}<button class="ghost" data-fclear="1">إزالة اللاعب</button></div>`:''}
   <div class="pklist">${ids.map(u=>{const p=cfg.prices[u],pay=fd.wc||!fBase(fd.T)||![...(base?base.st:[]),...(base?base.bn:[])].includes(u)?p:fPaid(u,base),dis=taken.has(u)||pay>rem+1e-9;return `<button class="pk ${dis?'dis':''}" data-fpick="${esc(u)}" ${dis?'disabled':''}>${avatar(u,'sm')}<span class="pkn">${esc(nameOf(u))}<small>#${fNo(u)} · ${(cfg.pos[u]||[]).map(c=>FCAT[c]).join('/')}${taken.has(u)?' · مختار':''}</small></span><b>${pay.toFixed(1)}</b></button>`}).join('')||'<div class="none">لا يوجد لاعبين بهذا المركز</div>'}</div>`;
   $('#dFan').showModal();
 }
 document.addEventListener('click',e=>{
+  const fv=e.target.closest('[data-fv]');if(fv){fOpenView(fv.dataset.fv);return}
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.ftab){fTab=b.dataset.ftab;fMsg='';renderFantasy();return}
   if(b.dataset.fscope){fScope=b.dataset.fscope;renderFantasy();return}
@@ -2984,7 +3021,7 @@ document.addEventListener('click',e=>{
       .finally(async()=>{try{await window.__refreshNow()}catch(e){}renderFantasy()});return;
   }
 });
-document.addEventListener('change',e=>{if(e.target.id==='fRd'){fRd=e.target.value;renderFantasy()}});
+document.addEventListener('change',e=>{if(e.target.id==='fRd'){fRd=e.target.value;renderFantasy()}if(e.target.id==='fvRd'){fvRd=e.target.value;fRenderView()}});
 
 function renderBoardControls(){
   $('#lbMode').innerHTML=[['all','كل الوقت'],['year','السنة'],['month','الشهر']].map(([k,l])=>`<button data-m="${k}" class="${per.mode===k?'on':''}">${l}</button>`).join('');
