@@ -10,7 +10,9 @@ export function ridOf(ms: number) {
   const d = new Date(ms + KW); const diff = (d.getUTCDay() - 5 + 7) % 7;
   d.setUTCDate(d.getUTCDate() - diff); return d.toISOString().slice(0, 10);
 }
-export const nextRid = (ms: number) => addDays(ridOf(ms), 7);
+/* استثناء لهذي الجولة فقط: يقفل تعديل جولة 2026-11-20 الساعة 2 الفجر (الكويت) بدل 00:00 */
+export const EXC_LOCK = Date.UTC(2026, 10, 19, 23, 0, 0);
+export const nextRid = (ms: number) => (ms < EXC_LOCK ? '2026-11-20' : addDays(ridOf(ms), 7));
 
 const has = (pos: any, u: string, c: string) => Array.isArray(pos && pos[u]) && pos[u].includes(c);
 const OUT = ['def', 'mid', 'fwd'];

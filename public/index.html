@@ -65,15 +65,15 @@ body.fan nav.bar a.on{background:#e83d8c}
 .flogo{display:flex;justify-content:center;margin:-6px 0 4px}.flogo img{width:210px;height:210px;object-fit:contain;-webkit-mask-image:radial-gradient(circle at 50% 50%,#000 52%,transparent 71%);mask-image:radial-gradient(circle at 50% 50%,#000 52%,transparent 71%)}
 body.fan select{background:#0a1244;color:#fff1f6;border:1px solid #2a3790}body.fan select option{background:#0a1244;color:#fff1f6}
 .fvh{display:flex;align-items:center;gap:10px;margin-bottom:8px}.fvh h3{margin:0}
-.pitch{position:relative;aspect-ratio:300/430;margin:10px 0;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#2a3596 0%,#141c6c 48%,#080f3e 100%);box-shadow:0 0 0 2px #ff4f9a99,0 10px 30px #0007,inset 0 0 40px #000a}
+.pitch{position:relative;aspect-ratio:300/500;margin:10px 0;border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#2a3596 0%,#141c6c 48%,#080f3e 100%);box-shadow:0 0 0 2px #ff4f9a99,0 10px 30px #0007,inset 0 0 40px #000a}
 .pitch:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,#ffffff0a 0 10.4%,#00000018 10.4% 20.8%);pointer-events:none}
 .pitch:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 0 0,#ff4f9a40,transparent 40%),radial-gradient(circle at 100% 0,#ff4f9a40,transparent 40%);pointer-events:none}
 .pls{position:absolute;inset:0;width:100%;height:100%}.plg{filter:blur(4px);opacity:.55}
 .pitrows{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 4px 34px;z-index:1}
 .prow{display:flex;justify-content:space-around;align-items:flex-start;gap:6px;position:relative}
 .bench{background:linear-gradient(#141c6c,#0a1244);border:1px solid #2a3790;border-top:4px solid #ff4f9a;border-radius:14px;padding:8px;margin:8px 0;text-align:center;color:#ffd1e6}.bench .prow{justify-content:center;gap:28px}
-button.fs{background:transparent;border:0;padding:2px;width:86px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
-button.fs .fsh{width:58px;height:54px;filter:drop-shadow(0 4px 4px #0009)}.fnm{font-size:12px;font-weight:700;background:#060c3acc;border:1px solid #ffffff22;border-radius:8px;padding:1px 6px;max-width:84px;overflow:hidden;white-space:nowrap}
+button.fs{background:transparent;border:0;padding:2px;width:104px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
+button.fs .fsh{width:76px;height:71px;filter:drop-shadow(0 4px 4px #0009)}.fnm{font-size:12.5px;font-weight:700;background:#060c3acc;border:1px solid #ffffff22;border-radius:9px;padding:1px 7px;max-width:104px;text-align:center;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
 .fp{font-size:11px;font-weight:800;background:#fff;color:#222;border-radius:8px;padding:0 6px;margin-top:1px}.fp.z{opacity:.6}
 button.fs.dim{opacity:.45}button.fs:disabled{opacity:1}
 .fcb{position:absolute;top:0;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:#f2c200;color:#222;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;border:1px solid #0006}.fcb.v{background:#cfd4da}
@@ -2799,7 +2799,8 @@ const FKW=3*3600000;
 const fAdd=(d,n)=>new Date(new Date(d+'T00:00:00Z').getTime()+n*864e5).toISOString().slice(0,10);
 const fDays=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);
 const fRid=ms=>{const d=new Date(ms+FKW);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()-5+7)%7));return d.toISOString().slice(0,10)};
-const fCur=()=>fRid(Date.now()),fNext=()=>fAdd(fCur(),7);
+const FEXC=Date.UTC(2026,10,19,23,0,0);
+const fCur=()=>fRid(Date.now()),fNext=()=>Date.now()<FEXC?'2026-11-20':fAdd(fCur(),7);
 const FCAT={gk:'حارس',def:'مدافع',mid:'وسط',fwd:'مهاجم'};
 function fCats(u){
   const r=new Set();
@@ -2860,15 +2861,15 @@ function fChip(doc,T,which){
 let fPriceBusy=false;
 function fMaybePrices(){
   if(!isAdmin()||fPriceBusy||!S.ready.fround||!S.ready.stats||!S.ready.access||!S.ready.players||!S.matches.length)return;
-  const cur=fCur();if(S.fround&&S.fround[cur])return;
+  const cur=fCur();if(S.fround&&S.fround[cur]&&S.fround[cur].v>=2)return;
   const ids=fEligibleIds();if(!ids.length)return;
   fPriceBusy=true;
   const rows=ids.map(u=>{const t=totalsP(u,()=>true);return {u,n:t.n,avg:t.n?statScore(t,hasGK(u))/t.n:0}});
   const ranked=rows.filter(r=>r.n>0).sort((a,b)=>a.avg-b.avg),prices={},pos={};
-  ranked.forEach((r,i)=>{prices[r.u]=ranked.length>1?Math.round((4+8*i/(ranked.length-1))*2)/2:8});
-  rows.filter(r=>!r.n).forEach(r=>{prices[r.u]=5});
+  ranked.forEach((r,i)=>{prices[r.u]=ranked.length>1?Math.round((5+10*Math.pow(i/(ranked.length-1),2.5))*2)/2:8});
+  rows.filter(r=>!r.n).forEach(r=>{prices[r.u]=5.5});
   ids.forEach(u=>{pos[u]=fCats(u)});
-  db.doc('fround/'+cur).set({prices,pos,ts:Date.now()}).then(()=>{S.fround[cur]={prices,pos,ts:Date.now()};if(!$('#v-fantasy').hidden)renderFantasy()}).catch(()=>{}).finally(()=>{fPriceBusy=false});
+  db.doc('fround/'+cur).set({prices,pos,v:2,ts:Date.now()}).then(()=>{S.fround[cur]={prices,pos,v:2,ts:Date.now()};if(!$('#v-fantasy').hidden)renderFantasy()}).catch(()=>{}).finally(()=>{fPriceBusy=false});
 }
 /* ----- الواجهة ----- */
 let fTab='team',fd=null,fdKey='',fRd='',fScope='all',fSlot='',fMsg='';
@@ -2889,11 +2890,11 @@ function fSlotBtn(k,u,o){
   const cap=o.cap===u&&u?'<i class="fcb">C</i>':o.vc===u&&u?'<i class="fcb v">V</i>':'';
   const empty=!u,nm=u?nameOf(u):'';
   const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
-  return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm.length>11?nm.slice(0,10)+'…':nm)}</span>${sub}</button>`;
+  return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm)}</span>${sub}</button>`;
 }
 function fPitchSvg(){
-  const L='<rect x="10" y="10" width="280" height="410" rx="10"/><line x1="10" y1="215" x2="290" y2="215"/><circle cx="150" cy="215" r="40"/><rect x="78" y="10" width="144" height="64"/><rect x="114" y="10" width="72" height="26"/><path d="M112 74 A38 38 0 0 0 188 74"/><rect x="78" y="356" width="144" height="64"/><rect x="114" y="394" width="72" height="26"/><path d="M112 356 A38 38 0 0 1 188 356"/><path d="M10 22 A12 12 0 0 0 22 10M278 10 A12 12 0 0 0 290 22M10 408 A12 12 0 0 1 22 420M278 420 A12 12 0 0 1 290 408"/><rect x="126" y="3" width="48" height="7" rx="2"/><rect x="126" y="420" width="48" height="7" rx="2"/>';
-  return `<svg class="pls" viewBox="0 0 300 430" preserveAspectRatio="none" aria-hidden="true"><g class="plg" fill="none" stroke="#ff4f9a" stroke-width="5">${L}</g><g fill="none" stroke="#ffd1e6" stroke-width="1.8" opacity=".9">${L}</g><circle cx="150" cy="215" r="2.6" fill="#ffd1e6"/></svg>`;
+  const L='<rect x="10" y="10" width="280" height="480" rx="10"/><line x1="10" y1="250" x2="290" y2="250"/><circle cx="150" cy="250" r="40"/><rect x="78" y="10" width="144" height="64"/><rect x="114" y="10" width="72" height="26"/><path d="M112 74 A38 38 0 0 0 188 74"/><rect x="78" y="426" width="144" height="64"/><rect x="114" y="464" width="72" height="26"/><path d="M112 426 A38 38 0 0 1 188 426"/><path d="M10 22 A12 12 0 0 0 22 10M278 10 A12 12 0 0 0 290 22M10 478 A12 12 0 0 1 22 490M278 490 A12 12 0 0 1 290 478"/><rect x="126" y="3" width="48" height="7" rx="2"/><rect x="126" y="490" width="48" height="7" rx="2"/>';
+  return `<svg class="pls" viewBox="0 0 300 500" preserveAspectRatio="none" aria-hidden="true"><g class="plg" fill="none" stroke="#ff4f9a" stroke-width="5">${L}</g><g fill="none" stroke="#ffd1e6" stroke-width="1.8" opacity=".9">${L}</g><circle cx="150" cy="250" r="2.6" fill="#ffd1e6"/></svg>`;
 }
 function fPitch(sq,o){
   const g=(k)=>fSlotBtn(k,k[0]==='s'?sq.st[+k[1]]:sq.bn[+k[1]],o);
@@ -2906,8 +2907,8 @@ function renderFantasy(){
   fMemo=new Map();fMaybePrices();
   const cfg=fCfg(),T=fNext(),cur=fCur();
   const warn=isAdmin()?(()=>{const ok=Object.keys(S.access).filter(u=>S.access[u]&&S.access[u].status==='ok');const nn=ok.filter(u=>!(+S.access[u].no>0)),np=ok.filter(u=>!posList(u).length);ensureNames(nn.concat(np));return (nn.length?`<div class="msg ban">⚠️ ${nn.length} لاعب بدون رقم عضوية ما يظهرون باللعبة: ${nn.map(u=>esc(nameOf(u))).join('، ')}</div>`:'')+(np.length?`<div class="msg">ℹ️ ${np.length} لاعب بدون مركز يعتبرون «وسط» باللعبة.</div>`:'')})():'';
-  const left=(()=>{const ms=new Date(T+'T00:00:00Z').getTime()-FKW-Date.now(),h=Math.max(0,Math.floor(ms/36e5));return h>=24?Math.floor(h/24)+' يوم و'+(h%24)+' ساعة':h+' ساعة'})();
-  const head=`<div class="flogo"><img src="/fantasy-logo.png" alt="Bibi's Fantasy" width="190" height="190"></div><div class="card fh"><div><b>الجولة الحالية</b> من الجمعة ${esc(cur)}</div><div class="hint">تعديل تشكيلة الجولة القادمة يقفل بعد ${left} (الجمعة 00:00 بتوقيت الكويت)</div></div>`;
+  const left=(()=>{const ms=(T==='2026-11-20'?FEXC:new Date(T+'T00:00:00Z').getTime()-FKW)-Date.now(),h=Math.max(0,Math.floor(ms/36e5));return h>=24?Math.floor(h/24)+' يوم و'+(h%24)+' ساعة':h+' ساعة'})();
+  const head=`<div class="flogo"><img src="/fantasy-logo.png" alt="Bibi's Fantasy" width="190" height="190"></div><div class="card fh"><div><b>الجولة الحالية</b> من الجمعة ${esc(cur)}</div><div class="hint">تعديل تشكيلة الجولة القادمة يقفل بعد ${left} ${T==='2026-11-20'?'(الجمعة 2 الفجر بتوقيت الكويت، لهذي الجولة فقط)':'(الجمعة 00:00 بتوقيت الكويت)'}</div></div>`;
   const tabs=[['team','🧢 تشكيلتي'],['pts','📊 النقاط'],['lb','🏆 الترتيب'],['rules','📜 القواعد']].map(([k,l])=>`<button data-ftab="${k}" class="${fTab===k?'on':''}">${l}</button>`).join('');
   let body='';
   if(!cfg){body=`<div class="none">الأسعار ما تحدثت للحين. ${isAdmin()?'جاري تحديثها...':'تظهر اللعبة بعد ما يفتح الأدمن الموقع.'}</div>`}
@@ -2974,7 +2975,7 @@ function fLbTab(){
 function fRulesTab(){
   return `<div class="card rules"><b>طريقة اللعب</b><ul>
   <li>تختار 8 لاعبين: 6 أساسيين (حارس، مدافعين، وسطين، مهاجم) و2 احتياط (حارس + لاعب ميدان).</li>
-  <li>الميزانية ${FAN_BUDGET}. السعر من 4 إلى 12 حسب متوسط نقاط اللاعب، واللاعب الجديد 5. الأسعار تتحدث كل جولة، وسعرك للاعب يثبت عند شرائه.</li>
+  <li>الميزانية ${FAN_BUDGET}. السعر من 5 إلى 15 حسب متوسط نقاط اللاعب بمنحنى حاد (القمة غالية جدًا، فما تقدر تجمع أفضل ثلاثة بتشكيلة وحدة)، واللاعب الجديد 5.5. الأسعار تتحدث كل جولة، وسعرك للاعب يثبت عند شرائه.</li>
   <li>الجولة أسبوع كامل يبدأ الجمعة. تعديل الجولة القادمة يقفل الجمعة 00:00 بتوقيت الكويت.</li>
   <li>نقاط اللاعب بالجولة = أعلى نقاط حصلها بمباراة واحدة. من ما لعب ياخذ صفر ويدخل بدله الاحتياط حسب المركز.</li>
   <li>الكابتن نقاطه ×2. إذا ما لعب، ينتقل الضعف لنائب الكابتن.</li>
