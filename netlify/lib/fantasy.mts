@@ -26,6 +26,13 @@ export async function saveFantasy(uid: string, data: any, now = Date.now()): Pro
   const prices: Record<string, number> = cfg.prices, pos = cfg.pos || {};
   const T = nextRid(now);
   if (!data || typeof data !== 'object' || data.t !== T) return { error: 'تغيّرت الجولة، حدّث الصفحة وحاول من جديد' };
+  if (data.undo) {
+    /* تراجع: يلغي تشكيلة الجولة القادمة قبل الإغلاق فقط (الإغلاق يُفرض بتطابق الجولة T) */
+    const cur: any = all[uid];
+    if (!cur || !cur.r || !cur.r[T]) return { error: 'ما عندك تشكيلة محفوظة لهذي الجولة' };
+    await mutate('fantasy', (c) => { const d: any = { ...(c[uid] || {}) }; const r = { ...(d.r || {}) }; delete r[T]; d.r = r; return { ...c, [uid]: d }; });
+    return {};
+  }
   const st: string[] = Array.isArray(data.st) ? data.st.map(String) : [], bn: string[] = Array.isArray(data.bn) ? data.bn.map(String) : [];
   if (st.length !== 6 || bn.length !== 2) return { error: 'التشكيلة لازم 6 أساسيين و2 احتياط' };
   const sq = [...st, ...bn];

@@ -233,6 +233,7 @@ a.pl{color:var(--ink);font-weight:700;text-decoration:underline dotted;text-unde
 .who{display:flex;align-items:center;gap:10px;min-width:0}
 .ent button.ok{background:var(--olive)}
 #status .card.cta{border:2px solid var(--olive);background:#f4f7e8;font-size:15px}
+body.fan #status .card.cta,body.fan .card.cta{background:#0e1853;border-color:#e83d8c;color:#fff1f6}body.fan .card.cta small{color:#a9b4ec}body.fan .card.cta button{background:#e83d8c;color:#fff}
 #status .card.cta button{background:var(--olive);color:#fff;white-space:nowrap}
 #status .card{margin-top:10px;font-size:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gal figure{cursor:pointer}
@@ -1643,6 +1644,7 @@ function renderPlayerHead(){
   const gear=canEditP(uid)&&p.name?`<button class="gear" data-gear="1" aria-label="تعديل البيانات" title="تعديل البيانات">⚙️</button>`:'';
   const no=S.access[uid]&&S.access[uid].no?`<span class="pbadge">عضو #${S.access[uid].no}</span>`:'';
   const lvB=L.lv?`<span class="pbadge">${esc(L.lv.i)} ${esc(L.lv.n)}</span>`:'';
+  const fq=(()=>{try{const q=fRankOf(uid);return q?`<span class="pbadge" style="background:#ffd9ea;color:#a3205f">⚽ Bibi's Fantasy: المركز ${q.rank} من ${q.of} · ${q.tot} نقطة</span>`:''}catch(e){return ''}})();
   const hon=(L.honor?`<span class="pbadge">${esc(L.cfg.honor.i)} ${esc(L.cfg.honor.n)}</span>`:'')+L.custom.map(c=>`<span class="pbadge">🎖 ${esc(c)}</span>`).join('');
   const rk=Object.keys(S.rock).filter(k=>rockWinners(k).includes(uid)).length;
   const cell=(v,l)=>`<div><b>${v}</b><span>${l}</span></div>`;
@@ -1652,7 +1654,7 @@ function renderPlayerHead(){
   const ban=bi&&bi.active?`<div class="pban">⛔ عقوبة حرمان من اللعب<br>النوع: ${esc(bi.b.reason||'—')}<br>الحرمان: ${bi.b.games} ${bi.b.games>10?'':'مباراة'} · المتبقي: ${bi.left}</div>`:'';
   $('#plHead').innerHTML=`<div class="pcover"></div><div class="pbody">${gear}<div class="pav">${avatar(uid,'big')}</div>
     <h3 class="pn">${esc(nameOf(uid))}</h3>
-    <div class="pmeta">${pl.map(x=>`<span class="pbadge">${esc(x)}</span>`).join('')}${no}${lvB}${hon}</div>
+    <div class="pmeta">${pl.map(x=>`<span class="pbadge">${esc(x)}</span>`).join('')}${no}${lvB}${fq}${hon}</div>
     ${uid===myId?'<div class="sub">هذا ملفك</div>':''}</div>
     <div class="pst">${cell(t.n,'مباراة')}${cell(t.g,'⚽ أهداف')}${cell(t.a,'🎯 تمريرات')}${gk?cell(t.sv,'🧤 تصديات'):cell(t.g+t.a,'مساهمات')}${cell(t.mv||0,'🌟 رجل المباراة')}${cell(rk,'🛡 صخرة')}${cell(+statScore(t,gk).toFixed(1),'نقاط')}${cell(L.lv?esc(L.lv.i):'—',L.lv?esc(L.lv.n):'بدون مستوى')}</div>
     ${ban}${emH}${msg?`<div class="msg">${msg}</div>`:''}`;
@@ -2928,12 +2930,13 @@ function fTeamTab(cfg,T){
   const chip=(k,lab,ic,st)=>`<button class="chip ${fd[k]?'on':''}" data-fchip="${k}" ${!st.ok&&!fd[k]?'disabled':''}>${ic} ${lab}${fd[k]?' ✓':''}${!st.ok&&!fd[k]?` <small>(بعد ${st.left} يوم)</small>`:''}</button>`;
   const cols=FAN_COLS.map(c=>`<button class="fcol ${fd.col===c?'on':''}" data-fcol="${c}" style="background:${c}" aria-label="لون"></button>`).join('');
   const full=fd.st.every(Boolean)&&fd.bn.every(Boolean);
-  return `<div class="fstat"><div><small>الميزانية المتبقية</small><b class="${rem<0?'neg':''}">${rem.toFixed(1)}</b></div><div><small>التبديلات</small><b class="${!fd.wc&&baseSet&&used>avail?'neg':''}">${fd.wc?'∞':baseSet?used+' / '+avail:'مفتوحة'}</b></div><div><small>قيمة التشكيلة</small><b>${cost.toFixed(1)}</b></div></div>
+  return fCurBox(doc)+`<div class="fstat"><div><small>الميزانية المتبقية</small><b class="${rem<0?'neg':''}">${rem.toFixed(1)}</b></div><div><small>التبديلات</small><b class="${!fd.wc&&baseSet&&used>avail?'neg':''}">${fd.wc?'∞':baseSet?used+' / '+avail:'مفتوحة'}</b></div><div><small>قيمة التشكيلة</small><b>${cost.toFixed(1)}</b></div></div>
   ${fPitch(fd,{edit:true,col:fd.col,cap:fd.cap,vc:fd.vc,base})}
   <div class="card"><b>🧥 لون التيشيرت</b><div class="fcols">${cols}</div></div>
   <div class="card"><b>⚡ القدرات الخاصة</b><div class="row wrap">${chip('wc','وايلد كارد','🃏',wc)}${chip('bb','بنش بوست','🚀',bb)}</div><div class="hint">وايلد كارد: تغيير كامل بدون حد للتبديلات (مرة كل 90 يوم). بنش بوست: نقاط البدلاء تنحسب لهذي الجولة (مرة بالشهر). ما يستخدمان معًا.</div></div>
   ${fMsg?`<div class="msg ${fMsg[0]==='✅'?'':'ban'}">${esc(fMsg)}</div>`:''}
-  <div class="row"><button id="fSave" ${full&&fd.cap&&fd.vc?'':'disabled'}>💾 احفظ التشكيلة للجولة القادمة</button></div>
+  <div class="row"><button id="fSave" ${full&&fd.cap&&fd.vc?'':'disabled'}>💾 احفظ التشكيلة للجولة القادمة</button>${doc.r&&doc.r[T]?'<button class="ghost" data-fundo="1">↩ تراجع</button>':''}</div>
+  <div class="hint">${doc.r&&doc.r[T]?'تشكيلتك محفوظة للجولة القادمة، وتقدر تتراجع أو تعدّل لين الإغلاق. بعد الإغلاق تتعطل وتنتشر تشكيلتك بالترتيب.':'بعد الإغلاق ما تقدر تعدّل، وتنتشر تشكيلتك بالترتيب.'}</div>
   <div class="hint">${full?(fd.cap&&fd.vc?'جاهزة للحفظ.':'اختر كابتن ونائب كابتن (اضغط لاعب أساسي).'):'عبّي كل الخانات (6 أساسيين و2 احتياط).'} · الجولة القادمة تبدأ الجمعة ${esc(T)}.</div>`;
 }
 function fRoundView(doc,rd){
@@ -2944,6 +2947,15 @@ function fRoundView(doc,rd){
   <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه. '}نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —.</div>`;
 }
 const fRdSel=(rs,cur,id)=>`<select id="${id}">${rs.slice().reverse().map(k=>`<option value="${k}" ${k===cur?'selected':''}>جولة ${k}${k===fCur()?' (الحالية)':''}</option>`).join('')}</select>`;
+function fCurBox(doc){
+  const cur=fCur();if(!fRounds(doc).length)return '';
+  const r=fRound(doc,cur);if(!r)return '';
+  return `<div class="fstat fcur"><div><small>نقاط الجولة الحالية</small><b>${r.total}</b></div><div><small>مجموعك الكلي</small><b>${fTotal(doc)}</b></div></div>`;
+}
+function fRankOf(u){
+  const ids=Object.keys(S.fantasy).filter(x=>fRounds(S.fantasy[x]).length);if(!ids.includes(u))return null;
+  const rows=fLbRows(ids);const i=rows.findIndex(r=>r.u===u);return {rank:i+1,of:rows.length,tot:rows[i].tot};
+}
 function fPtsTab(){
   const doc=S.fantasy[myId],rs=fRounds(doc);
   if(!rs.length)return '<div class="none">لسه ما عندك جولات. احفظ تشكيلتك، وتبدأ نقاطك من أول جولة بعد الإغلاق.</div>';
@@ -2984,6 +2996,23 @@ function fRulesTab(){
   <li>🚀 بنش بوست مرة بالشهر: نقاط الاحتياط تنحسب لجولة واحدة.</li>
   <li>النقاط نفس نقاط الموقع (أهداف، تمريرات، تصديات، شباك نظيف، صخرة الدفاع، رجل المباراة...).</li></ul></div>`;
 }
+function fSwapOpts(k){
+  /* خيارات التبديل بين الأساسي والاحتياط مع احترام المراكز */
+  const cfg=fCfg(),pos=u=>(cfg&&cfg.pos&&cfg.pos[u])||[];
+  const res=[];
+  if(k[0]==='s'){
+    const i=+k[1],cat=FSL[i][0];
+    fd.bn.forEach((u,j)=>{if(u&&(j===0?cat==='gk'&&pos(u).includes('gk'):cat!=='gk'&&pos(u).includes(cat)))res.push(['b'+j,u])});
+  }else{
+    const j=+k[1];
+    fd.st.forEach((u,i)=>{const cat=FSL[i][0];if(u&&(j===0?cat==='gk'&&pos(fd.bn[0]).includes('gk'):cat!=='gk'&&pos(fd.bn[1]).includes(cat)))res.push(['s'+i,u])});
+  }
+  return res;
+}
+function fSwapRow(k,cur){
+  const o=fSwapOpts(k);if(!o.length)return '';
+  return `<div class="hint">بدّل مع ${k[0]==='s'?'الاحتياط':'أساسي'}:</div><div class="row wrap">${o.map(([k2,u])=>`<button class="chip" data-fswap="${k2}">🔄 ${esc(nameOf(u))}</button>`).join('')}</div>`;
+}
 function fOpenPicker(k){
   fSlot=k;const cfg=fCfg(),base=fBase(fd.T),cats=fSlotCats(k),cur=fSlotUid(k);
   const rem=FAN_BUDGET-fCost(base,cur);
@@ -2993,6 +3022,7 @@ function fOpenPicker(k){
   ids.sort((a,b)=>cfg.prices[b]-cfg.prices[a]||nameOf(a).localeCompare(nameOf(b),'ar'));
   const isSt=k[0]==='s';
   $('#fanBody').innerHTML=`<h3>${cur?'🔄 بدّل '+esc(nameOf(cur)):(cats.length>1?'اختر لاعب ميدان':'اختر '+FCAT[cats[0]])}</h3><div class="hint">${cur?'اختر لاعبًا بديلًا من القائمة. ':''}المتبقي من الميزانية: <b>${rem.toFixed(1)}</b></div>
+  ${cur?fSwapRow(k,cur):''}
   ${cur?`<div class="row wrap">${isSt?`<button class="ghost" data-fcap="${esc(cur)}">👑 كابتن</button><button class="ghost" data-fvc="${esc(cur)}">🅥 نائب</button>`:''}<button class="ghost" data-fclear="1">إزالة اللاعب</button></div>`:''}
   <div class="pklist">${ids.map(u=>{const p=cfg.prices[u],pay=fd.wc||!fBase(fd.T)||![...(base?base.st:[]),...(base?base.bn:[])].includes(u)?p:fPaid(u,base),dis=taken.has(u)||pay>rem+1e-9;return `<button class="pk ${dis?'dis':''}" data-fpick="${esc(u)}" ${dis?'disabled':''}>${avatar(u,'sm')}<span class="pkn">${esc(nameOf(u))}<small>#${fNo(u)} · ${(cfg.pos[u]||[]).map(c=>FCAT[c]).join('/')}${taken.has(u)?' · مختار':''}</small></span><b>${pay.toFixed(1)}</b></button>`}).join('')||'<div class="none">لا يوجد لاعبين بهذا المركز</div>'}</div>`;
   $('#dFan').showModal();
@@ -3007,6 +3037,20 @@ document.addEventListener('click',e=>{
     const u=b.dataset.fpick,k=fSlot;
     if(k[0]==='s'){const old=fd.st[+k[1]];fd.st[+k[1]]=u;if(fd.cap===old)fd.cap='';if(fd.vc===old)fd.vc=''}else fd.bn[+k[1]]=u;
     fd.dirty=true;fMsg='';$('#dFan').close();renderFantasy();return;
+  }
+  if(b.dataset.fswap&&fd){
+    const a=fSlot,c=b.dataset.fswap,A=fSlotUid(a),B=fSlotUid(c);
+    const set=(k,u)=>{if(k[0]==='s')fd.st[+k[1]]=u;else fd.bn[+k[1]]=u};
+    set(a,B);set(c,A);
+    for(const x of [A,B]){if(fd.cap===x&&!fd.st.includes(x))fd.cap='';if(fd.vc===x&&!fd.st.includes(x))fd.vc=''}
+    fd.dirty=true;fMsg='';$('#dFan').close();renderFantasy();return;
+  }
+  if(b.dataset.fundo&&fd){
+    b.disabled=true;fMsg='';
+    fetch('/api/write',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({ops:[{op:'set',path:'fantasy/'+myId,data:{t:fd.T,undo:true}}]})})
+      .then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok){fMsg=j.error||'ما تم التراجع، حاول مرة ثانية'}else{fMsg='✅ تم التراجع عن تشكيلة الجولة القادمة';fd=null;fdKey=''}})
+      .catch(()=>{fMsg='تعذر الاتصال، حاول مرة ثانية'})
+      .finally(async()=>{try{await window.__refreshNow()}catch(e){}renderFantasy()});return;
   }
   if(b.dataset.fclear&&fd){const k=fSlot,old=fSlotUid(k);if(k[0]==='s')fd.st[+k[1]]='';else fd.bn[+k[1]]='';if(fd.cap===old)fd.cap='';if(fd.vc===old)fd.vc='';fd.dirty=true;$('#dFan').close();renderFantasy();return}
   if(b.dataset.fcap&&fd){const u=b.dataset.fcap;if(fd.vc===u)fd.vc='';fd.cap=u;fd.dirty=true;$('#dFan').close();renderFantasy();return}
