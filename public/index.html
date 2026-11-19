@@ -72,7 +72,7 @@ body.fan select{background:#0a1244;color:#fff1f6;border:1px solid #2a3790}body.f
 .pitrows{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 4px 34px;z-index:1}
 .prow{display:flex;justify-content:space-around;align-items:flex-start;gap:6px;position:relative}
 .bench{background:linear-gradient(#141c6c,#0a1244);border:1px solid #2a3790;border-top:4px solid #ff4f9a;border-radius:14px;padding:8px;margin:8px 0;text-align:center;color:#ffd1e6}.bench .prow{justify-content:center;gap:28px}
-button.fs{background:transparent;border:0;padding:2px;width:104px;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
+button.fs{background:transparent;border:0;padding:2px;width:104px;max-width:33%;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
 button.fs .fsh{width:76px;height:71px;filter:drop-shadow(0 4px 4px #0009)}.fnm{font-size:12.5px;font-weight:700;background:#060c3acc;border:1px solid #ffffff22;border-radius:9px;padding:1px 7px;max-width:104px;text-align:center;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
 .fp{font-size:11px;font-weight:800;background:#fff;color:#222;border-radius:8px;padding:0 6px;margin-top:1px}.fp.z{opacity:.6}
 button.fs.dim{opacity:.45}button.fs:disabled{opacity:1}
@@ -2838,7 +2838,13 @@ function fRound(doc,R){
   else{
     if(stp[0]==null&&bnp[0]!=null){sum+=bnp[0];subIn.push(e.bn[0]);out.push(e.st[0])}
     const miss=[1,2,3,4,5].filter(i=>stp[i]==null);
-    if(miss.length&&bnp[1]!=null){sum+=bnp[1];subIn.push(e.bn[1]);out.push(e.st[miss[0]])}
+    if(miss.length&&bnp[1]!=null){
+      const b=e.bn[1];
+      for(const i of miss){
+        const ok=i===5?fPos(b).includes('fwd'):!!fForm(e.st.slice(1,5).map((u,j)=>j+1===i?b:u));
+        if(ok){sum+=bnp[1];subIn.push(b);out.push(e.st[i]);break}
+      }
+    }
   }
   let capU='',capB=0;const cp=P(e.cap);
   if(cp!=null){capU=e.cap;capB=cp}else{const vp=P(e.vc);if(vp!=null){capU=e.vc;capB=vp}}
@@ -2875,7 +2881,15 @@ function fMaybePrices(){
 }
 /* ----- الواجهة ----- */
 let fTab='team',fd=null,fdKey='',fRd='',fScope='all',fSlot='',fMsg='';
-const FSL=[['gk'],['def'],['def'],['mid'],['mid'],['fwd']];
+/* تشكيلة مرنة: حارس + 4 ميدان (2–3 مدافعين و1–2 وسط) + مهاجم واحد */
+const fPos=u=>{const c=fCfg();return (c&&c.pos&&c.pos[u])||[]};
+function fForm(four){
+  const combos=[];for(let m=0;m<16;m++){const c=[0,1,2,3].map(j=>(m>>j)&1?'def':'mid');const d=c.filter(x=>x==='def').length;if(d>=2&&d<=3)combos.push([d,c])}
+  combos.sort((a,b)=>a[0]-b[0]);
+  for(const [d,c] of combos){if(c.every((x,j)=>!four[j]||fPos(four[j]).includes(x)))return c}
+  return null;
+}
+const fDefForm=['def','def','mid','mid'];
 function fDraftInit(){
   const doc=S.fantasy[myId]||{r:{}},T=fNext(),own=doc.r&&doc.r[T],e=own||fEff(doc,T);
   const key=T+'|'+(own?own.ts:0)+'|'+Object.keys(doc.r||{}).length;
@@ -2887,20 +2901,22 @@ function fPrice(u){const c=fCfg();return c&&c.prices&&typeof c.prices[u]==='numb
 function fPaid(u,base){return !fd.wc&&base&&base.pp&&[...base.st,...base.bn].includes(u)&&typeof base.pp[u]==='number'?base.pp[u]:fPrice(u)}
 function fCost(base,skip){return [...fd.st,...fd.bn].reduce((s,u,i)=>s+(u&&u!==skip?(fPaid(u,base)||0):0),0)}
 function fSlotUid(k){return k[0]==='s'?fd.st[+k[1]]:fd.bn[+k[1]]}
-function fSlotCats(k){return k[0]==='s'?FSL[+k[1]]:k[1]==='0'?['gk']:['def','mid','fwd']}
+function fSlotCats(k){return k[0]==='s'?(k[1]==='0'?['gk']:k[1]==='5'?['fwd']:['def','mid']):k[1]==='0'?['gk']:['def','mid','fwd']}
 function fSlotBtn(k,u,o){
   const cap=o.cap===u&&u?'<i class="fcb">C</i>':o.vc===u&&u?'<i class="fcb v">V</i>':'';
   const empty=!u,nm=u?nameOf(u):'';
-  const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
+  const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${k[0]==='s'&&k[1]>='1'&&k[1]<='4'?FCAT[(o.f||fDefForm)[+k[1]-1]]:fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
   return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm)}</span>${sub}</button>`;
 }
 function fPitchSvg(){
   const L='<rect x="10" y="10" width="280" height="480" rx="10"/><line x1="10" y1="250" x2="290" y2="250"/><circle cx="150" cy="250" r="40"/><rect x="78" y="10" width="144" height="64"/><rect x="114" y="10" width="72" height="26"/><path d="M112 74 A38 38 0 0 0 188 74"/><rect x="78" y="426" width="144" height="64"/><rect x="114" y="464" width="72" height="26"/><path d="M112 426 A38 38 0 0 1 188 426"/><path d="M10 22 A12 12 0 0 0 22 10M278 10 A12 12 0 0 0 290 22M10 478 A12 12 0 0 1 22 490M278 490 A12 12 0 0 1 290 478"/><rect x="126" y="3" width="48" height="7" rx="2"/><rect x="126" y="490" width="48" height="7" rx="2"/>';
   return `<svg class="pls" viewBox="0 0 300 500" preserveAspectRatio="none" aria-hidden="true"><g class="plg" fill="none" stroke="#ff4f9a" stroke-width="5">${L}</g><g fill="none" stroke="#ffd1e6" stroke-width="1.8" opacity=".9">${L}</g><circle cx="150" cy="250" r="2.6" fill="#ffd1e6"/></svg>`;
 }
-function fPitch(sq,o){
+function fPitch(sq,o0){
+  const f=fForm(sq.st.slice(1,5))||fDefForm,o={...o0,f};
   const g=(k)=>fSlotBtn(k,k[0]==='s'?sq.st[+k[1]]:sq.bn[+k[1]],o);
-  return `<div class="pitch">${fPitchSvg()}<div class="pitrows"><div class="prow">${g('s5')}</div><div class="prow">${g('s3')}${g('s4')}</div><div class="prow">${g('s1')}${g('s2')}</div><div class="prow">${g('s0')}</div></div></div>
+  const ds=[1,2,3,4].filter(i=>f[i-1]==='def'),ms=[1,2,3,4].filter(i=>f[i-1]==='mid');
+  return `<div class="pitch">${fPitchSvg()}<div class="pitrows"><div class="prow">${g('s5')}</div><div class="prow">${ms.map(i=>g('s'+i)).join('')}</div><div class="prow">${ds.map(i=>g('s'+i)).join('')}</div><div class="prow">${g('s0')}</div></div></div>
   <div class="bench"><b>الاحتياط</b><div class="prow">${g('b0')}${g('b1')}</div></div>`;
 }
 function renderFantasy(){
@@ -2986,7 +3002,7 @@ function fLbTab(){
 }
 function fRulesTab(){
   return `<div class="card rules"><b>طريقة اللعب</b><ul>
-  <li>تختار 8 لاعبين: 6 أساسيين (حارس، مدافعين، وسطين، مهاجم) و2 احتياط (حارس + لاعب ميدان).</li>
+  <li>تختار 8 لاعبين: 6 أساسيين (حارس + مهاجم واحد + 4 ميدان بتشكيلة مرنة: 2–3 مدافعين و1–2 وسط) و2 احتياط (حارس + لاعب ميدان). التشكيلة تتغير حسب اختيارك، مثلًا بدّل وسط بمدافع احتياط فتصير 3 مدافعين ووسط.</li>
   <li>الميزانية ${FAN_BUDGET}. السعر من 5 إلى 15 حسب متوسط نقاط اللاعب بمنحنى حاد (القمة غالية جدًا، فما تقدر تجمع أفضل ثلاثة بتشكيلة وحدة)، واللاعب الجديد 5.5. الأسعار تتحدث كل جولة، وسعرك للاعب يثبت عند شرائه.</li>
   <li>الجولة أسبوع كامل يبدأ الجمعة. تعديل الجولة القادمة يقفل الجمعة 00:00 بتوقيت الكويت.</li>
   <li>نقاط اللاعب بالجولة = أعلى نقاط حصلها بمباراة واحدة. من ما لعب ياخذ صفر ويدخل بدله الاحتياط حسب المركز.</li>
@@ -2997,16 +3013,15 @@ function fRulesTab(){
   <li>النقاط نفس نقاط الموقع (أهداف، تمريرات، تصديات، شباك نظيف، صخرة الدفاع، رجل المباراة...).</li></ul></div>`;
 }
 function fSwapOpts(k){
-  /* خيارات التبديل بين الأساسي والاحتياط مع احترام المراكز */
-  const cfg=fCfg(),pos=u=>(cfg&&cfg.pos&&cfg.pos[u])||[];
-  const res=[];
+  /* تبديل أساسي/احتياط مع بقاء التشكيلة صالحة */
+  const pos=fPos,res=[],b1=fd.bn[1];
+  const can=(i,u)=>{if(!u)return false;if(i===5)return pos(u).includes('fwd');return !!fForm(fd.st.slice(1,5).map((x,j)=>j+1===i?u:x))};
   if(k[0]==='s'){
-    const i=+k[1],cat=FSL[i][0];
-    fd.bn.forEach((u,j)=>{if(u&&(j===0?cat==='gk'&&pos(u).includes('gk'):cat!=='gk'&&pos(u).includes(cat)))res.push(['b'+j,u])});
-  }else{
-    const j=+k[1];
-    fd.st.forEach((u,i)=>{const cat=FSL[i][0];if(u&&(j===0?cat==='gk'&&pos(fd.bn[0]).includes('gk'):cat!=='gk'&&pos(fd.bn[1]).includes(cat)))res.push(['s'+i,u])});
-  }
+    const i=+k[1];
+    if(i===0){if(fd.bn[0]&&pos(fd.bn[0]).includes('gk'))res.push(['b0',fd.bn[0]])}
+    else if(can(i,b1))res.push(['b1',b1]);
+  }else if(k[1]==='0'){if(fd.st[0]&&pos(fd.st[0]).includes('gk')&&pos(fd.bn[0]).includes('gk'))res.push(['s0',fd.st[0]])}
+  else{for(let i=1;i<=5;i++){const u=fd.st[i];if(u&&can(i,b1))res.push(['s'+i,u])}}
   return res;
 }
 function fSwapRow(k,cur){
@@ -3016,7 +3031,8 @@ function fSwapRow(k,cur){
 function fOpenPicker(k){
   fSlot=k;const cfg=fCfg(),base=fBase(fd.T),cats=fSlotCats(k),cur=fSlotUid(k);
   const rem=FAN_BUDGET-fCost(base,cur);
-  const ids=Object.keys(cfg.prices).filter(u=>(cfg.pos[u]||[]).some(c=>cats.includes(c)));
+  let ids=Object.keys(cfg.prices).filter(u=>(cfg.pos[u]||[]).some(c=>cats.includes(c)));
+  if(k[0]==='s'&&+k[1]>=1&&+k[1]<=4)ids=ids.filter(u=>fForm(fd.st.slice(1,5).map((x,j)=>j+1===+k[1]?u:x)));
   ensureNames(ids);
   const taken=new Set([...fd.st,...fd.bn].filter(x=>x&&x!==cur));
   ids.sort((a,b)=>cfg.prices[b]-cfg.prices[a]||nameOf(a).localeCompare(nameOf(b),'ar'));

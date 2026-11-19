@@ -38,8 +38,15 @@ export async function saveFantasy(uid: string, data: any, now = Date.now()): Pro
   const sq = [...st, ...bn];
   if (new Set(sq).size !== 8) return { error: 'لا يمكن تكرار لاعب' };
   for (const u of sq) if (!(u in prices) || typeof prices[u] !== 'number') return { error: 'فيه لاعب غير متاح للاختيار' };
-  const need = ['gk', 'def', 'def', 'mid', 'mid', 'fwd'];
-  for (let i = 0; i < 6; i++) if (!has(pos, st[i], need[i])) return { error: 'مراكز الأساسيين غير صحيحة' };
+  /* تشكيلة مرنة: حارس + مهاجم + 4 ميدان بحيث 2–3 مدافعين و1–2 وسط */
+  if (!has(pos, st[0], 'gk') || !has(pos, st[5], 'fwd')) return { error: 'مراكز الأساسيين غير صحيحة' };
+  let okForm = false;
+  for (let m = 0; m < 16 && !okForm; m++) {
+    const cats = [0, 1, 2, 3].map((j) => ((m >> j) & 1 ? 'def' : 'mid'));
+    const d = cats.filter((c) => c === 'def').length;
+    if (d >= 2 && d <= 3 && cats.every((c, j) => has(pos, st[j + 1], c))) okForm = true;
+  }
+  if (!okForm) return { error: 'التشكيلة غير صحيحة: لازم 2–3 مدافعين و1–2 وسط ومهاجم واحد' };
   if (!has(pos, bn[0], 'gk')) return { error: 'الاحتياط الأول لازم حارس' };
   if (!OUT.some((c) => has(pos, bn[1], c))) return { error: 'الاحتياط الثاني لازم لاعب ميدان' };
   const cap = String(data.cap || ''), vc = String(data.vc || '');
