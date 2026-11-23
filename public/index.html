@@ -75,7 +75,8 @@ body.fan select{background:#0a1244;color:#fff1f6;border:1px solid #2a3790}body.f
 button.fs{background:transparent;border:0;padding:2px;width:104px;max-width:33%;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;position:relative;cursor:pointer}
 button.fs .fsh{width:76px;height:71px;filter:drop-shadow(0 4px 4px #0009)}.fnm{font-size:12.5px;font-weight:700;background:#060c3acc;border:1px solid #ffffff22;border-radius:9px;padding:1px 7px;max-width:104px;text-align:center;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
 .fp{font-size:11px;font-weight:800;background:#fff;color:#222;border-radius:8px;padding:0 6px;margin-top:1px}.fp.z{opacity:.6}
-button.fs.dim{opacity:.45}button.fs:disabled{opacity:1}
+button.fs:disabled{opacity:1}button.fs.dim,button.fs.dim:disabled{opacity:.45}
+.fp.pt{font-size:16px;font-weight:900;background:#6ef3d0;color:#06103b;border-radius:11px;padding:1px 10px;margin-top:3px;box-shadow:0 0 10px #6ef3d088}.fp.pt.z{background:#ffffff33;color:#fff;box-shadow:none;opacity:1}.fp.pt.cx{background:#ffd24a;box-shadow:0 0 12px #ffd24a99}.fp.pt i{font-style:normal;font-size:11px;margin-inline-start:4px;opacity:.85}
 .fcb{position:absolute;top:0;inset-inline-end:8px;width:20px;height:20px;border-radius:50%;background:#f2c200;color:#222;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;border:1px solid #0006}.fcb.v{background:#cfd4da}
 .fstat{display:flex;gap:8px;margin:8px 0}.fstat>div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}.fstat small{display:block;color:var(--mute);font-size:11px}.fstat b{font-size:19px}.fstat b.neg{color:#b03a2e}
 .fcols{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fcol{width:32px;height:32px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #0004;padding:0}.fcol.on{box-shadow:0 0 0 3px var(--wood)}
@@ -2905,7 +2906,7 @@ function fSlotCats(k){return k[0]==='s'?(k[1]==='0'?['gk']:k[1]==='5'?['fwd']:['
 function fSlotBtn(k,u,o){
   const cap=o.cap===u&&u?'<i class="fcb">C</i>':o.vc===u&&u?'<i class="fcb v">V</i>':'';
   const empty=!u,nm=u?nameOf(u):'';
-  const sub=o.pts?(o.pts[k]!=null?`<small class="fp">${o.pts[k]}</small>`:`<small class="fp z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${k[0]==='s'&&k[1]>='1'&&k[1]<='4'?FCAT[(o.f||fDefForm)[+k[1]-1]]:fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
+  const sub=o.pts?(o.pts[k]!=null?(u&&o.cap===u?`<small class="fp pt cx">${o.pts[k]*2}<i dir="ltr">×2</i></small>`:`<small class="fp pt">${o.pts[k]}</small>`):`<small class="fp pt z">—</small>`):(u?`<small class="fp">${(fPrice(u)!=null?fPaid(u,o.base):'')}</small>`:`<small class="fp">${k[0]==='s'&&k[1]>='1'&&k[1]<='4'?FCAT[(o.f||fDefForm)[+k[1]-1]]:fSlotCats(k).length>1?'لاعب ميدان':FCAT[fSlotCats(k)[0]]}</small>`);
   return `<button class="fs ${empty?'em':''} ${o.dim&&o.dim.has(u)?'dim':''}" data-fs="${k}" ${o.view?'disabled':''}>${cap}${fShirt(o.col,fNo(u),empty)}<span class="fnm">${esc(nm)}</span>${sub}</button>`;
 }
 function fPitchSvg(){
@@ -2960,7 +2961,7 @@ function fRoundView(doc,rd){
   const dim=new Set(e.bn.filter(u=>!r.subIn.includes(u)));
   return `<div class="fstat"><div><small>مجموع الجولة</small><b>${r.total}</b></div><div><small>المجموع الكلي</small><b>${fTotal(doc)}</b></div></div>
   ${fPitch(e,{view:true,col:(doc&&doc.col)||'#2e7d4f',cap:r.capU,vc:'',pts,dim})}
-  <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه. '}نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —.</div>`;
+  <div class="hint">${e.bb?'🚀 بنش بوست مفعّل: نقاط الاحتياط محسوبة. ':''}${r.out.length?'🔄 دخل الاحتياط بدل لاعب ما لعب. ':''}${r.capU?'الكابتن '+(r.capU===e.cap?'':'(نائبه) ')+esc(nameOf(r.capU))+' نقاطه ×2 (+'+r.capB+'). ':'ما لعب الكابتن ولا نائبه. '}نقاط اللاعب = أعلى مباراة له بالجولة، وما لعب = —، والاحتياط الباهت ما دخل بالحساب.</div>`;
 }
 const fRdSel=(rs,cur,id)=>`<select id="${id}">${rs.slice().reverse().map(k=>`<option value="${k}" ${k===cur?'selected':''}>جولة ${k}${k===fCur()?' (الحالية)':''}</option>`).join('')}</select>`;
 function fCurBox(doc){
