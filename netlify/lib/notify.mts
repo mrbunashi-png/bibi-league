@@ -119,7 +119,7 @@ const T = {
   galM: (m: any, n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} (صور أو فيديو أو رابط) مربوط بـ «${titleOf(m)}»`,
   gal: (n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} في الصور والفيديو`,
   full: (m: any, role: string) => role === 'in' ? `✅ اكتمل العدد في «${titleOf(m)}» 🔥` : `✅ اكتمل العدد في «${titleOf(m)}». أنت في الاحتياط وننبهك إذا انفتح مقعد`,
-  team: (m: any, side: string) => `📋 انعتمت تشكيلة «${titleOf(m)}»: أنت في الفريق ${side === 'g' ? '🟢' : '🎨'}`,
+  team: (m: any, side: string) => `📋 اعتُمدت تشكيلة «${titleOf(m)}»: أنت في الفريق ${side === 'g' ? '🟢' : '🎨'}`,
   cancel: (m: any, r: string) => `🚫 تم إلغاء «${titleOf(m)}»${r ? ' · السبب: ' + r : ''}`,
   back: (m: any) => `✅ رجعت «${titleOf(m)}» وصارت قائمة من جديد، سجّل حضورك`,
 };
@@ -147,7 +147,7 @@ export async function onTeamsPublished(mid: string, data: any) {
   if (!(await claim('teams_' + mid))) return;
   for (const side of ['g', 'c']) {
     const uids = (Array.isArray(data && data[side]) ? data[side] : []).filter((x: any) => typeof x === 'string' && !x.startsWith('g:'));
-    await notifyUsers({ uids, key: 't' + mid + side, kind: 'teams', h: '📋 التشكيلة', t: T.team(m, side), title: '📋 انعتمت التشكيلة', mid });
+    await notifyUsers({ uids, key: 't' + mid + side, kind: 'teams', h: '📋 التشكيلة', t: T.team(m, side), title: '📋 اعتُمدت التشكيلة', mid });
   }
 }
 export async function onCancel(mid: string, m: any, reason: string, cancelled: boolean) {
@@ -216,7 +216,7 @@ export async function runJobs() {
 /* ---- تجربة الأدمن على نفسه ---- */
 export async function sendTests(uid: string) {
   const m = { date: '2026-12-04', time: '21:00', format: '7', sport: 'football' };
-  const L: Array<[string, string]> = [['⏰ المباراة بعد ساعتين', T.pre(m, 'in')], ['🌟 صوّت الحين', T.vote1(m)], ['⏳ قرب قفل التصويت', T.vote2(m, 'رجل المباراة')], ['📸 جديد في المعرض', T.gal(2)], ['✅ اكتمل العدد', T.full(m, 'in')], ['📋 انعتمت التشكيلة', T.team(m, 'g')], ['🚫 تم إلغاء المباراة', T.cancel(m, 'الطقس')]];
+  const L: Array<[string, string]> = [['⏰ المباراة بعد ساعتين', T.pre(m, 'in')], ['🌟 صوّت الحين', T.vote1(m)], ['⏳ قرب قفل التصويت', T.vote2(m, 'رجل المباراة')], ['📸 جديد في المعرض', T.gal(2)], ['✅ اكتمل العدد', T.full(m, 'in')], ['📋 اعتُمدت التشكيلة', T.team(m, 'g')], ['🚫 تم إلغاء المباراة', T.cancel(m, 'الطقس')]];
   let reached = 0;
   for (const [t, b] of L) reached += await pushTo([uid], { t: '🧪 ' + t, b, u: '/' });
   return { sent: L.length, reached };
