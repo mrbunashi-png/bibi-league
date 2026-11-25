@@ -80,7 +80,7 @@ async function claim(k: string): Promise<boolean> {
 }
 
 /* ---- الإرسال: صندوق التنبيهات + إشعار الجهاز ---- */
-type Kind = 'pre' | 'vote' | 'gal' | 'full' | 'teams' | 'cancel' | 'tour' | 'welcome';
+type Kind = 'pre' | 'rem' | 'vote' | 'gal' | 'full' | 'teams' | 'cancel' | 'tour' | 'welcome';
 export async function notifyUsers(o: { uids: string[]; key: string; kind: Kind; h: string; t: string; title: string; mid?: string }) {
   if (!o.uids.length) return 0;
   const [players, access] = await Promise.all([readColl('players'), readColl('access')]);
@@ -114,6 +114,16 @@ const T = {
   pre: (m: any, role: string) => role === 'in' ? `«${titleOf(m)}» تبدأ بعد ساعتين${m.time ? ' (الساعة ' + time12(m.time) + ')' : ''}. نراك على الملعب ⚽`
     : role === 'sub' ? `«${titleOf(m)}» تبدأ بعد ساعتين. أنت في الاحتياط، خلك جاهز إذا انفتح لك مقعد 🪑`
     : `«${titleOf(m)}» تبدأ بعد ساعتين. شرّفنا بحضورك 👀`,
+  rem: (m: any, left: number, n: number, now: number) => {
+    const seats = left === 1 ? 'باقي مقعد واحد' : left === 2 ? 'باقي مقعدين' : left <= 10 ? `باقي ${left} مقاعد` : `باقي ${left} مقعد`;
+    const dd = Math.round((Date.parse(m.date + 'T00:00:00+03:00') - Date.parse(new Date(now + KW).toISOString().slice(0, 10) + 'T00:00:00+03:00')) / 86400000);
+    const day = dd <= 0 ? 'اليوم' : dd === 1 ? 'بكرة' : 'يوم ' + new Date(m.date + 'T00:00:00').toLocaleDateString('ar-KW', { weekday: 'long' });
+    const when = day + (m.time ? ' الساعة ' + time12(m.time) : '');
+    const v = n % 3;
+    return v === 0 ? `${seats} على «${titleOf(m)}» ${when}. سجّل حضورك الحين`
+      : v === 1 ? `لسا ما سجّلت على «${titleOf(m)}» (${when}). ${seats}، لا تفوتك`
+      : `«${titleOf(m)}» ${when} والعدد ما اكتمل: ${seats}. اختر Going أو Not going`;
+  },
   vote1: (m: any) => `انتهت «${titleOf(m)}»! صوّت لرجل المباراة 🌟 ولصخرة الدفاع 🛡 قبل منتصف الليل`,
   vote2: (m: any, miss: string) => `باقي ساعات على قفل التصويت في «${titleOf(m)}». لم تصوّت لـ ${miss}`,
   galM: (m: any, n: number) => `📸 ${n > 1 ? 'انرفعت ملفات جديدة' : 'انرفع ملف جديد'} (صور أو فيديو أو رابط) مربوط بـ «${titleOf(m)}»`,
@@ -161,6 +171,33 @@ export async function queueGallery(mid?: string, by?: string) {
   await mutate('nlog', (cur) => ({ ...cur, [k]: { ts: Date.now(), n: ((cur[k] && cur[k].n) || 0) + 1, by: by || '' } }));
 }
 
+
+/* ---- تذكير التسجيل الدوري (للمباريات المحددة السعة) ---- */
+async function regReminder(mid: string, m: any, st: number, now: number, _matches: Record<string, any>, rsvps: Record<string, any>, access: Record<string, any>) {
+  if (m.priv || m.tid || !+m.format || !m.createdAt) return;
+  if (st - now <= 125 * 60000) return;            /* قبل المباراة بساعتين يتولاها تذكير الساعتين */
+  if (kwHour(now) >= 23 || kwHour(now) < 8) return; /* ساعات الهدوء 11م–8ص */
+  const cap = 2 * +m.format; let used = 0;
+  for (const [u, x] of regs(rsvps, mid, ['in'])) if (access[u] && access[u].status === 'ok') used += 1 + (m.guests === false ? 0 : Math.max(0, Math.min(5, +x.g || 0)));
+  const left = cap - used; if (left <= 0) return;  /* اكتمل العدد */
+  const lk = 'rem:' + mid; let due = false, n = 0;
+  await mutate('nlog', (cur) => {
+    const r = cur[lk]; const base = r ? r.ts : +m.createdAt; n = r ? r.n : 0;
+    if (now - base < 6 * 3600000) { due = false; return cur; }
+    due = true; return { ...cur, [lk]: { ts: now, n: n + 1 } };
+  });
+  if (!due) return;
+  const groups = await readColl('groups'); const a = m.aud;
+  const inAud = (u: string) => {
+    if (!a || !Array.isArray(a.ids) || !a.ids.length) return true;
+    if (a.t === 'players') return a.ids.includes(u);
+    return a.ids.some((id: string) => groups[id] && (groups[id].members || []).includes(u));
+  };
+  const done = new Set(regs(rsvps, mid, ['in', 'out']).map(([u]) => u));
+  const uids = Object.keys(access).filter((u) => access[u] && access[u].status === 'ok' && inAud(u) && !done.has(u));
+  await notifyUsers({ uids, key: 'r' + mid + '_' + (n + 1), kind: 'rem', h: '📝 سجّل حضورك', t: T.rem(m, left, n, now), title: '📝 باقي مقاعد، سجّل حضورك', mid });
+}
+
 /* ---- الوظيفة المجدولة كل 15 دقيقة ---- */
 export async function runJobs() {
   const now = Date.now();
@@ -176,6 +213,8 @@ export async function runJobs() {
         await notifyUsers({ uids, key: 'p' + mid + role, kind: 'pre', h: '⏰ تذكير', t: T.pre(m, role), title: '⏰ المباراة بعد ساعتين', mid });
       }
     }
+    /* تذكير التسجيل الدوري: كل 6 ساعات لغير المسجلين حتى يكتمل العدد */
+    await regReminder(mid, m, st, now, matches, rsvps, access);
     /* التصويت */
     if (isFB(m)) {
       const open = st + 60 * 60000;

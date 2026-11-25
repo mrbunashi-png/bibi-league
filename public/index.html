@@ -36,6 +36,28 @@ h2{font-size:17px;font-weight:800;margin:26px 0 10px;color:var(--wood)}
 .ann .d b{display:block;font-size:22px;line-height:1.1}
 .ann .d span{font-size:12px}
 .ann .t{font-weight:700}
+.ann>div:not(.more):not(.d){flex:1;min-width:0}
+.when{background:linear-gradient(135deg,var(--wood-d),var(--wood) 55%,var(--olive-d));color:var(--paper);border-radius:14px;padding:10px 12px;margin:6px 0;display:grid;gap:6px}
+.when .wtop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.when .wd{font-size:13px;opacity:.92;font-weight:700}
+.when .wt{font-size:26px;font-weight:800;line-height:1.15}
+.when .rel{background:#e9c46a;color:var(--wood-d);border-radius:20px;padding:2px 11px;font-size:13px;font-weight:800;white-space:nowrap}
+.when .wp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;font-weight:800;border-top:1px solid rgba(244,239,227,.25);padding-top:7px}
+.when .wp span{flex:1;min-width:0}
+.when .wmap{background:var(--paper);color:var(--wood-d);border-radius:10px;padding:5px 11px;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap}
+.mrows .when{grid-column:1/-1;margin:0}
+.tops2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tt{background:linear-gradient(170deg,#fff,#f4efe3);border:1px solid var(--line);border-top:4px solid var(--olive);border-radius:14px;padding:10px 8px 11px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tt.as{border-top-color:#c9962b}
+.tt .tl{font-size:12px;font-weight:800;color:var(--olive-d)}
+.tt.as .tl{color:#8a6a1c}
+.tt .av.big{width:56px;height:56px;font-size:22px;margin:2px 0}
+.tt .tn{font-size:15px;font-weight:800;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tt .tcn{font-size:28px;font-weight:800;line-height:1;color:var(--wood)}
+.tt .tcn small{font-size:12px;font-weight:700;color:var(--mute);margin-inline-start:4px}
+.tt .t2{font-size:11px;color:var(--mute)}
+details.tmore{margin-top:8px}
+details.tmore summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--olive-d);padding:6px 2px}
 .ann .s{font-size:13px;color:var(--mute)}
 .tag{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:1px 9px;margin-inline-start:6px}
 .tag.up{background:#e4ebcf;color:var(--olive-d)} .tag.done{background:#eadfce;color:var(--wood)}
@@ -406,14 +428,17 @@ button.mv.on{background:#e4ebcf;border-color:var(--olive)}
   <main id="v-home">
     <h2>آخر الإعلانات</h2>
     <div id="ann"></div>
+    <div id="topsBox">
+      <h2>الأفضل</h2>
+      <div class="tops2" id="tops2"></div>
+      <details class="tmore"><summary>كل الأفضل (حضور، رجل المباراة، صخرة الدفاع)</summary><div class="tops" id="tops"></div></details>
+    </div>
+    <div id="ann2"></div>
     <div class="admin" data-admin><button class="ghost" id="addMatch">+ إعلان لعب جديد</button></div>
     <div id="notifCard"></div>
     <h2>📢 Feed</h2>
     <div id="feed"></div>
     <div class="admin" data-admin><button class="ghost" id="addPost">+ منشور جديد</button></div>
-
-    <h2>الأفضل</h2>
-    <div class="tops" id="tops"></div>
 
     <h2>من المباريات السابقة</h2>
     <div class="gal v" id="gal"></div>
@@ -826,20 +851,36 @@ function matchBadge0(m){
   const L=layout(m.id);
   return (L.cap!==Infinity&&L.used>=L.cap)?'<div class="bigok">✅ اكتمل العدد</div>':'';
 }
+function relWhen(m){
+  const st=matchStartMs(m);if(!isFinite(st))return '';
+  const now=Date.now(),ms=st-now;if(ms<=0)return 'بدأت';
+  const mins=Math.round(ms/60000);
+  if(mins<60)return 'بعد '+mins+' دقيقة';
+  const hr=Math.round(ms/3600000);
+  if(ms<6*3600000)return 'بعد '+(hr===1?'ساعة':hr===2?'ساعتين':hr+' ساعات');
+  const day=t=>Date.UTC(...new Date(t+3*3600000).toISOString().slice(0,10).split('-').map((x,i)=>i===1?x-1:+x));
+  const dd=Math.round((day(st)-day(now))/86400000);
+  return dd<=0?'اليوم':dd===1?'بكرة':dd===2?'بعد يومين':'بعد '+dd+' أيام';
+}
+function whenBlock(m){
+  const f=m.date?fmtDate(m.date):null;const url=safeUrl(m.mapUrl);const rel=relWhen(m);
+  return `<div class="when"><div class="wtop"><div><div class="wd">📅 ${f?esc(f.wk+' '+f.day+' '+f.mon):'الموعد يُحدد لاحقًا'}</div><div class="wt">⏰ ${m.time?esc(time12(m.time)):'الوقت يُحدد لاحقًا'}</div></div>${rel?`<span class="rel">${esc(rel)}</span>`:''}</div>
+    <div class="wp"><span>📍 ${esc(m.place||'المكان يُحدد لاحقًا')}</span>${url?`<a class="wmap" href="${esc(url)}" target="_blank" rel="noopener">🗺 افتح الخريطة</a>`:''}</div></div>`;
+}
 function matchCard(m){
   const today=todayStr();
   const f=fmtDate(m.date);const up=!isDone(m);const lat=m.id===latestMatchId()&&S.matches.length>1;
-  return `<div class="card ann ${up?'':'pastc'} ${lat?'latest':''}" data-id="${esc(m.id)}"><div class="d"><b>${esc(f.day)}</b><span>${esc(f.mon)}</span></div>
+  return `<div class="card ann ${up?'':'pastc'} ${lat?'latest':''}" data-id="${esc(m.id)}">${up&&!m.cancelled?'':`<div class="d"><b>${esc(f.day)}</b><span>${esc(f.mon)}</span></div>`}
       <div><div class="t">${esc(matchTitle(m))}<span class="tag ${up&&!m.cancelled?'up':'done'}">${m.cancelled?'ملغاة':up?'قادم':'انلعب'}</span>${lat?'<span class="tag lat">🆕 آخر إعلان</span>':''}</div>
-      ${m.time?`<div class="s">⏰ ${esc(time12(m.time))}</div>`:''}
-      <div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}${m.note?' · '+esc(m.note):''}</div>${liveLine(m.id)}
+      ${up&&!m.cancelled?whenBlock(m)+(m.note?`<div class="s">📝 ${esc(m.note)}</div>`:''):`${m.time?`<div class="s">⏰ ${esc(time12(m.time))}</div>`:''}<div class="s">📍 ${esc(m.place||'يُحدد لاحقًا')}${m.note?' · '+esc(m.note):''}</div>`}${liveLine(m.id)}
       ${matchBadge(m)}<div class="s">✅ Going: ${goingLabel(m.id)}</div>${m.fee?`<div class="feeb">💰 القطية ${esc(m.fee)} د.ك${myId&&isPaid(m.id,myId)?' · ✅ دفعت':''}</div>`:''}</div>
       <div class="more">${up?'اضغط لتأكيد حضورك':'اضغط للتفاصيل'} <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div></div>`;
 }
 function renderAnn(){
   const t=todayStr();
   const list=S.matches.filter(m=>m.date&&!m.priv&&!isDone(m)&&!m.cancelled).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,3);
-  $('#ann').innerHTML=list.length?list.map(matchCard).join(''):'<div class="card empty">ما فيه لعب قادم حاليًا، تابع Feed 👇</div>';
+  $('#ann').innerHTML=list.length?list.slice(0,2).map(matchCard).join(''):'<div class="card empty">ما فيه لعب قادم حاليًا، تابع Feed 👇</div>';
+  $('#ann2').innerHTML=list.slice(2).map(matchCard).join('');
 }
 let logTab='all';
 function renderLog(){
@@ -912,7 +953,14 @@ function renderTops(){
   ensureNames(ids);
   const all=ids.map(uid=>({uid,...totals(uid)}));
   const defs=[['⚽ Top Scorer','g','هدف'],['🎯 Top Assists','a','Assist'],['🔥 Top Appearances','n','مباراة'],['🌟 Man of the Match','mv','مرة'],['🛡 صخرة الدفاع','rk','مرة']];
-  $('#tops').innerHTML=defs.map(([title,key,unit])=>{
+  const tile=(cls,title,key,unit)=>{
+    const rows=all.filter(r=>r[key]>0).sort((x,y)=>y[key]-x[key]||x.uid.localeCompare(y.uid));
+    if(!rows.length)return `<div class="tt ${cls}"><div class="tl">${title}</div><div class="t2">بعد أول مباراة</div></div>`;
+    const r=rows[0],tie=rows.filter(x=>x[key]===r[key]).length-1;
+    return `<div class="tt ${cls}"><div class="tl">${title}</div>${avatar(r.uid,'big')}<div class="tn">${nameLink(r.uid)}</div><div class="tcn">${r[key]}<small>${unit}</small></div>${tie>0?`<div class="t2">تعادل مع ${tie}</div>`:rows[1]?`<div class="t2">الثاني: ${esc(nameOf(rows[1].uid))} · ${rows[1][key]}</div>`:''}</div>`;
+  };
+  $('#tops2').innerHTML=tile('','⚽ Top Scorer','g','هدف')+tile('as','🎯 Top Assists','a','Assist');
+  $('#tops').innerHTML=defs.slice(2).map(([title,key,unit])=>{
     const rows=all.filter(r=>r[key]>0).sort((x,y)=>y[key]-x[key]||x.uid.localeCompare(y.uid)).slice(0,3);
     if(!rows.length)return `<div class="card top"><h3>${title}</h3><div class="empty">بعد أول مباراة</div></div>`;
     return `<div class="card top"><h3>${title}</h3><div class="first">${nameLink(rows[0].uid)} <small>${rows[0][key]} ${unit}</small></div>
@@ -1098,8 +1146,7 @@ function renderSheet(){
   const row=(ic,l,v)=>`<div class="mr"><span class="ic">${ic}</span><div><small>${l}</small><b>${v}</b></div></div>`;
   const head=matchBadge(m)+`<div class="mhead"><h3>${esc(matchTitle(m))}</h3>${past?'<span class="tag done">انلعبت</span>':'<span class="tag up">قادمة</span>'}
     <div class="mrows">
-      ${row('📅','الموعد',esc(f.wk)+' '+esc(f.day)+' '+esc(f.mon)+(m.time?' · '+esc(time12(m.time)):''))}
-      ${row('📍','المكان',esc(m.place||'يُحدد لاحقًا')+(url?` <a href="${esc(url)}" target="_blank" rel="noopener">Location</a>`:''))}
+      ${!past&&!m.cancelled?whenBlock(m):row('📅','الموعد',esc(f.wk)+' '+esc(f.day)+' '+esc(f.mon)+(m.time?' · '+esc(time12(m.time)):''))+row('📍','المكان',esc(m.place||'يُحدد لاحقًا')+(url?` <a href="${esc(url)}" target="_blank" rel="noopener">Location</a>`:''))}
       ${m.fee?row('💰','القطية',esc(m.fee)+' د.ك على الشخص'):''}
       ${L.cap!==Infinity?row('👥','السعة',`${L.used}/${L.cap} (${esc(m.format)} ضد ${esc(m.format)})`):''}
     </div>${m.note?`<div class="mnote">📝 ${esc(m.note)}</div>`:''}</div>`;
@@ -1249,7 +1296,7 @@ $('#toast').addEventListener('click',e=>{
   if(d){const id=d.dataset.dismiss;saveMine(cur=>{const n={...(cur.n||{})};delete n[id];return {...cur,n}});return}
   const c=e.target.closest('.toastc');if(c){openId=c.dataset.id;renderSheet();$('#dSheet').showModal()}
 });
-for(const id of ['#ann','#logList'])$(id).addEventListener('click',e=>{const c=e.target.closest('.ann');if(!c)return;openId=c.dataset.id;renderSheet();$('#dSheet').showModal()});
+for(const id of ['#ann','#ann2','#logList'])$(id).addEventListener('click',e=>{if(e.target.closest('a.wmap'))return;const c=e.target.closest('.ann');if(!c)return;openId=c.dataset.id;renderSheet();$('#dSheet').showModal()});
 $('#shBody').addEventListener('click',e=>{const fg=e.target.closest('figure');if(fg&&fg.dataset.id){openMedia(fg.dataset.id);return}
   const b=e.target.closest('button');if(!b||b.disabled)return;
   if(b.dataset.editmatch){if(!isAdmin())return;const mm=S.matches.find(x=>x.id===b.dataset.editmatch);if(mm){$('#dSheet').close();openMatchDlg(mm)}return}
@@ -3489,10 +3536,12 @@ $('#awPage').addEventListener('click',e=>{
 function shareText(m){
   const f=m.date?fmtDate(m.date):null;
   const L=[`⚽ ${matchTitle(m)}`];
-  if(f)L.push(`📅 ${f.wk} ${f.day} ${f.mon}`);
-  if(m.time)L.push(`⏰ ${time12(m.time)}`);
-  L.push(`📍 ${m.place||'يُحدد لاحقًا'}`);
-  if(safeUrl(m.mapUrl))L.push(`🗺 ${m.mapUrl}`);
+  L.push('');
+  if(f)L.push(`📅 *${f.wk} ${f.day} ${f.mon}*`);
+  if(m.time)L.push(`⏰ *الساعة ${time12(m.time)}*`);
+  L.push(`📍 *${m.place||'المكان يُحدد لاحقًا'}*`);
+  if(safeUrl(m.mapUrl))L.push(`🗺 الموقع على الخريطة: ${m.mapUrl}`);
+  L.push('');
   if(m.fee)L.push(`💰 ${m.fee} د.ك على الشخص`);
   if(m.format)L.push(`👥 السعة: ${m.format*2} لاعب`);
   if(m.note)L.push(`📝 ${m.note}`);
@@ -3722,7 +3771,7 @@ $('#postSave').onclick=async()=>{
 
 /* ---------- إعدادات التنبيهات ---------- */
 const NP_DEF={s_tour:true,s_pre:true,s_vote:true,s_gal:true,s_full:true,s_teams:true,ann:true,motmO:true,motmC:true,monthO:true,monthC:true,yearO:true,yearC:true};
-const NP_LBL=[['s_tour','🏆 تحديثات البطولات ونتائجها'],['s_pre','⏰ تذكير قبل المباراة بساعتين'],['s_vote','🌟 تذكير التصويت بعد المباراة'],['s_gal','📸 رفع صور أو فيديو جديد'],['s_full','✅ اكتمال العدد'],['s_teams','📋 اعتماد التشكيلة'],['ann','📣 إعلان لعب جديد'],['motmO','🌟 فتح تصويت رجل المباراة'],['motmC','⏰ قرب انتهاء تصويت رجل المباراة'],['monthO','🗳 فتح تصويت لاعب الشهر'],['monthC','⏰ قرب انتهاء تصويت لاعب الشهر'],['yearO','🗳 فتح تصويت لاعب السنة'],['yearC','⏰ قرب انتهاء تصويت لاعب السنة']];
+const NP_LBL=[['s_tour','🏆 تحديثات البطولات ونتائجها'],['s_pre','⏰ تذكير قبل المباراة بساعتين'],['s_rem','📝 تذكير التسجيل (كل 6 ساعات لين يكتمل العدد)'],['s_vote','🌟 تذكير التصويت بعد المباراة'],['s_gal','📸 رفع صور أو فيديو جديد'],['s_full','✅ اكتمال العدد'],['s_teams','📋 اعتماد التشكيلة'],['ann','📣 إعلان لعب جديد'],['motmO','🌟 فتح تصويت رجل المباراة'],['motmC','⏰ قرب انتهاء تصويت رجل المباراة'],['monthO','🗳 فتح تصويت لاعب الشهر'],['monthC','⏰ قرب انتهاء تصويت لاعب الشهر'],['yearO','🗳 فتح تصويت لاعب السنة'],['yearC','⏰ قرب انتهاء تصويت لاعب السنة']];
 let npMem={};
 function loadNP(){try{return {...NP_DEF,...JSON.parse(localStorage.getItem('bibi_np')||'{}')}}catch(e){return {...NP_DEF,...npMem}}}
 function saveNP(o){npMem=o;try{localStorage.setItem('bibi_np',JSON.stringify(o))}catch(e){}}
